@@ -13,7 +13,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 </head>
 
-<body>
+<body class="{{ $themeClass }}">
     <div id="app-wrapper">
         @include('layouts.partials.sidebar')
         <div class="app-content">
@@ -162,6 +162,44 @@
             }
         </script>
     @endif
+    
+    <!-- Theme Switcher JavaScript -->
+    <script>
+        // Theme switching functionality
+        async function switchTheme(theme) {
+            try {
+                const response = await fetch('{{ route("theme.switch") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({ theme: theme })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Update body class
+                    document.body.className = data.themeClass;
+                    
+                    // Update active theme button
+                    document.querySelectorAll('.theme-option').forEach(btn => {
+                        btn.classList.remove('active');
+                    });
+                    document.querySelector(`[onclick="switchTheme('${theme}')"]`).classList.add('active');
+                    
+                    // Show success message (optional)
+                    console.log(data.message);
+                } else {
+                    console.error('Theme switch failed:', data.message);
+                }
+            } catch (error) {
+                console.error('Theme switch error:', error);
+            }
+        }
+    </script>
 </body>
 
 </html>

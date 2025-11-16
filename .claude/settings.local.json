@@ -8,7 +8,8 @@
       "Bash(ddev php artisan:*)",
       "Bash(rm:*)",
       "Bash(mkdir:*)",
-      "Bash(ddev exec php artisan:*)"
+      "Bash(ddev exec php artisan:*)",
+      "Bash(ddev exec:*)"
     ],
     "deny": []
   }

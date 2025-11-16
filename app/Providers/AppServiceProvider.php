@@ -20,5 +20,6 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         view()->composer('layouts.app', \App\View\Composers\SpotifyComposer::class);
+        view()->composer('*', \App\View\Composers\ThemeComposer::class);
     }
 }

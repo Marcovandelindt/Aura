@@ -41,3 +41,11 @@ Route::prefix('ideas')->group(function () {
     Route::put('/{idea}', [App\Http\Controllers\IdeasController::class, 'update'])->name('ideas.update');
     Route::delete('/{idea}', [App\Http\Controllers\IdeasController::class, 'destroy'])->name('ideas.destroy');
 });
+
+/**
+ * Theme Routes
+ */
+Route::prefix('theme')->group(function () {
+    Route::post('/switch', [App\Http\Controllers\ThemeController::class, 'switch'])->name('theme.switch');
+    Route::get('/current', [App\Http\Controllers\ThemeController::class, 'current'])->name('theme.current');
+});

@@ -1,0 +1,257 @@
+// Theme Variables and Styles
+
+// Light Theme (Default)
+:root {
+    // Brand Colors
+    --primary-color: #{$primary-color};
+    --secondary-color: #{$secondary-color};
+    
+    // Background Colors
+    --body-bg: #f8fafc;
+    --content-bg: #ffffff;
+    --card-bg: #ffffff;
+    --sidebar-bg: #ffffff;
+    
+    // Text Colors
+    --text-primary: #1a202c;
+    --text-secondary: #718096;
+    --text-muted: #a0aec0;
+    
+    // Border Colors
+    --border-color: #e2e8f0;
+    --border-light: #f7fafc;
+    
+    // Shadow
+    --box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+    --box-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    
+    // Music Player
+    --floating-player-bg: rgba(255, 255, 255, 0.85);
+    --floating-progress-bg: rgba(0, 0, 0, 0.1);
+    --floating-time-bg: rgba(255, 255, 255, 0.9);
+}
+
+
+// Christmas Theme 🎄
+.theme-christmas {
+    // Christmas Colors
+    --primary-color: #dc2626; // Christmas Red
+    --secondary-color: #16a34a; // Christmas Green
+    
+    // Background Colors with festive gradients
+    --body-bg: linear-gradient(135deg, #fef2f2 0%, #f0fdf4 100%);
+    --content-bg: #ffffff;
+    --card-bg: linear-gradient(145deg, #ffffff 0%, #fefefe 100%);
+    --sidebar-bg: linear-gradient(180deg, #dc2626 0%, #16a34a 100%);
+    
+    // Text Colors
+    --text-primary: #1f2937;
+    --text-secondary: #6b7280;
+    --text-muted: #9ca3af;
+    
+    // Christmas specific colors
+    --christmas-red: #dc2626;
+    --christmas-green: #16a34a;
+    --christmas-gold: #fbbf24;
+    --christmas-snow: #f8fafc;
+    
+    // Border Colors
+    --border-color: rgba(220, 38, 38, 0.2);
+    --border-light: rgba(220, 38, 38, 0.1);
+    
+    // Shadow with Christmas colors
+    --box-shadow: 0 1px 3px 0 rgba(220, 38, 38, 0.1), 0 1px 2px 0 rgba(22, 163, 74, 0.06);
+    --box-shadow-lg: 0 10px 15px -3px rgba(220, 38, 38, 0.1), 0 4px 6px -2px rgba(22, 163, 74, 0.05);
+    
+    // Music Player with Christmas styling
+    --floating-player-bg: linear-gradient(135deg, rgba(220, 38, 38, 0.9) 0%, rgba(22, 163, 74, 0.9) 100%);
+    --floating-progress-bg: rgba(255, 255, 255, 0.3);
+    --floating-time-bg: rgba(248, 250, 252, 0.95);
+}
+
+// Apply theme variables to components
+body {
+    background: var(--body-bg);
+    color: var(--text-primary);
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.content-wrapper, .app-content {
+    background: var(--content-bg);
+}
+
+.card {
+    background: var(--card-bg);
+    border-color: var(--border-color);
+    box-shadow: var(--box-shadow);
+    
+    &:hover {
+        box-shadow: var(--box-shadow-lg);
+    }
+}
+
+.sidebar {
+    background: var(--sidebar-bg);
+    border-color: var(--border-color);
+}
+
+// Christmas Theme Specific Styling
+.theme-christmas {
+    // Add snowflake animation
+    &::before {
+        content: '';
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 1;
+        background-image: 
+            radial-gradient(2px 2px at 20px 30px, #fff, transparent),
+            radial-gradient(2px 2px at 40px 70px, rgba(255,255,255,0.8), transparent),
+            radial-gradient(1px 1px at 90px 40px, #fff, transparent),
+            radial-gradient(1px 1px at 130px 80px, rgba(255,255,255,0.6), transparent),
+            radial-gradient(2px 2px at 160px 30px, #fff, transparent);
+        background-repeat: repeat;
+        background-size: 200px 100px;
+        animation: snow 10s linear infinite;
+        opacity: 0.6;
+    }
+    
+    // Sidebar gets Christmas colors
+    .sidebar {
+        background: var(--sidebar-bg);
+        
+        .nav-link {
+            color: rgba(255, 255, 255, 0.9);
+            
+            .nav-icon {
+                color: white;
+            }
+            
+            &:hover {
+                background: rgba(255, 255, 255, 0.1);
+                color: var(--christmas-gold);
+                
+                .nav-icon {
+                    color: var(--christmas-gold);
+                }
+            }
+            
+            &.active {
+                background: rgba(255, 255, 255, 0.2);
+                color: var(--christmas-gold);
+                
+                .nav-icon {
+                    color: var(--christmas-gold);
+                }
+            }
+        }
+        
+        .nav-section-title {
+            color: rgba(255, 255, 255, 0.7);
+        }
+        
+        .brand-text {
+            color: white;
+        }
+    }
+    
+    // Cards get festive borders
+    .card {
+        border: 2px solid transparent;
+        background: var(--card-bg);
+        position: relative;
+        
+        &::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(45deg, var(--christmas-red), var(--christmas-green), var(--christmas-gold));
+            border-radius: inherit;
+            z-index: -1;
+            opacity: 0.6;
+        }
+    }
+    
+    // Top artist widget gets Christmas styling
+    .top-artist-widget {
+        background: linear-gradient(135deg, #dc2626 0%, #16a34a 100%);
+        
+        &::before {
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y="50" font-size="20">🎄</text><text y="80" x="30" font-size="15">❄️</text><text y="30" x="70" font-size="18">🎁</text></svg>');
+        }
+    }
+    
+    // Buttons get Christmas styling
+    .btn-primary {
+        background: linear-gradient(135deg, var(--christmas-red) 0%, var(--christmas-green) 100%);
+        border: none;
+        
+        &:hover {
+            background: linear-gradient(135deg, #b91c1c 0%, #15803d 100%);
+            box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+        }
+    }
+    
+    // Ideas get Christmas colors
+    .priority-badge.priority-high {
+        background: var(--christmas-red);
+        color: white;
+        border-color: #b91c1c;
+    }
+    
+    .priority-badge.priority-medium {
+        background: var(--christmas-gold);
+        color: #92400e;
+        border-color: #f59e0b;
+    }
+    
+    .priority-badge.priority-low {
+        background: var(--christmas-green);
+        color: white;
+        border-color: #15803d;
+    }
+}
+
+// Snowfall animation
+@keyframes snow {
+    0% {
+        transform: translateY(-100vh);
+    }
+    100% {
+        transform: translateY(100vh);
+    }
+}
+
+// Smooth transitions for theme switching
+* {
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+
+// Theme Christmas floating player override
+.theme-christmas {
+    .floating-player {
+        background: var(--floating-player-bg);
+        
+        .floating-track-name {
+            color: white;
+            font-weight: 700;
+        }
+        
+        .floating-artist-name {
+            color: rgba(255, 255, 255, 0.9);
+        }
+    }
+    
+    .floating-time .current-time,
+    .floating-time .total-time {
+        background: var(--floating-time-bg);
+        color: var(--text-primary);
+    }
+}

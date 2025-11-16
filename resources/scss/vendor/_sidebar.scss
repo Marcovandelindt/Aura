@@ -174,3 +174,103 @@
         }
     }
 }
+
+// Theme Switcher Styling
+.theme-switcher {
+    .nav-link-static {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 20px;
+        color: $nav-link-color;
+        font-size: 14px;
+        font-weight: 500;
+        text-decoration: none;
+        border-radius: $border-radius;
+        margin-bottom: 8px;
+        cursor: default;
+        
+        .nav-icon {
+            font-size: 16px;
+            width: 16px;
+            text-align: center;
+        }
+    }
+}
+
+.theme-options {
+    padding-left: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.theme-option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: none;
+    border: none;
+    color: rgba($nav-link-color, 0.8);
+    font-size: 13px;
+    font-weight: 500;
+    text-decoration: none;
+    border-radius: $border-radius;
+    cursor: pointer;
+    transition: $transition-base;
+    width: 100%;
+    text-align: left;
+    
+    &:hover {
+        background: rgba($primary-color, 0.1);
+        color: $primary-color;
+    }
+    
+    &.active {
+        background: $primary-color;
+        color: white;
+        
+        &:hover {
+            background: darken($primary-color, 10%);
+        }
+    }
+    
+    i {
+        font-size: 14px;
+        width: 14px;
+        text-align: center;
+    }
+    
+    span {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+}
+
+// Christmas theme specific styling for sidebar
+.theme-christmas .sidebar {
+    .theme-option {
+        color: rgba(255, 255, 255, 0.8);
+        
+        &:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fbbf24; // Christmas gold
+        }
+        
+        &.active {
+            background: #fbbf24;
+            color: #1f2937;
+            
+            &:hover {
+                background: #f59e0b;
+            }
+        }
+    }
+    
+    .nav-link-static {
+        color: rgba(255, 255, 255, 0.9);
+    }
+}
+

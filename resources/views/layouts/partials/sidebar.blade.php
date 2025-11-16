@@ -80,6 +80,25 @@
                 </a>
             </li>
             
+            <!-- Theme Switcher -->
+            <li class="nav-item theme-switcher">
+                <div class="nav-link-static">
+                    <i class="fas fa-palette nav-icon"></i>
+                    <span class="nav-text">Theme</span>
+                </div>
+                <div class="theme-options">
+                    @foreach($availableThemes as $themeKey => $themeInfo)
+                        <button type="button" 
+                                class="theme-option {{ $currentTheme === $themeKey ? 'active' : '' }}" 
+                                onclick="switchTheme('{{ $themeKey }}')"
+                                title="{{ $themeInfo['description'] }}">
+                            <i class="{{ $themeInfo['icon'] }}"></i>
+                            <span>{{ $themeInfo['name'] }}</span>
+                        </button>
+                    @endforeach
+                </div>
+            </li>
+            
             <li class="nav-item">
                 <a href="#" class="nav-link">
                     <i class="fas fa-sign-out-alt nav-icon"></i>
