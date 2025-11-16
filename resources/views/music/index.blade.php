@@ -52,6 +52,93 @@
         </div>
     @endif
 
+    <!-- Top Artist This Week -->
+    @if($topArtistThisWeek)
+        <div class="top-artist-widget" style="margin-bottom: 2rem;">
+            <div class="top-artist-content">
+                <div class="top-artist-header">
+                    <div class="top-artist-badge">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                        </svg>
+                        Top Artist This Week
+                    </div>
+                </div>
+                
+                <div class="top-artist-main">
+                    @if($topArtistThisWeek->album_image_url)
+                        <div class="top-artist-image-container">
+                            <img src="{{ $topArtistThisWeek->album_image_url }}" 
+                                 alt="{{ $topArtistThisWeek->name }}"
+                                 class="top-artist-image">
+                            <div class="top-artist-overlay">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
+                                    <path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                                </svg>
+                            </div>
+                        </div>
+                    @endif
+                    
+                    <div class="top-artist-info">
+                        <h3 class="top-artist-name">
+                            <a href="{{ route('artists.show', ['artist' => urlencode($topArtistThisWeek->name)]) }}">
+                                {{ $topArtistThisWeek->name }}
+                            </a>
+                        </h3>
+                        
+                        <div class="top-artist-stats-grid">
+                            <div class="top-artist-stat">
+                                <span class="stat-number">{{ $topArtistThisWeek->plays }}</span>
+                                <span class="stat-label">plays</span>
+                            </div>
+                            <div class="top-artist-stat">
+                                <span class="stat-number">{{ $topArtistThisWeek->unique_tracks_count }}</span>
+                                <span class="stat-label">tracks</span>
+                            </div>
+                            <div class="top-artist-stat">
+                                @php
+                                    $totalMinutes = floor($topArtistThisWeek->total_duration_ms / 1000 / 60);
+                                @endphp
+                                <span class="stat-number">{{ $totalMinutes }}m</span>
+                                <span class="stat-label">listening time</span>
+                            </div>
+                            @if($topArtistThisWeek->streak_days > 0)
+                                <div class="top-artist-stat">
+                                    <span class="stat-number">{{ $topArtistThisWeek->streak_days }}</span>
+                                    <span class="stat-label">day{{ $topArtistThisWeek->streak_days > 1 ? 's' : '' }} streak</span>
+                                </div>
+                            @endif
+                            @if($topArtistThisWeek->peak_hour)
+                                <div class="top-artist-stat">
+                                    <span class="stat-number">{{ $topArtistThisWeek->peak_hour }}</span>
+                                    <span class="stat-label">peak hour ({{ $topArtistThisWeek->peak_hour_plays }} plays)</span>
+                                </div>
+                            @endif
+                            @if($topArtistThisWeek->top_day)
+                                <div class="top-artist-stat top-day-stat">
+                                    <span class="stat-number">{{ $topArtistThisWeek->top_day }}</span>
+                                    <span class="stat-label">top day ({{ $topArtistThisWeek->top_day_plays }} plays)</span>
+                                </div>
+                            @endif
+                        </div>
+                        
+                        <div class="top-artist-tracks">
+                            <p class="tracks-label">Most played tracks:</p>
+                            <div class="tracks-list">
+                                @foreach(array_slice($topArtistThisWeek->unique_tracks, 0, 3) as $trackName)
+                                    <span class="track-pill">{{ $trackName }}</span>
+                                @endforeach
+                                @if(count($topArtistThisWeek->unique_tracks) > 3)
+                                    <span class="track-pill more">+{{ count($topArtistThisWeek->unique_tracks) - 3 }} more</span>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
+
     <!-- Statistics -->
     <div class="stats-grid" style="margin-bottom: 2rem;">
         <div class="card">

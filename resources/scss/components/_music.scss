@@ -236,6 +236,25 @@
     }
 }
 
+@keyframes goldPulse {
+    0% {
+        color: #ffd700;
+        text-shadow: 0 2px 8px rgba(255, 215, 0, 0.3);
+        transform: scale(1);
+    }
+    50% {
+        color: #ffed4a;
+        text-shadow: 0 4px 16px rgba(255, 215, 0, 0.6);
+        transform: scale(1.05);
+    }
+    100% {
+        color: #ffd700;
+        text-shadow: 0 2px 8px rgba(255, 215, 0, 0.3);
+        transform: scale(1);
+    }
+}
+
+
 // Add bottom padding to app content to avoid overlap
 #app-wrapper .app-content {
     padding-bottom: 80px;
@@ -658,5 +677,234 @@
         a:hover {
             color: #1DB954 !important;
         }
+    }
+}
+
+// Top Artist Widget
+.top-artist-widget {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 8px 32px rgba(102, 126, 234, 0.3);
+    position: relative;
+    
+    &::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="white" opacity="0.1"/><circle cx="75" cy="75" r="1" fill="white" opacity="0.05"/><circle cx="50" cy="10" r="0.5" fill="white" opacity="0.08"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+        pointer-events: none;
+    }
+}
+
+.top-artist-content {
+    position: relative;
+    z-index: 1;
+    padding: 2rem;
+    
+    @media (max-width: $mobile) {
+        padding: 1.5rem;
+    }
+}
+
+.top-artist-header {
+    margin-bottom: 1.5rem;
+}
+
+.top-artist-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    
+    svg {
+        color: #ffd700;
+    }
+}
+
+.top-artist-main {
+    display: flex;
+    gap: 2rem;
+    align-items: flex-start;
+    
+    @media (max-width: $mobile) {
+        flex-direction: column;
+        gap: 1.5rem;
+        align-items: center;
+        text-align: center;
+    }
+}
+
+.top-artist-image-container {
+    position: relative;
+    flex-shrink: 0;
+}
+
+.top-artist-image {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    border: 4px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+    
+    @media (max-width: $mobile) {
+        width: 100px;
+        height: 100px;
+    }
+}
+
+.top-artist-overlay {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 36px;
+    height: 36px;
+    background: linear-gradient(135deg, #1DB954 0%, #1ed760 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 3px solid rgba(255, 255, 255, 0.9);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    
+    @media (max-width: $mobile) {
+        width: 32px;
+        height: 32px;
+        
+        svg {
+            width: 20px;
+            height: 20px;
+        }
+    }
+}
+
+.top-artist-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.top-artist-name {
+    margin: 0 0 1rem 0;
+    font-size: 1.75rem;
+    font-weight: 700;
+    
+    a {
+        color: white;
+        text-decoration: none;
+        transition: all 0.2s ease;
+        
+        &:hover {
+            color: #ffd700;
+            text-shadow: 0 2px 8px rgba(255, 215, 0, 0.3);
+        }
+    }
+    
+    @media (max-width: $mobile) {
+        font-size: 1.5rem;
+    }
+}
+
+.top-artist-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    
+    @media (max-width: $mobile) {
+        gap: 0.75rem;
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+.top-artist-stat {
+    text-align: center;
+    
+    .stat-number {
+        display: block;
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: white;
+        line-height: 1.2;
+        
+        @media (max-width: $mobile) {
+            font-size: 1.25rem;
+        }
+    }
+    
+    .stat-label {
+        display: block;
+        font-size: 0.75rem;
+        color: rgba(255, 255, 255, 0.8);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-weight: 500;
+        margin-top: 0.25rem;
+        
+        @media (max-width: $mobile) {
+            font-size: 0.7rem;
+        }
+    }
+    
+    &.top-day-stat {
+        .stat-number {
+            color: #ffd700;
+            text-shadow: 0 2px 8px rgba(255, 215, 0, 0.3);
+            animation: goldPulse 2s ease-in-out infinite;
+        }
+        
+        .stat-label {
+            color: rgba(255, 215, 0, 0.9);
+            text-transform: none;
+            letter-spacing: 0;
+        }
+    }
+    
+}
+
+
+.top-artist-tracks {
+    .tracks-label {
+        margin: 0 0 0.75rem 0;
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 0.875rem;
+        font-weight: 500;
+    }
+}
+
+.tracks-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.track-pill {
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(10px);
+    color: white;
+    padding: 0.375rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    
+    &.more {
+        background: rgba(255, 215, 0, 0.2);
+        color: #ffd700;
+        border-color: rgba(255, 215, 0, 0.3);
+    }
+    
+    @media (max-width: $mobile) {
+        font-size: 0.7rem;
+        padding: 0.3rem 0.6rem;
     }
 }
