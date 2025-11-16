@@ -1,0 +1,84 @@
+#app-wrapper {
+    display: flex;
+    min-height: 100vh;
+    position: relative;
+}
+
+.app-content {
+    flex: 1;
+    margin-left: $sidebar-width;
+    transition: margin-left 0.3s ease;
+    background-color: $light-gray;
+    
+    .content-wrapper {
+        padding: $content-padding;
+        
+        @media (max-width: $mobile) {
+            padding: 1rem;
+        }
+    }
+    
+    .content-header {
+        margin-bottom: 2rem;
+        
+        h1 {
+            margin-bottom: 0.5rem;
+        }
+        
+        .breadcrumb {
+            display: flex;
+            list-style: none;
+            font-size: 0.875rem;
+            color: $dark-gray;
+            
+            li {
+                &:not(:last-child) {
+                    &::after {
+                        content: "/";
+                        margin: 0 0.5rem;
+                        color: $medium-gray;
+                    }
+                }
+                
+                a {
+                    color: $dark-gray;
+                    
+                    &:hover {
+                        color: $primary-color;
+                    }
+                }
+            }
+        }
+    }
+}
+
+// Card component
+.card {
+    background: $white;
+    border-radius: $border-radius;
+    box-shadow: $box-shadow;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    
+    .card-header {
+        margin-bottom: 1rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid $medium-gray;
+        
+        h2, h3 {
+            margin: 0;
+        }
+    }
+    
+    .card-body {
+        // Card content styles
+    }
+}
+
+// Responsive
+
+@media (max-width: $mobile) {
+    .app-content {
+        margin-left: 0;
+    }
+}

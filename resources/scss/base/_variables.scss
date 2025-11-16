@@ -1,0 +1,30 @@
+// Colors
+$primary-color: #6366f1;
+$primary-hover: #5558e3;
+$secondary-color: #8b5cf6;
+$dark-color: #1e293b;
+$light-gray: #f8fafc;
+$medium-gray: #e5e7eb;
+$dark-gray: #64748b;
+$text-color: #334155;
+$white: #ffffff;
+
+// Sidebar
+$sidebar-width: 260px;
+$sidebar-collapsed-width: 70px;
+$sidebar-bg: $white;
+$sidebar-text: $text-color;
+$sidebar-hover-bg: $light-gray;
+
+// Layout
+$content-padding: 2rem;
+$border-radius: 0.5rem;
+$box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+
+// Transitions
+$transition-base: all 0.2s ease;
+
+// Breakpoints
+$mobile: 768px;
+$tablet: 1024px;
+$desktop: 1280px;
