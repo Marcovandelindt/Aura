@@ -1,0 +1,509 @@
+// Mood Popup Styling
+
+// Mood trigger button (+ icon next to tracks)
+.mood-trigger {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: rgba($primary-color, 0.1);
+    color: $primary-color;
+    border: none;
+    cursor: pointer;
+    transition: $transition-base;
+    font-size: 0.75rem;
+    margin-left: 0.5rem;
+    
+    &:hover {
+        background: rgba($primary-color, 0.2);
+        transform: scale(1.1);
+    }
+    
+    &.has-moods {
+        background: $primary-color;
+        color: white;
+        
+        &:hover {
+            background: $primary-hover;
+        }
+    }
+}
+
+// Mood popup overlay
+.mood-popup-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    
+    &.active {
+        opacity: 1;
+        visibility: visible;
+    }
+}
+
+// Mood popup container
+.mood-popup {
+    background: white;
+    border-radius: $border-radius;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    width: 90%;
+    max-width: 500px;
+    max-height: 80vh;
+    overflow: hidden;
+    transform: scale(0.9) translateY(-20px);
+    transition: all 0.3s ease;
+    
+    .mood-popup-overlay.active & {
+        transform: scale(1) translateY(0);
+    }
+}
+
+// Popup header
+.mood-popup-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.5rem;
+    border-bottom: 1px solid $medium-gray;
+    background: $light-gray;
+    
+    .track-info {
+        flex: 1;
+        min-width: 0;
+        
+        .track-name {
+            font-weight: 600;
+            color: $dark-color;
+            margin-bottom: 0.25rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .track-artist {
+            font-size: 0.875rem;
+            color: $dark-gray;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+    }
+    
+    .close-btn {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: none;
+        border: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: $dark-gray;
+        cursor: pointer;
+        transition: $transition-base;
+        margin-left: 1rem;
+        
+        &:hover {
+            background: rgba($dark-color, 0.1);
+            color: $dark-color;
+        }
+    }
+}
+
+// Popup content
+.mood-popup-content {
+    padding: 1.5rem;
+    max-height: 400px;
+    overflow-y: auto;
+    
+    &::-webkit-scrollbar {
+        width: 6px;
+    }
+    
+    &::-webkit-scrollbar-track {
+        background: $light-gray;
+        border-radius: 3px;
+    }
+    
+    &::-webkit-scrollbar-thumb {
+        background: $medium-gray;
+        border-radius: 3px;
+        
+        &:hover {
+            background: $dark-gray;
+        }
+    }
+}
+
+// Current moods section
+.current-moods {
+    margin-bottom: 1.5rem;
+    
+    h3 {
+        font-size: 1rem;
+        color: $dark-color;
+        margin: 0 0 1rem 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .mood-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+    
+    .empty-state {
+        color: $dark-gray;
+        font-style: italic;
+        padding: 1rem;
+        text-align: center;
+        background: $light-gray;
+        border-radius: $border-radius;
+    }
+}
+
+// Available moods section
+.available-moods {
+    h3 {
+        font-size: 1rem;
+        color: $dark-color;
+        margin: 0 0 1rem 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .mood-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 0.75rem;
+    }
+}
+
+// Individual mood tags/buttons
+.mood-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: $transition-base;
+    border: none;
+    text-decoration: none;
+    
+    &.assigned {
+        color: white;
+        position: relative;
+        
+        .remove-mood {
+            margin-left: 0.25rem;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 0.7rem;
+            transition: $transition-base;
+            
+            &:hover {
+                background: rgba(255, 255, 255, 0.3);
+            }
+        }
+    }
+    
+    &.available {
+        background: $light-gray;
+        color: $dark-color;
+        border: 2px solid transparent;
+        
+        &:hover {
+            border-color: var(--mood-color, $primary-color);
+            transform: translateY(-1px);
+        }
+    }
+    
+    .mood-icon {
+        font-size: 0.875rem;
+    }
+}
+
+// Create new mood section
+.create-mood-section {
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid $medium-gray;
+    
+    .create-mood-toggle {
+        background: none;
+        border: none;
+        color: $primary-color;
+        font-size: 0.875rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: $transition-base;
+        
+        &:hover {
+            color: $primary-hover;
+        }
+    }
+    
+    .create-mood-form {
+        margin-top: 1rem;
+        display: none;
+        
+        &.active {
+            display: block;
+        }
+        
+        .form-group {
+            margin-bottom: 1rem;
+            
+            label {
+                display: block;
+                margin-bottom: 0.5rem;
+                font-weight: 500;
+                color: $dark-color;
+                font-size: 0.875rem;
+            }
+            
+            input {
+                width: 100%;
+                padding: 0.5rem;
+                border: 1px solid $medium-gray;
+                border-radius: $border-radius;
+                font-size: 0.875rem;
+                transition: $transition-base;
+                
+                &:focus {
+                    outline: none;
+                    border-color: $primary-color;
+                    box-shadow: 0 0 0 3px rgba($primary-color, 0.1);
+                }
+            }
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 1rem;
+        }
+        
+        .form-actions {
+            display: flex;
+            gap: 0.5rem;
+            
+            button {
+                padding: 0.5rem 1rem;
+                border-radius: $border-radius;
+                font-size: 0.875rem;
+                cursor: pointer;
+                transition: $transition-base;
+                
+                &.btn-primary {
+                    background: $primary-color;
+                    color: white;
+                    border: none;
+                    
+                    &:hover {
+                        background: $primary-hover;
+                    }
+                }
+                
+                &.btn-secondary {
+                    background: $light-gray;
+                    color: $dark-color;
+                    border: 1px solid $medium-gray;
+                    
+                    &:hover {
+                        background: $medium-gray;
+                    }
+                }
+            }
+        }
+    }
+}
+
+// Christmas theme styling
+.theme-christmas {
+    .mood-trigger {
+        background: rgba(var(--christmas-red-rgb, 220, 38, 38), 0.1);
+        color: var(--christmas-red);
+        
+        &:hover {
+            background: rgba(var(--christmas-red-rgb, 220, 38, 38), 0.2);
+        }
+        
+        &.has-moods {
+            background: var(--christmas-red);
+        }
+    }
+    
+    .mood-tag.available:hover {
+        border-color: var(--christmas-red);
+    }
+    
+    .create-mood-toggle {
+        color: var(--christmas-red);
+        
+        &:hover {
+            color: var(--christmas-green);
+        }
+    }
+    
+    .form-group input:focus {
+        border-color: var(--christmas-red);
+        box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+    }
+    
+    .btn-primary {
+        background: var(--christmas-red) !important;
+        
+        &:hover {
+            background: #b91c1c !important;
+        }
+    }
+}
+
+// Mood pills (inline display next to track names)
+.mood-pills {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 0.375rem;
+    margin-left: 0.75rem;
+    align-items: center;
+    
+    .mood-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.375rem;
+        padding: 0.25rem 0.5rem;
+        border-radius: 14px;
+        font-size: 0.8125rem;
+        font-weight: 500;
+        color: white;
+        text-decoration: none;
+        transition: $transition-base;
+        border: 1px solid transparent;
+        white-space: nowrap;
+        
+        .mood-text {
+            white-space: nowrap;
+        }
+        
+        .mood-icon {
+            font-size: 0.6875rem;
+            flex-shrink: 0;
+        }
+        
+        &:hover {
+            transform: translateY(-1px);
+            opacity: 0.9;
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+    }
+}
+
+// Compact mood pills for tables
+.mood-pills-compact {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 0.125rem;
+    margin-left: 0.25rem;
+    align-items: center;
+    
+    .mood-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        padding: 0.125rem 0.375rem;
+        border-radius: 10px;
+        font-size: 0.6875rem;
+        font-weight: 500;
+        color: white;
+        text-decoration: none;
+        transition: $transition-base;
+        border: 1px solid transparent;
+        white-space: nowrap;
+        
+        .mood-text {
+            white-space: nowrap;
+        }
+        
+        .mood-icon {
+            font-size: 0.5625rem;
+            flex-shrink: 0;
+        }
+        
+        &:hover {
+            transform: translateY(-1px);
+            opacity: 0.9;
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+    }
+}
+
+// Hide text on very small screens for compact pills (only on mobile phones)
+@media (max-width: 480px) {
+    .mood-pills-compact {
+        .mood-text {
+            display: none;
+        }
+        
+        .mood-pill {
+            padding: 0.125rem;
+            min-width: 24px;
+            justify-content: center;
+            gap: 0;
+        }
+    }
+}
+
+// Mobile responsiveness
+@media (max-width: $mobile) {
+    .mood-popup {
+        width: 95%;
+        margin: 1rem;
+    }
+    
+    .mood-popup-header {
+        padding: 1rem;
+    }
+    
+    .mood-popup-content {
+        padding: 1rem;
+        max-height: 60vh;
+    }
+    
+    .mood-grid {
+        grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+        gap: 0.5rem;
+    }
+    
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+}

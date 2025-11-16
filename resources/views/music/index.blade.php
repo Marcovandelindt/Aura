@@ -221,6 +221,7 @@
                                 <th>Album</th>
                                 <th>Duration</th>
                                 <th>Played At</th>
+                                <th width="50">Mood</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -246,6 +247,7 @@
                                             </svg>
                                         </a>
                                     @endif
+                                    <x-mood-pills :moods="$track->moods ?? []" :compact="true" />
                                 </td>
                                 <td>
                                     @foreach($track->artist_names as $index => $artistName)
@@ -266,6 +268,14 @@
                                     <span title="{{ $track->played_at->setTimezone('Europe/Amsterdam')->format('Y-m-d H:i:s') }}">
                                         {{ $track->played_at->setTimezone('Europe/Amsterdam')->format('M j, H:i') }}
                                     </span>
+                                </td>
+                                <td>
+                                    <button class="mood-trigger{{ !empty($track->moods) ? ' has-moods' : '' }}" 
+                                            data-track-id="{{ $track->spotify_track_id }}"
+                                            onclick="openMoodPopup('{{ $track->spotify_track_id }}', '{{ addslashes($track->track_name) }}', '{{ addslashes(implode(', ', $track->artist_names)) }}')"
+                                            title="{{ !empty($track->moods) ? 'Manage moods' : 'Add mood to track' }}">
+                                        <i class="fas fa-{{ !empty($track->moods) ? 'tags' : 'plus' }}"></i>
+                                    </button>
                                 </td>
                             </tr>
                             @endforeach

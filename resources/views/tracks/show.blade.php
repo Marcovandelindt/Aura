@@ -48,6 +48,7 @@
                 
                 <div style="flex: 1;">
                     <h2 style="margin: 0 0 0.5rem 0; font-size: 2rem; font-weight: 700;">{{ $track->track_name }}</h2>
+                    <x-mood-pills :moods="$track->moods ?? []" />
                     <p style="margin: 0 0 1rem 0; font-size: 1.25rem; color: #666;">by {{ $track->artists_string }}</p>
                     <p style="margin: 0 0 1rem 0; color: #888;">from <strong>{{ $track->album_name }}</strong></p>
                     
@@ -68,6 +69,17 @@
                                 <span>{{ $track->popularity }}% popularity</span>
                             </div>
                         @endif
+                        
+                        <div style="display: flex; align-items: center; gap: 0.5rem; color: #666;">
+                            <button class="mood-trigger{{ !empty($track->moods) ? ' has-moods' : '' }}" 
+                                    data-track-id="{{ $track->spotify_track_id }}"
+                                    onclick="openMoodPopup('{{ $track->spotify_track_id }}', '{{ addslashes($track->track_name) }}', '{{ addslashes($track->artists_string) }}')"
+                                    title="{{ !empty($track->moods) ? 'Manage moods' : 'Add mood to track' }}"
+                                    style="margin: 0;">
+                                <i class="fas fa-{{ !empty($track->moods) ? 'tags' : 'plus' }}"></i>
+                            </button>
+                            <span>{{ !empty($track->moods) ? 'Manage mood tags' : 'Add mood tags' }}</span>
+                        </div>
                     </div>
                     
                     @if($track->genres && count($track->genres) > 0)

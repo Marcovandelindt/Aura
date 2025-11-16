@@ -33,6 +33,15 @@ class ArtistController extends Controller
             ->orderBy('play_count', 'desc')
             ->paginate(20);
         
+        // Get moods for tracks
+        $trackIds = $uniqueTracks->pluck('spotify_track_id')->toArray();
+        $trackMoods = PlayedTrack::getMoodsForTracks($trackIds);
+        
+        // Add moods to track objects
+        foreach ($uniqueTracks as $track) {
+            $track->moods = $trackMoods[$track->spotify_track_id] ?? [];
+        }
+        
         // Get all plays by this artist for timeline
         $allPlays = PlayedTrack::whereJsonContains('artist_names', $artistName)
             ->orderBy('played_at', 'desc')

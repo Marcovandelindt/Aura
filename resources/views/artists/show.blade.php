@@ -165,6 +165,7 @@
                                     <th>Album</th>
                                     <th>Plays</th>
                                     <th>Last Played</th>
+                                    <th width="50">Mood</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -182,6 +183,7 @@
                                            style="color: inherit; text-decoration: none; display: block;">
                                             <strong style="color: #333; transition: color 0.2s;">{{ $track->track_name }}</strong>
                                         </a>
+                                        <x-mood-pills :moods="$track->moods ?? []" :compact="true" />
                                     </td>
                                     <td>{{ $track->album_name }}</td>
                                     <td>
@@ -190,6 +192,14 @@
                                         </span>
                                     </td>
                                     <td style="color: #666;">{{ $track->last_played ? \Carbon\Carbon::parse($track->last_played)->setTimezone('Europe/Amsterdam')->format('M j, H:i') : 'N/A' }}</td>
+                                    <td>
+                                        <button class="mood-trigger{{ !empty($track->moods) ? ' has-moods' : '' }}" 
+                                                data-track-id="{{ $track->spotify_track_id }}"
+                                                onclick="openMoodPopup('{{ $track->spotify_track_id }}', '{{ addslashes($track->track_name) }}', '{{ addslashes($artistName) }}')"
+                                                title="{{ !empty($track->moods) ? 'Manage moods' : 'Add mood to track' }}">
+                                            <i class="fas fa-{{ !empty($track->moods) ? 'tags' : 'plus' }}"></i>
+                                        </button>
+                                    </td>
                                 </tr>
                                 @endforeach
                             </tbody>

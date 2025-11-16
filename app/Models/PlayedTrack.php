@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Support\Carbon;
 
 class PlayedTrack extends Model
@@ -91,6 +92,63 @@ class PlayedTrack extends Model
     {
         return $query->whereMonth('played_at', Carbon::now()->month)
                      ->whereYear('played_at', Carbon::now()->year);
+    }
+
+    /**
+     * Get moods for this track (via spotify_track_id)
+     */
+    public function moods(): BelongsToMany
+    {
+        return $this->belongsToMany(Mood::class, 'played_track_mood', 'spotify_track_id', 'mood_id', 'spotify_track_id', 'id');
+    }
+
+    /**
+     * Get moods for a specific spotify track ID
+     */
+    public static function getMoodsForTrack(string $spotifyTrackId)
+    {
+        return Mood::whereHas('tracks', function($query) use ($spotifyTrackId) {
+            $query->where('played_track_mood.spotify_track_id', $spotifyTrackId);
+        })->get();
+    }
+
+    /**
+     * Get moods for multiple tracks (bulk loading)
+     */
+    public static function getMoodsForTracks(array $spotifyTrackIds): array
+    {
+        if (empty($spotifyTrackIds)) {
+            return [];
+        }
+
+        $moodsData = \Illuminate\Support\Facades\DB::table('played_track_mood')
+            ->join('moods', 'played_track_mood.mood_id', '=', 'moods.id')
+            ->whereIn('played_track_mood.spotify_track_id', $spotifyTrackIds)
+            ->where('moods.is_active', true)
+            ->select([
+                'played_track_mood.spotify_track_id',
+                'moods.id',
+                'moods.name',
+                'moods.color',
+                'moods.icon'
+            ])
+            ->get();
+
+        // Group by track ID
+        $result = [];
+        foreach ($moodsData as $moodData) {
+            if (!isset($result[$moodData->spotify_track_id])) {
+                $result[$moodData->spotify_track_id] = [];
+            }
+            $result[$moodData->spotify_track_id][] = [
+                'id' => $moodData->id,
+                'name' => $moodData->name,
+                'color' => $moodData->color,
+                'icon' => $moodData->icon
+            ];
+        }
+
+        return $result;
     }
 
     /**

@@ -33,6 +33,15 @@ class AlbumController extends Controller
             ->orderBy('play_count', 'desc')
             ->paginate(20);
         
+        // Get moods for tracks
+        $trackIds = $albumTracks->pluck('spotify_track_id')->toArray();
+        $trackMoods = PlayedTrack::getMoodsForTracks($trackIds);
+        
+        // Add moods to track objects
+        foreach ($albumTracks as $track) {
+            $track->moods = $trackMoods[$track->spotify_track_id] ?? [];
+        }
+        
         // Get all plays from this album for timeline
         $allPlays = PlayedTrack::where('album_name', $albumName)
             ->orderBy('played_at', 'desc')

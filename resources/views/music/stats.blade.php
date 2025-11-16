@@ -319,12 +319,19 @@
                                         <a href="{{ route('tracks.show', ['track' => $track['spotify_track_id']]) }}" class="item-link">
                                             {{ $track['track_name'] }}
                                         </a>
+                                        <x-mood-pills :moods="$track['moods'] ?? []" />
                                     </div>
                                     <div class="item-details">
                                         {{ $track['artists_string'] }} • {{ $track['album_name'] }}
                                     </div>
                                 </div>
                                 <div class="play-count">{{ $track['play_count'] }}</div>
+                                <button class="mood-trigger{{ !empty($track['moods']) ? ' has-moods' : '' }}" 
+                                        data-track-id="{{ $track['spotify_track_id'] }}"
+                                        onclick="openMoodPopup('{{ $track['spotify_track_id'] }}', '{{ addslashes($track['track_name']) }}', '{{ addslashes($track['artists_string']) }}')"
+                                        title="{{ !empty($track['moods']) ? 'Manage moods' : 'Add mood to track' }}">
+                                    <i class="fas fa-{{ !empty($track['moods']) ? 'tags' : 'plus' }}"></i>
+                                </button>
                             </div>
                         @endforeach
                     </div>

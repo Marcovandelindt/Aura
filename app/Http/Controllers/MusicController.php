@@ -53,6 +53,15 @@ class MusicController extends Controller
                        ->paginate(50)
                        ->withQueryString();
         
+        // Get moods for all tracks
+        $trackIds = $tracks->pluck('spotify_track_id')->unique()->toArray();
+        $trackMoods = PlayedTrack::getMoodsForTracks($trackIds);
+        
+        // Add moods to track objects
+        foreach ($tracks as $track) {
+            $track->moods = $trackMoods[$track->spotify_track_id] ?? [];
+        }
+        
         // Get statistics
         $stats = $this->trackService->getStatistics($filter);
         

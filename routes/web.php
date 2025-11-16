@@ -50,3 +50,14 @@ Route::prefix('theme')->group(function () {
     Route::post('/switch', [App\Http\Controllers\ThemeController::class, 'switch'])->name('theme.switch');
     Route::get('/current', [App\Http\Controllers\ThemeController::class, 'current'])->name('theme.current');
 });
+
+/**
+ * Mood Routes
+ */
+Route::prefix('moods')->group(function () {
+    Route::get('/', [App\Http\Controllers\MoodController::class, 'index'])->name('moods.index');
+    Route::get('/track', [App\Http\Controllers\MoodController::class, 'getTrackMoods'])->name('moods.track');
+    Route::post('/add', [App\Http\Controllers\MoodController::class, 'addMoodToTrack'])->name('moods.add');
+    Route::delete('/remove', [App\Http\Controllers\MoodController::class, 'removeMoodFromTrack'])->name('moods.remove');
+    Route::post('/create', [App\Http\Controllers\MoodController::class, 'store'])->name('moods.store');
+});

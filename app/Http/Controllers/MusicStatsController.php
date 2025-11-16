@@ -83,7 +83,7 @@ class MusicStatsController extends Controller
      */
     private function getTopTracks(int $limit = 10): array
     {
-        return PlayedTrack::select('spotify_track_id', 'track_name', 'artist_names', 'album_name', 'album_image_url', 'duration_ms')
+        $tracks = PlayedTrack::select('spotify_track_id', 'track_name', 'artist_names', 'album_name', 'album_image_url', 'duration_ms')
             ->selectRaw('COUNT(*) as play_count')
             ->selectRaw('MAX(played_at) as last_played')
             ->selectRaw('MIN(played_at) as first_played')
@@ -94,8 +94,16 @@ class MusicStatsController extends Controller
             ->map(function($track) {
                 $track->artists_string = implode(', ', $track->artist_names);
                 return $track;
-            })
-            ->toArray();
+            });
+
+        // Get moods for tracks
+        $trackIds = $tracks->pluck('spotify_track_id')->toArray();
+        $trackMoods = PlayedTrack::getMoodsForTracks($trackIds);
+        
+        return $tracks->map(function($track) use ($trackMoods) {
+            $track->moods = $trackMoods[$track->spotify_track_id] ?? [];
+            return $track;
+        })->toArray();
     }
     
     /**

@@ -23,6 +23,9 @@ class TrackController extends Controller
             abort(404, 'Track not found');
         }
         
+        // Get moods for this track
+        $trackMoods = \App\Models\PlayedTrack::getMoodsForTrack($spotifyTrackId);
+
         // Create a track object with the data we have
         $track = (object) [
             'spotify_track_id' => $firstPlayedTrack->spotify_track_id,
@@ -39,6 +42,14 @@ class TrackController extends Controller
             'popularity' => $firstPlayedTrack->popularity,
             'spotify_uri' => $firstPlayedTrack->spotify_uri,
             'genres' => null, // Will add later when we implement genres
+            'moods' => $trackMoods->map(function($mood) {
+                return [
+                    'id' => $mood->id,
+                    'name' => $mood->name,
+                    'color' => $mood->color,
+                    'icon' => $mood->icon
+                ];
+            })->toArray()
         ];
         
         // Load played tracks with latest first
