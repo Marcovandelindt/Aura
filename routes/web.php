@@ -24,6 +24,7 @@ Route::middleware(['spotify.connected'])->prefix('spotify')->group(function () {
  */
 Route::middleware(['spotify.connected'])->group(function () {
     Route::get('/music', [App\Http\Controllers\MusicController::class, 'index'])->name('music.index');
+    Route::get('/music/stats', [App\Http\Controllers\MusicStatsController::class, 'index'])->name('music.stats');
     Route::get('/music/top', [App\Http\Controllers\MusicController::class, 'topTracks'])->name('music.top');
     Route::post('/music/sync', [App\Http\Controllers\MusicController::class, 'syncTracks'])->name('music.sync');
     Route::get('/tracks/{track}', [App\Http\Controllers\TrackController::class, 'show'])->name('tracks.show');

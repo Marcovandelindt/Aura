@@ -20,9 +20,16 @@
             </li>
             
             <li class="nav-item">
-                <a href="{{ route('music.index') }}" class="nav-link">
+                <a href="{{ route('music.index') }}" class="nav-link {{ request()->routeIs('music.index') ? 'active' : '' }}">
                     <i class="fas fa-music nav-icon"></i>
                     <span class="nav-text">Music</span>
+                </a>
+            </li>
+            
+            <li class="nav-item">
+                <a href="{{ route('music.stats') }}" class="nav-link {{ request()->routeIs('music.stats') ? 'active' : '' }}">
+                    <i class="fas fa-chart-bar nav-icon"></i>
+                    <span class="nav-text">Music Stats</span>
                 </a>
             </li>
             
