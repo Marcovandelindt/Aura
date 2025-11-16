@@ -6,7 +6,9 @@
       "Bash(php artisan make:model:*)",
       "Bash(php artisan:*)",
       "Bash(ddev php artisan:*)",
-      "Bash(rm:*)"
+      "Bash(rm:*)",
+      "Bash(mkdir:*)",
+      "Bash(ddev exec php artisan:*)"
     ],
     "deny": []
   }

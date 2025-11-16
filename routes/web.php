@@ -30,3 +30,14 @@ Route::middleware(['spotify.connected'])->group(function () {
     Route::get('/artists/{artist}', [App\Http\Controllers\ArtistController::class, 'show'])->name('artists.show');
     Route::get('/albums/{album}', [App\Http\Controllers\AlbumController::class, 'show'])->name('albums.show');
 });
+
+/**
+ * Ideas Routes
+ */
+Route::prefix('ideas')->group(function () {
+    Route::get('/', [App\Http\Controllers\IdeasController::class, 'index'])->name('ideas.index');
+    Route::post('/', [App\Http\Controllers\IdeasController::class, 'store'])->name('ideas.store');
+    Route::post('/{idea}/toggle', [App\Http\Controllers\IdeasController::class, 'toggle'])->name('ideas.toggle');
+    Route::put('/{idea}', [App\Http\Controllers\IdeasController::class, 'update'])->name('ideas.update');
+    Route::delete('/{idea}', [App\Http\Controllers\IdeasController::class, 'destroy'])->name('ideas.destroy');
+});
