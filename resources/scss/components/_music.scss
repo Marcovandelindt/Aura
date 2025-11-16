@@ -547,3 +547,116 @@
         padding: 0.4rem 0.8rem;
     }
 }
+
+// Album Detail Page (extends artist styles)
+.album-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 2rem;
+    
+    @media (max-width: $mobile) {
+        flex-direction: column;
+        gap: 1rem;
+    }
+}
+
+.album-image {
+    width: 200px;
+    height: 200px;
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    flex-shrink: 0;
+    
+    @media (max-width: $mobile) {
+        width: 150px;
+        height: 150px;
+        align-self: center;
+    }
+}
+
+.album-info {
+    flex: 1;
+}
+
+.album-type-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    color: #1DB954;
+    
+    span {
+        color: #666;
+        font-size: 1rem;
+    }
+}
+
+.album-name {
+    margin: 0 0 0.5rem 0;
+    font-size: 2.5rem;
+    font-weight: 700;
+    
+    @media (max-width: $mobile) {
+        font-size: 2rem;
+        text-align: center;
+    }
+}
+
+.album-artists {
+    margin-bottom: 1rem;
+    font-size: 1.125rem;
+    color: #666;
+    
+    a:hover {
+        color: #1ed760 !important;
+    }
+    
+    @media (max-width: $mobile) {
+        text-align: center;
+    }
+}
+
+.album-stats-inline {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2rem;
+    margin-bottom: 1rem;
+    
+    @media (max-width: $mobile) {
+        gap: 1rem;
+        justify-content: center;
+    }
+}
+
+.album-stat-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #666;
+    
+    svg {
+        flex-shrink: 0;
+    }
+}
+
+.album-top-track {
+    background: rgba(29, 185, 84, 0.1);
+    border-radius: 8px;
+    padding: 0.75rem;
+    border-left: 4px solid #1DB954;
+    
+    .top-track-label {
+        margin: 0;
+        color: #666;
+        font-size: 0.875rem;
+    }
+    
+    .top-track-name {
+        margin: 0;
+        font-weight: 600;
+        
+        a:hover {
+            color: #1DB954 !important;
+        }
+    }
+}

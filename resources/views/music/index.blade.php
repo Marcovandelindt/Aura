@@ -184,7 +184,12 @@
                                            onmouseout="this.style.color='#666'">{{ $artistName }}</a>@if($index < count($track->artist_names) - 1), @endif
                                     @endforeach
                                 </td>
-                                <td>{{ $track->album_name }}</td>
+                                <td>
+                                    <a href="{{ route('albums.show', ['album' => urlencode($track->album_name)]) }}" 
+                                       style="color: #666; text-decoration: none; transition: color 0.2s;"
+                                       onmouseover="this.style.color='#1DB954'" 
+                                       onmouseout="this.style.color='#666'">{{ $track->album_name }}</a>
+                                </td>
                                 <td>{{ $track->formatted_duration }}</td>
                                 <td>
                                     <span title="{{ $track->played_at->setTimezone('Europe/Amsterdam')->format('Y-m-d H:i:s') }}">
