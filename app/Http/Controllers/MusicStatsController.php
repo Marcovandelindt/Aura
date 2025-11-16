@@ -18,6 +18,11 @@ class MusicStatsController extends Controller
             'top_tracks' => $this->getTopTracks(),
             'top_albums' => $this->getTopAlbums(),
             'listening_stats' => $this->getListeningStats(),
+            'top_listening_times' => $this->getTopListeningTimes(),
+            'weekday_vs_weekend' => $this->getWeekdayVsWeekendStats(),
+            'repeat_ratio' => $this->getRepeatRatio(),
+            'binge_sessions' => $this->getBingeSessions(),
+            'discovery_rate' => $this->getDiscoveryRate(),
         ];
         
         return view('music.stats', compact('stats'));
@@ -147,6 +152,268 @@ class MusicStatsController extends Controller
             'tracks_this_week' => $weekTracks,
             'tracks_this_month' => $monthTracks,
             'average_per_day' => $firstTrack ? round($totalTracks / max(1, $firstTrack->played_at->diffInDays(Carbon::now())), 1) : 0,
+        ];
+    }
+    
+    /**
+     * Get top 3 listening times of the day
+     */
+    private function getTopListeningTimes(): array
+    {
+        // Get all played tracks with hour information
+        $tracks = PlayedTrack::selectRaw('HOUR(played_at) as hour, COUNT(*) as play_count')
+            ->groupBy('hour')
+            ->orderBy('play_count', 'desc')
+            ->limit(3)
+            ->get();
+        
+        $timeStats = [];
+        
+        foreach ($tracks as $track) {
+            $hour = $track->hour;
+            $timeLabel = $this->getTimeLabel($hour);
+            $timeRange = $this->getTimeRange($hour);
+            
+            $timeStats[] = [
+                'hour' => $hour,
+                'time_label' => $timeLabel,
+                'time_range' => $timeRange,
+                'play_count' => $track->play_count,
+                'emoji' => $this->getTimeEmoji($hour),
+                'description' => $this->getTimeDescription($hour),
+            ];
+        }
+        
+        return $timeStats;
+    }
+    
+    /**
+     * Get time label for an hour (24h format)
+     */
+    private function getTimeLabel(int $hour): string
+    {
+        return sprintf('%02d:00', $hour);
+    }
+    
+    /**
+     * Get time range for an hour
+     */
+    private function getTimeRange(int $hour): string
+    {
+        $nextHour = $hour + 1;
+        return sprintf('%02d:00 - %02d:00', $hour, $nextHour);
+    }
+    
+    /**
+     * Get emoji for time of day
+     */
+    private function getTimeEmoji(int $hour): string
+    {
+        if ($hour >= 6 && $hour < 12) {
+            return '🌅'; // Morning
+        } elseif ($hour >= 12 && $hour < 17) {
+            return '☀️'; // Afternoon
+        } elseif ($hour >= 17 && $hour < 21) {
+            return '🌆'; // Evening
+        } else {
+            return '🌙'; // Night
+        }
+    }
+    
+    /**
+     * Get description for time of day
+     */
+    private function getTimeDescription(int $hour): string
+    {
+        if ($hour >= 6 && $hour < 9) {
+            return 'Early Morning';
+        } elseif ($hour >= 9 && $hour < 12) {
+            return 'Late Morning';
+        } elseif ($hour >= 12 && $hour < 14) {
+            return 'Lunch Time';
+        } elseif ($hour >= 14 && $hour < 17) {
+            return 'Afternoon';
+        } elseif ($hour >= 17 && $hour < 19) {
+            return 'Early Evening';
+        } elseif ($hour >= 19 && $hour < 21) {
+            return 'Prime Time';
+        } elseif ($hour >= 21 && $hour < 24) {
+            return 'Late Evening';
+        } else {
+            return 'Night Owl';
+        }
+    }
+    
+    /**
+     * Get weekday vs weekend listening statistics
+     */
+    private function getWeekdayVsWeekendStats(): array
+    {
+        // Get weekday plays (Monday = 1, Sunday = 7)
+        $weekdayPlays = PlayedTrack::selectRaw('COUNT(*) as play_count')
+            ->whereRaw('WEEKDAY(played_at) BETWEEN 0 AND 4') // Monday(0) to Friday(4)
+            ->first()->play_count ?? 0;
+        
+        // Get weekend plays
+        $weekendPlays = PlayedTrack::selectRaw('COUNT(*) as play_count')
+            ->whereRaw('WEEKDAY(played_at) IN (5, 6)') // Saturday(5) and Sunday(6)
+            ->first()->play_count ?? 0;
+        
+        $totalPlays = $weekdayPlays + $weekendPlays;
+        
+        return [
+            'weekday_count' => $weekdayPlays,
+            'weekend_count' => $weekendPlays,
+            'weekday_percentage' => $totalPlays > 0 ? round(($weekdayPlays / $totalPlays) * 100, 1) : 0,
+            'weekend_percentage' => $totalPlays > 0 ? round(($weekendPlays / $totalPlays) * 100, 1) : 0,
+            'preference' => $weekdayPlays > $weekendPlays ? 'weekday' : ($weekendPlays > $weekdayPlays ? 'weekend' : 'equal'),
+        ];
+    }
+    
+    /**
+     * Get repeat ratio statistics
+     */
+    private function getRepeatRatio(): array
+    {
+        $totalPlays = PlayedTrack::count();
+        $uniqueTracks = PlayedTrack::distinct('spotify_track_id')->count();
+        
+        $repeatPlays = $totalPlays - $uniqueTracks;
+        $repeatPercentage = $totalPlays > 0 ? round(($repeatPlays / $totalPlays) * 100, 1) : 0;
+        
+        // Get most repeated track
+        $mostRepeated = PlayedTrack::select('spotify_track_id', 'track_name', 'artist_names')
+            ->selectRaw('COUNT(*) as play_count')
+            ->groupBy('spotify_track_id', 'track_name', 'artist_names')
+            ->orderBy('play_count', 'desc')
+            ->first();
+        
+        return [
+            'total_plays' => $totalPlays,
+            'unique_tracks' => $uniqueTracks,
+            'repeat_plays' => $repeatPlays,
+            'repeat_percentage' => $repeatPercentage,
+            'discovery_percentage' => 100 - $repeatPercentage,
+            'most_repeated_track' => $mostRepeated ? [
+                'name' => $mostRepeated->track_name,
+                'artists' => implode(', ', $mostRepeated->artist_names),
+                'play_count' => $mostRepeated->play_count,
+            ] : null,
+        ];
+    }
+    
+    /**
+     * Get binge sessions (periods of continuous listening)
+     */
+    private function getBingeSessions(): array
+    {
+        // Get all plays ordered by time
+        $plays = PlayedTrack::select('played_at', 'duration_ms')
+            ->orderBy('played_at')
+            ->get();
+        
+        $sessions = [];
+        $currentSession = null;
+        
+        foreach ($plays as $index => $play) {
+            $playTime = $play->played_at;
+            
+            if ($currentSession === null) {
+                // Start first session
+                $currentSession = [
+                    'start_time' => $playTime,
+                    'end_time' => $playTime,
+                    'track_count' => 1,
+                    'total_duration_ms' => $play->duration_ms,
+                ];
+            } else {
+                // Check if this play is within 10 minutes of the last play
+                $timeSinceLastPlay = $playTime->diffInMinutes($currentSession['end_time']);
+                
+                if ($timeSinceLastPlay <= 10) {
+                    // Continue current session
+                    $currentSession['end_time'] = $playTime;
+                    $currentSession['track_count']++;
+                    $currentSession['total_duration_ms'] += $play->duration_ms;
+                } else {
+                    // End current session and start new one
+                    if ($currentSession['track_count'] >= 3) { // Only count sessions with 3+ tracks
+                        $sessions[] = $currentSession;
+                    }
+                    
+                    $currentSession = [
+                        'start_time' => $playTime,
+                        'end_time' => $playTime,
+                        'track_count' => 1,
+                        'total_duration_ms' => $play->duration_ms,
+                    ];
+                }
+            }
+        }
+        
+        // Don't forget the last session
+        if ($currentSession && $currentSession['track_count'] >= 3) {
+            $sessions[] = $currentSession;
+        }
+        
+        // Sort sessions by track count (longest first)
+        usort($sessions, function($a, $b) {
+            return $b['track_count'] <=> $a['track_count'];
+        });
+        
+        // Get top 3 sessions
+        $topSessions = array_slice($sessions, 0, 3);
+        
+        // Calculate session durations in minutes
+        foreach ($topSessions as &$session) {
+            $session['duration_minutes'] = round($session['total_duration_ms'] / 1000 / 60, 1);
+            $session['session_length_minutes'] = $session['start_time']->diffInMinutes($session['end_time']);
+        }
+        
+        return [
+            'total_sessions' => count($sessions),
+            'top_sessions' => $topSessions,
+            'longest_session_tracks' => !empty($topSessions) ? $topSessions[0]['track_count'] : 0,
+            'total_binge_tracks' => array_sum(array_column($sessions, 'track_count')),
+        ];
+    }
+    
+    /**
+     * Get discovery rate (new vs known tracks)
+     */
+    private function getDiscoveryRate(): array
+    {
+        $totalDays = PlayedTrack::selectRaw('DATEDIFF(MAX(played_at), MIN(played_at)) + 1 as total_days')
+            ->first()->total_days ?? 1;
+        
+        $tracksPerDay = [];
+        $discoveredTracks = [];
+        
+        // Get daily discovery stats
+        $dailyStats = PlayedTrack::selectRaw('DATE(played_at) as date, COUNT(*) as total_tracks, COUNT(DISTINCT spotify_track_id) as unique_tracks')
+            ->groupBy('date')
+            ->orderBy('date')
+            ->get();
+        
+        foreach ($dailyStats as $day) {
+            $date = $day->date;
+            $tracksPerDay[$date] = [
+                'total' => $day->total_tracks,
+                'unique' => $day->unique_tracks,
+                'repeat' => $day->total_tracks - $day->unique_tracks,
+            ];
+        }
+        
+        // Calculate overall discovery metrics
+        $avgTracksPerDay = PlayedTrack::count() / max(1, $totalDays);
+        $avgUniquePerDay = PlayedTrack::distinct('spotify_track_id')->count() / max(1, $totalDays);
+        
+        return [
+            'total_days_tracked' => (int)$totalDays,
+            'avg_tracks_per_day' => round($avgTracksPerDay, 1),
+            'avg_unique_tracks_per_day' => round($avgUniquePerDay, 1),
+            'discovery_percentage' => $avgTracksPerDay > 0 ? round(($avgUniquePerDay / $avgTracksPerDay) * 100, 1) : 0,
+            'recent_days' => array_slice($tracksPerDay, -7, 7, true), // Last 7 days
         ];
     }
 }

@@ -85,6 +85,180 @@
         </div>
     </div>
     
+    <!-- Top Listening Times -->
+    <div class="card" style="margin-top: 2rem;">
+        <div class="card-header">
+            <h3>🕐 Top Listening Times</h3>
+            <p style="margin: 0; font-size: 0.875rem; color: #6b7280;">When you listen to music most</p>
+        </div>
+        <div class="card-body">
+            @if(count($stats['top_listening_times']) > 0)
+                <div class="listening-times-grid">
+                    @foreach($stats['top_listening_times'] as $index => $timeStats)
+                        <div class="time-stat-card">
+                            <div class="time-rank">{{ $index + 1 }}</div>
+                            <div class="time-emoji">{{ $timeStats['emoji'] }}</div>
+                            <div class="time-info">
+                                <div class="time-label">{{ $timeStats['time_range'] }}</div>
+                                <div class="time-description">{{ $timeStats['description'] }}</div>
+                                <div class="time-count">{{ $timeStats['play_count'] }} tracks</div>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            @else
+                <p class="no-data">Not enough data yet to determine listening patterns.</p>
+            @endif
+        </div>
+    </div>
+    
+    <!-- Advanced Statistics -->
+    <div class="content-grid" style="margin-top: 2rem;">
+        <!-- Weekday vs Weekend -->
+        <div class="card">
+            <div class="card-header">
+                <h3>📅 Weekday vs Weekend</h3>
+                <p style="margin: 0; font-size: 0.875rem; color: #6b7280;">Your listening patterns</p>
+            </div>
+            <div class="card-body">
+                <div class="weekday-weekend-chart">
+                    <div class="chart-item">
+                        <div class="chart-bar weekday-bar" style="height: {{ $stats['weekday_vs_weekend']['weekday_percentage'] }}%;">
+                            <span class="chart-value">{{ $stats['weekday_vs_weekend']['weekday_percentage'] }}%</span>
+                        </div>
+                        <div class="chart-label">
+                            <strong>Weekdays</strong>
+                            <span>{{ $stats['weekday_vs_weekend']['weekday_count'] }} plays</span>
+                        </div>
+                    </div>
+                    <div class="chart-item">
+                        <div class="chart-bar weekend-bar" style="height: {{ $stats['weekday_vs_weekend']['weekend_percentage'] }}%;">
+                            <span class="chart-value">{{ $stats['weekday_vs_weekend']['weekend_percentage'] }}%</span>
+                        </div>
+                        <div class="chart-label">
+                            <strong>Weekend</strong>
+                            <span>{{ $stats['weekday_vs_weekend']['weekend_count'] }} plays</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="preference-indicator">
+                    @if($stats['weekday_vs_weekend']['preference'] === 'weekday')
+                        <span class="preference weekday">🏢 You're a <strong>weekday listener</strong></span>
+                    @elseif($stats['weekday_vs_weekend']['preference'] === 'weekend')
+                        <span class="preference weekend">🎉 You're a <strong>weekend warrior</strong></span>
+                    @else
+                        <span class="preference equal">⚖️ <strong>Perfectly balanced</strong></span>
+                    @endif
+                </div>
+            </div>
+        </div>
+        
+        <!-- Repeat Ratio -->
+        <div class="card">
+            <div class="card-header">
+                <h3>🔄 Repeat Ratio</h3>
+                <p style="margin: 0; font-size: 0.875rem; color: #6b7280;">Discovery vs comfort zones</p>
+            </div>
+            <div class="card-body">
+                <div class="repeat-ratio-chart">
+                    <div class="ratio-circle">
+                        <div class="ratio-percentage">{{ $stats['repeat_ratio']['repeat_percentage'] }}%</div>
+                        <div class="ratio-label">Repeats</div>
+                    </div>
+                    <div class="ratio-stats">
+                        <div class="ratio-stat">
+                            <span class="stat-number">{{ $stats['repeat_ratio']['discovery_percentage'] }}%</span>
+                            <span class="stat-label">New Discovery</span>
+                        </div>
+                        <div class="ratio-stat">
+                            <span class="stat-number">{{ number_format($stats['repeat_ratio']['unique_tracks']) }}</span>
+                            <span class="stat-label">Unique Tracks</span>
+                        </div>
+                    </div>
+                </div>
+                @if($stats['repeat_ratio']['most_repeated_track'])
+                    <div class="most-repeated">
+                        <strong>Most repeated:</strong>
+                        <span>{{ $stats['repeat_ratio']['most_repeated_track']['name'] }}</span>
+                        <span class="repeat-count">({{ $stats['repeat_ratio']['most_repeated_track']['play_count'] }}x)</span>
+                    </div>
+                @endif
+            </div>
+        </div>
+        
+        <!-- Binge Sessions -->
+        <div class="card">
+            <div class="card-header">
+                <h3>🎧 Binge Sessions</h3>
+                <p style="margin: 0; font-size: 0.875rem; color: #6b7280;">Your longest listening streaks</p>
+            </div>
+            <div class="card-body">
+                @if(count($stats['binge_sessions']['top_sessions']) > 0)
+                    <div class="binge-sessions-list">
+                        @foreach($stats['binge_sessions']['top_sessions'] as $index => $session)
+                            <div class="session-item">
+                                <div class="session-rank">{{ $index + 1 }}</div>
+                                <div class="session-info">
+                                    <div class="session-tracks">{{ $session['track_count'] }} tracks</div>
+                                    <div class="session-duration">{{ $session['duration_minutes'] }}min music</div>
+                                    <div class="session-time">{{ $session['start_time']->format('M j, g:i A') }}</div>
+                                </div>
+                                <div class="session-badge">🔥</div>
+                            </div>
+                        @endforeach
+                    </div>
+                    <div class="binge-summary">
+                        <span>{{ $stats['binge_sessions']['total_sessions'] }} total sessions</span>
+                        <span>{{ $stats['binge_sessions']['longest_session_tracks'] }} tracks longest</span>
+                    </div>
+                @else
+                    <p class="no-data">No binge sessions detected yet. Keep listening!</p>
+                @endif
+            </div>
+        </div>
+        
+        <!-- Discovery Rate -->
+        <div class="card">
+            <div class="card-header">
+                <h3>🎵 Discovery Rate</h3>
+                <p style="margin: 0; font-size: 0.875rem; color: #6b7280;">How much new music you explore daily</p>
+            </div>
+            <div class="card-body">
+                <div class="discovery-stats">
+                    <div class="discovery-stat">
+                        <div class="stat-value">{{ $stats['discovery_rate']['avg_tracks_per_day'] }}</div>
+                        <div class="stat-label">Tracks/Day</div>
+                    </div>
+                    <div class="discovery-stat">
+                        <div class="stat-value">{{ $stats['discovery_rate']['avg_unique_tracks_per_day'] }}</div>
+                        <div class="stat-label">Unique/Day</div>
+                    </div>
+                    <div class="discovery-stat">
+                        <div class="stat-value">{{ $stats['discovery_rate']['discovery_percentage'] }}%</div>
+                        <div class="stat-label">Discovery Rate</div>
+                    </div>
+                </div>
+                
+                @if(count($stats['discovery_rate']['recent_days']) > 0)
+                    <div class="recent-days">
+                        <h4>Recent Days</h4>
+                        <div class="days-list">
+                            @foreach($stats['discovery_rate']['recent_days'] as $date => $dayStats)
+                                <div class="day-item">
+                                    <div class="day-date">{{ \Carbon\Carbon::parse($date)->format('M j') }}</div>
+                                    <div class="day-stats">
+                                        <span class="unique">{{ $dayStats['unique'] }} new</span>
+                                        <span class="repeat">{{ $dayStats['repeat'] }} repeat</span>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
+            </div>
+        </div>
+    </div>
+    
     <!-- Top Lists Grid -->
     <div class="content-grid" style="margin-top: 2rem;">
         <!-- Top Artists -->

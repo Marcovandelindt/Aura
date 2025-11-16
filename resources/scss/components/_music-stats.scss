@@ -1,5 +1,546 @@
 // Music Statistics Styling
 
+// Listening Times Grid
+.listening-times-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    
+    @media (max-width: $mobile) {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+}
+
+.time-stat-card {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.5rem;
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
+    border: 2px solid transparent;
+    border-radius: $border-radius;
+    transition: $transition-base;
+    position: relative;
+    overflow: hidden;
+    
+    &::before {
+        content: '';
+        position: absolute;
+        top: -2px;
+        left: -2px;
+        right: -2px;
+        bottom: -2px;
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 100%);
+        border-radius: inherit;
+        z-index: -1;
+        opacity: 0;
+        transition: $transition-base;
+    }
+    
+    &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.15);
+        
+        &::before {
+            opacity: 1;
+        }
+    }
+    
+    // Special styling for top 3
+    &:nth-child(1) {
+        background: linear-gradient(135deg, rgba(255, 215, 0, 0.1) 0%, rgba(255, 193, 7, 0.1) 100%);
+        
+        .time-rank {
+            background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+            color: #92400e;
+            font-weight: 700;
+        }
+        
+        &::before {
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.3) 0%, rgba(255, 193, 7, 0.3) 100%);
+        }
+    }
+    
+    &:nth-child(2) {
+        background: linear-gradient(135deg, rgba(192, 192, 192, 0.1) 0%, rgba(229, 229, 229, 0.1) 100%);
+        
+        .time-rank {
+            background: linear-gradient(135deg, #c0c0c0 0%, #e5e5e5 100%);
+            color: #374151;
+            font-weight: 700;
+        }
+        
+        &::before {
+            background: linear-gradient(135deg, rgba(192, 192, 192, 0.3) 0%, rgba(229, 229, 229, 0.3) 100%);
+        }
+    }
+    
+    &:nth-child(3) {
+        background: linear-gradient(135deg, rgba(205, 127, 50, 0.1) 0%, rgba(217, 119, 6, 0.1) 100%);
+        
+        .time-rank {
+            background: linear-gradient(135deg, #cd7f32 0%, #d97706 100%);
+            color: #fff;
+            font-weight: 700;
+        }
+        
+        &::before {
+            background: linear-gradient(135deg, rgba(205, 127, 50, 0.3) 0%, rgba(217, 119, 6, 0.3) 100%);
+        }
+    }
+}
+
+.time-rank {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    background: $primary-color;
+    color: white;
+    border-radius: 50%;
+    font-weight: 600;
+    font-size: 1rem;
+    flex-shrink: 0;
+}
+
+.time-emoji {
+    font-size: 2rem;
+    flex-shrink: 0;
+}
+
+.time-info {
+    flex: 1;
+    
+    .time-label {
+        font-weight: 700;
+        font-size: 1.125rem;
+        color: $dark-color;
+        margin-bottom: 0.25rem;
+    }
+    
+    .time-description {
+        font-size: 0.875rem;
+        color: $primary-color;
+        font-weight: 500;
+        margin-bottom: 0.25rem;
+    }
+    
+    .time-count {
+        font-size: 0.8rem;
+        color: $dark-gray;
+        font-weight: 500;
+    }
+}
+
+// Christmas theme styling for listening times
+.theme-christmas {
+    .time-stat-card {
+        &:nth-child(1) {
+            background: linear-gradient(135deg, rgba(251, 191, 36, 0.15) 0%, rgba(245, 158, 11, 0.15) 100%);
+            
+            .time-rank {
+                background: var(--christmas-gold);
+                color: #1f2937;
+            }
+            
+            &::before {
+                background: linear-gradient(135deg, rgba(251, 191, 36, 0.4) 0%, rgba(245, 158, 11, 0.4) 100%);
+            }
+        }
+        
+        &:nth-child(2) {
+            background: linear-gradient(135deg, rgba(220, 38, 38, 0.1) 0%, rgba(185, 28, 28, 0.1) 100%);
+            
+            .time-rank {
+                background: var(--christmas-red);
+                color: white;
+            }
+            
+            &::before {
+                background: linear-gradient(135deg, rgba(220, 38, 38, 0.3) 0%, rgba(185, 28, 28, 0.3) 100%);
+            }
+        }
+        
+        &:nth-child(3) {
+            background: linear-gradient(135deg, rgba(22, 163, 74, 0.1) 0%, rgba(21, 128, 61, 0.1) 100%);
+            
+            .time-rank {
+                background: var(--christmas-green);
+                color: white;
+            }
+            
+            &::before {
+                background: linear-gradient(135deg, rgba(22, 163, 74, 0.3) 0%, rgba(21, 128, 61, 0.3) 100%);
+            }
+        }
+        
+        .time-description {
+            color: var(--christmas-red);
+        }
+    }
+}
+
+// Advanced Statistics Components
+
+// Weekday vs Weekend Chart
+.weekday-weekend-chart {
+    display: flex;
+    justify-content: space-around;
+    align-items: flex-end;
+    height: 200px;
+    margin-bottom: 1.5rem;
+}
+
+.chart-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 80px;
+}
+
+.chart-bar {
+    width: 60px;
+    min-height: 20px;
+    border-radius: 4px 4px 0 0;
+    position: relative;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    transition: $transition-base;
+    
+    .chart-value {
+        position: absolute;
+        top: -25px;
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: $dark-color;
+    }
+    
+    &.weekday-bar {
+        background: linear-gradient(to top, $primary-color 0%, lighten($primary-color, 20%) 100%);
+    }
+    
+    &.weekend-bar {
+        background: linear-gradient(to top, $secondary-color 0%, lighten($secondary-color, 20%) 100%);
+    }
+}
+
+.chart-label {
+    text-align: center;
+    margin-top: 0.5rem;
+    
+    strong {
+        display: block;
+        font-size: 0.875rem;
+        color: $dark-color;
+        margin-bottom: 0.25rem;
+    }
+    
+    span {
+        font-size: 0.75rem;
+        color: $dark-gray;
+    }
+}
+
+.preference-indicator {
+    text-align: center;
+    padding: 0.75rem;
+    background: $light-gray;
+    border-radius: $border-radius;
+    
+    .preference {
+        font-size: 0.875rem;
+        
+        &.weekday {
+            color: $primary-color;
+        }
+        
+        &.weekend {
+            color: $secondary-color;
+        }
+        
+        &.equal {
+            color: $dark-gray;
+        }
+    }
+}
+
+// Repeat Ratio Components
+.repeat-ratio-chart {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    margin-bottom: 1rem;
+}
+
+.ratio-circle {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background: conic-gradient($primary-color var(--repeat-percentage, 0%), $light-gray var(--repeat-percentage, 0%));
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    flex-shrink: 0;
+    
+    &::before {
+        content: '';
+        position: absolute;
+        width: 80px;
+        height: 80px;
+        background: white;
+        border-radius: 50%;
+        z-index: 1;
+    }
+    
+    .ratio-percentage {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: $primary-color;
+        z-index: 2;
+        position: relative;
+    }
+    
+    .ratio-label {
+        font-size: 0.75rem;
+        color: $dark-gray;
+        z-index: 2;
+        position: relative;
+    }
+}
+
+.ratio-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    flex: 1;
+}
+
+.ratio-stat {
+    display: flex;
+    flex-direction: column;
+    
+    .stat-number {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: $dark-color;
+    }
+    
+    .stat-label {
+        font-size: 0.875rem;
+        color: $dark-gray;
+    }
+}
+
+.most-repeated {
+    padding: 1rem;
+    background: rgba($primary-color, 0.05);
+    border-radius: $border-radius;
+    font-size: 0.875rem;
+    
+    .repeat-count {
+        color: $primary-color;
+        font-weight: 600;
+    }
+}
+
+// Binge Sessions Components
+.binge-sessions-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.session-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: $light-gray;
+    border-radius: $border-radius;
+    transition: $transition-base;
+    
+    &:hover {
+        background: darken($light-gray, 5%);
+    }
+}
+
+.session-rank {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    background: $primary-color;
+    color: white;
+    border-radius: 50%;
+    font-weight: 600;
+    font-size: 0.875rem;
+    flex-shrink: 0;
+}
+
+.session-info {
+    flex: 1;
+    
+    .session-tracks {
+        font-weight: 600;
+        color: $dark-color;
+        margin-bottom: 0.25rem;
+    }
+    
+    .session-duration {
+        font-size: 0.875rem;
+        color: $primary-color;
+        margin-bottom: 0.25rem;
+    }
+    
+    .session-time {
+        font-size: 0.75rem;
+        color: $dark-gray;
+    }
+}
+
+.session-badge {
+    font-size: 1.5rem;
+    flex-shrink: 0;
+}
+
+.binge-summary {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.75rem;
+    background: rgba($secondary-color, 0.05);
+    border-radius: $border-radius;
+    font-size: 0.875rem;
+    color: $dark-gray;
+}
+
+// Discovery Rate Components
+.discovery-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    
+    @media (max-width: $mobile) {
+        grid-template-columns: 1fr;
+    }
+}
+
+.discovery-stat {
+    text-align: center;
+    padding: 1rem;
+    background: $light-gray;
+    border-radius: $border-radius;
+    
+    .stat-value {
+        display: block;
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: $primary-color;
+        margin-bottom: 0.25rem;
+    }
+    
+    .stat-label {
+        font-size: 0.875rem;
+        color: $dark-gray;
+    }
+}
+
+.recent-days {
+    h4 {
+        margin: 0 0 1rem 0;
+        font-size: 1rem;
+        color: $dark-color;
+    }
+}
+
+.days-list {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.day-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0.75rem;
+    background: $light-gray;
+    border-radius: $border-radius;
+    min-width: 80px;
+    
+    .day-date {
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: $dark-color;
+        margin-bottom: 0.5rem;
+    }
+    
+    .day-stats {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+        font-size: 0.7rem;
+        
+        .unique {
+            color: $primary-color;
+        }
+        
+        .repeat {
+            color: $dark-gray;
+        }
+    }
+}
+
+// Christmas theme for advanced stats
+.theme-christmas {
+    .chart-bar {
+        &.weekday-bar {
+            background: linear-gradient(to top, var(--christmas-red) 0%, rgba(220, 38, 38, 0.7) 100%);
+        }
+        
+        &.weekend-bar {
+            background: linear-gradient(to top, var(--christmas-green) 0%, rgba(22, 163, 74, 0.7) 100%);
+        }
+    }
+    
+    .preference {
+        &.weekday {
+            color: var(--christmas-red) !important;
+        }
+        
+        &.weekend {
+            color: var(--christmas-green) !important;
+        }
+    }
+    
+    .ratio-circle {
+        background: conic-gradient(var(--christmas-red) var(--repeat-percentage, 0%), rgba(255, 255, 255, 0.3) var(--repeat-percentage, 0%));
+        
+        .ratio-percentage {
+            color: var(--christmas-red);
+        }
+    }
+    
+    .session-rank {
+        background: var(--christmas-red);
+    }
+    
+    .discovery-stat .stat-value {
+        color: var(--christmas-red);
+    }
+    
+    .day-item .unique {
+        color: var(--christmas-green);
+    }
+}
+
 .top-list {
     display: flex;
     flex-direction: column;
