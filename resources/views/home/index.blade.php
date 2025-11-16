@@ -38,9 +38,9 @@
                         </svg>
                     </div>
                     <div class="stat-details">
-                        <h3 class="stat-value">48</h3>
+                        <h3 class="stat-value">{{ $songsThisWeek['count'] }}</h3>
                         <p class="stat-label">Songs This Week</p>
-                        <span class="stat-change positive">+12 from last week</span>
+                        <span class="stat-change {{ $songsThisWeek['change_class'] }}">{{ $songsThisWeek['change_text'] }}</span>
                     </div>
                 </div>
             </div>
@@ -106,17 +106,39 @@
             </div>
             <div class="card-body">
                 <div class="activity-list">
-                    <div class="activity-item">
-                        <div class="activity-icon">
-                            <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
-                                <path d="M18 3a1 1 0 00-1.196-.98l-10 2A1 1 0 006 5v9.114A4.369 4.369 0 005 14c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V7.82l8-1.6v5.894A4.37 4.37 0 0015 12c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V3z"/>
-                            </svg>
+                    @if($lastPlayedTrack)
+                        <div class="activity-item">
+                            <div class="activity-icon">
+                                <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                                    <path d="M18 3a1 1 0 00-1.196-.98l-10 2A1 1 0 006 5v9.114A4.369 4.369 0 005 14c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V7.82l8-1.6v5.894A4.37 4.37 0 0015 12c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V3z"/>
+                                </svg>
+                            </div>
+                            <div class="activity-content">
+                                <p>Listened to 
+                                    <a href="{{ route('tracks.show', ['track' => $lastPlayedTrack->spotify_track_id]) }}" class="activity-link">
+                                        <strong>{{ $lastPlayedTrack->track_name }}</strong>
+                                    </a> 
+                                    by 
+                                    @foreach($lastPlayedTrack->artist_names as $index => $artistName)
+                                        <a href="{{ route('artists.show', ['artist' => urlencode($artistName)]) }}" class="activity-link">{{ $artistName }}</a>@if($index < count($lastPlayedTrack->artist_names) - 1), @endif
+                                    @endforeach
+                                </p>
+                                <span class="activity-time">{{ $lastPlayedTrack->played_at_human }}</span>
+                            </div>
                         </div>
-                        <div class="activity-content">
-                            <p>Listened to <strong>Bohemian Rhapsody</strong> by Queen</p>
-                            <span class="activity-time">30 minutes ago</span>
+                    @else
+                        <div class="activity-item">
+                            <div class="activity-icon">
+                                <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                                    <path d="M18 3a1 1 0 00-1.196-.98l-10 2A1 1 0 006 5v9.114A4.369 4.369 0 005 14c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V7.82l8-1.6v5.894A4.37 4.37 0 0015 12c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V3z"/>
+                                </svg>
+                            </div>
+                            <div class="activity-content">
+                                <p>No music activity yet</p>
+                                <span class="activity-time">Connect Spotify to track music</span>
+                            </div>
                         </div>
-                    </div>
+                    @endif
                     
                     <div class="activity-item">
                         <div class="activity-icon">

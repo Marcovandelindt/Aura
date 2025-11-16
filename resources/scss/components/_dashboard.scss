@@ -54,21 +54,22 @@
     .stat-change {
         font-size: 0.75rem;
         font-weight: 500;
+        color: $dark-gray;
         
         &.positive {
             color: #10b981;
+            
+            &::before {
+                content: "↑ ";
+            }
         }
         
         &.negative {
             color: #ef4444;
-        }
-        
-        &::before {
-            content: "↑ ";
-        }
-        
-        &.negative::before {
-            content: "↓ ";
+            
+            &::before {
+                content: "↓ ";
+            }
         }
     }
 }
@@ -122,6 +123,21 @@
             
             strong {
                 color: $dark-color;
+            }
+        }
+        
+        .activity-link {
+            color: $primary-color;
+            text-decoration: none;
+            transition: $transition-base;
+            
+            &:hover {
+                color: $primary-hover;
+                text-decoration: underline;
+            }
+            
+            strong {
+                color: inherit;
             }
         }
         
