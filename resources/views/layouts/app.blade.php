@@ -30,23 +30,37 @@
                     
                     <div class="floating-track-info">
                         <div class="floating-track-name">{{ $globalCurrentlyPlaying->track_name }}</div>
-                        <div class="floating-artist-name">{{ implode(', ', $globalCurrentlyPlaying->artist_names) }}</div>
+                        <div class="floating-artist-name">
+                            @foreach($globalCurrentlyPlaying->artist_names as $index => $artistName)
+                                <a href="{{ route('artists.show', ['artist' => urlencode($artistName)]) }}" 
+                                   style="color: inherit; text-decoration: none; transition: color 0.2s;"
+                                   onmouseover="this.style.color='#1DB954'" 
+                                   onmouseout="this.style.color='#888'">{{ $artistName }}</a>@if($index < count($globalCurrentlyPlaying->artist_names) - 1), @endif
+                            @endforeach
+                        </div>
                     </div>
                     
                     <div class="floating-controls">
-                        @if($globalCurrentlyPlaying->is_playing)
-                            <div class="play-indicator">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="#1DB954">
-                                    <path d="M8 5v14l11-7z"/>
-                                </svg>
-                            </div>
-                        @else
-                            <div class="pause-indicator">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="#888">
-                                    <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/>
-                                </svg>
-                            </div>
-                        @endif
+                        <button class="playback-control" onclick="skipToPrevious()" title="Previous track">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M7 6L3 6L3 18L7 18L7 6ZM21 12L7 5L7 19L21 12Z"/>
+                            </svg>
+                        </button>
+                        
+                        <button class="playback-control play-pause-btn" onclick="togglePlayPause()" title="{{ $globalCurrentlyPlaying->is_playing ? 'Pause' : 'Play' }}">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" class="play-icon" style="{{ $globalCurrentlyPlaying->is_playing ? 'display: none;' : '' }}">
+                                <path d="M8 5v14l11-7z"/>
+                            </svg>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" class="pause-icon" style="{{ $globalCurrentlyPlaying->is_playing ? '' : 'display: none;' }}">
+                                <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/>
+                            </svg>
+                        </button>
+                        
+                        <button class="playback-control" onclick="skipToNext()" title="Next track">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M17 6L21 6L21 18L17 18L17 6ZM3 12L17 19L17 5L3 12Z"/>
+                            </svg>
+                        </button>
                         
                         @if($globalCurrentlyPlaying->external_url)
                             <a href="{{ $globalCurrentlyPlaying->external_url }}" 
@@ -80,6 +94,82 @@
             </div>
         @endif
     </div>
+    
+    @if($globalCurrentlyPlaying)
+        <script>
+            // CSRF Token for AJAX requests
+            const csrfToken = '{{ csrf_token() }}';
+            
+            async function makePlaybackRequest(url) {
+                try {
+                    const response = await fetch(url, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': csrfToken,
+                            'Accept': 'application/json'
+                        }
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (!data.success) {
+                        console.error('Playback error:', data.message);
+                        // Could add toast notification here
+                        return false;
+                    }
+                    
+                    return data;
+                } catch (error) {
+                    console.error('Network error:', error);
+                    return false;
+                }
+            }
+            
+            async function togglePlayPause() {
+                const result = await makePlaybackRequest('{{ route("spotify.playback.toggle") }}');
+                
+                if (result) {
+                    // Toggle icons
+                    const playIcon = document.querySelector('.play-icon');
+                    const pauseIcon = document.querySelector('.pause-icon');
+                    const playPauseBtn = document.querySelector('.play-pause-btn');
+                    
+                    if (result.is_playing) {
+                        playIcon.style.display = 'none';
+                        pauseIcon.style.display = 'block';
+                        playPauseBtn.title = 'Pause';
+                    } else {
+                        playIcon.style.display = 'block';
+                        pauseIcon.style.display = 'none';
+                        playPauseBtn.title = 'Play';
+                    }
+                }
+            }
+            
+            async function skipToNext() {
+                const result = await makePlaybackRequest('{{ route("spotify.playback.next") }}');
+                
+                if (result) {
+                    // Optionally refresh track info after a short delay
+                    setTimeout(() => {
+                        // Could refresh currently playing info here
+                    }, 1000);
+                }
+            }
+            
+            async function skipToPrevious() {
+                const result = await makePlaybackRequest('{{ route("spotify.playback.previous") }}');
+                
+                if (result) {
+                    // Optionally refresh track info after a short delay
+                    setTimeout(() => {
+                        // Could refresh currently playing info here
+                    }, 1000);
+                }
+            }
+        </script>
+    @endif
 </body>
 
 </html>

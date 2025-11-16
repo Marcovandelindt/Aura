@@ -152,7 +152,10 @@
                                     @endif
                                 </td>
                                 <td>
-                                    <strong>{{ $track->track_name }}</strong>
+                                    <a href="{{ route('tracks.show', ['track' => $track->spotify_track_id]) }}" 
+                                       style="color: inherit; text-decoration: none; display: block;">
+                                        <strong style="color: #333; transition: color 0.2s;">{{ $track->track_name }}</strong>
+                                    </a>
                                     @if($track->preview_url)
                                         <a href="{{ $track->preview_url }}" target="_blank" 
                                            style="margin-left: 8px; color: #1DB954;">
@@ -162,7 +165,14 @@
                                         </a>
                                     @endif
                                 </td>
-                                <td>{{ $track->artists_string }}</td>
+                                <td>
+                                    @foreach($track->artist_names as $index => $artistName)
+                                        <a href="{{ route('artists.show', ['artist' => urlencode($artistName)]) }}" 
+                                           style="color: #666; text-decoration: none; transition: color 0.2s;"
+                                           onmouseover="this.style.color='#1DB954'" 
+                                           onmouseout="this.style.color='#666'">{{ $artistName }}</a>@if($index < count($track->artist_names) - 1), @endif
+                                    @endforeach
+                                </td>
                                 <td>{{ $track->album_name }}</td>
                                 <td>{{ $track->formatted_duration }}</td>
                                 <td>
