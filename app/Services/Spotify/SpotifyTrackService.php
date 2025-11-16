@@ -94,6 +94,12 @@ class SpotifyTrackService
             
         } catch (SpotifyWebAPIException $e) {
             Log::error('Spotify API error: ' . $e->getMessage());
+            
+            // If it's an auth error, suggest re-authentication
+            if (str_contains($e->getMessage(), 'access token') || str_contains($e->getMessage(), 'expired')) {
+                throw new \Exception('Spotify authentication expired. Please reconnect your Spotify account.');
+            }
+            
             throw new \Exception('Failed to fetch recently played tracks: ' . $e->getMessage());
         }
     }

@@ -27,8 +27,10 @@ class SpotifyService
             return null;
         }
         
-        // Check if token is expired and refresh if needed
+        // Check if token is expired and refresh if needed  
         if ($this->authService->isTokenExpired($credentials['expires_at'])) {
+            \Log::info('Spotify token expired, attempting refresh...');
+            
             try {
                 $newTokenData = $this->authService->refreshAccessToken($credentials['refresh_token']);
                 
@@ -37,8 +39,16 @@ class SpotifyService
                 Setting::set('spotify_token_expires_at', $newTokenData['expires_at']);
                 
                 $credentials['access_token'] = $newTokenData['access_token'];
+                
+                \Log::info('Spotify token refreshed successfully');
             } catch (\Exception $e) {
                 \Log::error('Failed to refresh Spotify token: ' . $e->getMessage());
+                
+                // Clear invalid tokens to force re-authentication
+                Setting::remove('spotify_access_token');
+                Setting::remove('spotify_refresh_token');
+                Setting::remove('spotify_token_expires_at');
+                
                 return null;
             }
         }
