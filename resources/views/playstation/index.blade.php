@@ -11,7 +11,11 @@
                     <li>PlayStation</li>
                 </ul>
             </div>
-            <div>
+            <div style="display: flex; gap: 0.5rem;">
+                <a href="{{ route('playstation.stats') }}" class="btn btn-secondary">
+                    <i class="fas fa-chart-bar" style="margin-right: 8px;"></i>
+                    Statistics
+                </a>
                 <form action="{{ route('playstation.sync') }}" method="POST" style="display: inline;">
                     @csrf
                     <button type="submit" class="btn btn-primary">
@@ -215,7 +219,9 @@
                                     @endif
                                 </td>
                                 <td>
-                                    <strong>{{ $game->name }}</strong>
+                                    <a href="{{ route('playstation.games.show', $game) }}" style="text-decoration: none; color: inherit;">
+                                        <strong>{{ $game->name }}</strong>
+                                    </a>
                                     @if($game->completion_percentage)
                                         <br>
                                         <small style="color: #666;">

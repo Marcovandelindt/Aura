@@ -78,5 +78,7 @@ Route::prefix('settings')->group(function () {
 Route::prefix('playstation')->group(function () {
     Route::get('/', [App\Http\Controllers\PlayStationController::class, 'index'])->name('playstation.index');
     Route::get('/sessions', [App\Http\Controllers\PlayStationController::class, 'sessions'])->name('playstation.sessions');
+    Route::get('/stats', [App\Http\Controllers\PlayStationStatsController::class, 'index'])->name('playstation.stats');
+    Route::get('/games/{game}', [App\Http\Controllers\PlayStationController::class, 'show'])->name('playstation.games.show');
     Route::post('/sync', [App\Http\Controllers\PlayStationController::class, 'sync'])->name('playstation.sync');
 });

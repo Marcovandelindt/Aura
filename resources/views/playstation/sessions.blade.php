@@ -64,6 +64,106 @@
         </div>
     </div>
 
+    <!-- Additional Stats -->
+    <div class="stats-grid" style="margin-bottom: 2rem;">
+        <!-- Longest Session -->
+        <div class="card">
+            <div class="card-body">
+                <div class="stat-content">
+                    <div class="stat-icon" style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);">
+                        <i class="fas fa-trophy"></i>
+                    </div>
+                    <div class="stat-details">
+                        @if($longestSession)
+                            @php
+                                $hours = floor($longestSession->duration_minutes / 60);
+                                $mins = $longestSession->duration_minutes % 60;
+                            @endphp
+                            <h3 class="stat-value">{{ $hours }}h {{ $mins }}m</h3>
+                            <p class="stat-label">Longest Session</p>
+                            <small style="color: #666;">{{ $longestSession->game?->name ?? 'Unknown' }}</small>
+                            <br><small style="color: #999;">{{ $longestSession->started_at->format('d M Y') }}</small>
+                        @else
+                            <h3 class="stat-value">-</h3>
+                            <p class="stat-label">Longest Session</p>
+                        @endif
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Shortest Session -->
+        <div class="card">
+            <div class="card-body">
+                <div class="stat-content">
+                    <div class="stat-icon" style="background: linear-gradient(135deg, #fc4a1a 0%, #f7b733 100%);">
+                        <i class="fas fa-bolt"></i>
+                    </div>
+                    <div class="stat-details">
+                        @if($shortestSession)
+                            <h3 class="stat-value">{{ $shortestSession->duration_minutes }}m</h3>
+                            <p class="stat-label">Shortest Session</p>
+                            <small style="color: #666;">{{ $shortestSession->game?->name ?? 'Unknown' }}</small>
+                            <br><small style="color: #999;">{{ $shortestSession->started_at->format('d M Y') }}</small>
+                        @else
+                            <h3 class="stat-value">-</h3>
+                            <p class="stat-label">Shortest Session</p>
+                        @endif
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Longest Streak -->
+        <div class="card">
+            <div class="card-body">
+                <div class="stat-content">
+                    <div class="stat-icon" style="background: linear-gradient(135deg, #8E2DE2 0%, #4A00E0 100%);">
+                        <i class="fas fa-fire"></i>
+                    </div>
+                    <div class="stat-details">
+                        @if($longestStreak['days'] > 0)
+                            <h3 class="stat-value">{{ $longestStreak['days'] }} days</h3>
+                            <p class="stat-label">Longest Streak</p>
+                            <small style="color: #666;">{{ $longestStreak['game']?->name ?? 'Unknown' }}</small>
+                            <br><small style="color: #999;">{{ \Carbon\Carbon::parse($longestStreak['start_date'])->format('d M') }} - {{ \Carbon\Carbon::parse($longestStreak['end_date'])->format('d M Y') }}</small>
+                        @else
+                            <h3 class="stat-value">-</h3>
+                            <p class="stat-label">Longest Streak</p>
+                        @endif
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top Start Hours -->
+    @if($topStartHours->count() > 0)
+    <div class="stats-grid" style="margin-bottom: 2rem;">
+        @foreach($topStartHours as $index => $hourData)
+        <div class="card">
+            <div class="card-body">
+                <div class="stat-content">
+                    <div class="stat-icon" style="background: linear-gradient(135deg, {{ match($index) {
+                        0 => '#FFD700, #FFA500',
+                        1 => '#C0C0C0, #A0A0A0',
+                        2 => '#CD7F32, #8B4513',
+                        default => '#667eea, #764ba2'
+                    } }});">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="stat-details">
+                        <h3 class="stat-value">{{ str_pad($hourData->hour, 2, '0', STR_PAD_LEFT) }}:00</h3>
+                        <p class="stat-label">#{{ $index + 1 }} Start Time</p>
+                        <small style="color: #666;">{{ number_format($hourData->count) }} sessions</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        @endforeach
+    </div>
+    @endif
+
     <!-- Filters -->
     <div class="card" style="margin-bottom: 1.5rem;">
         <div class="card-body">

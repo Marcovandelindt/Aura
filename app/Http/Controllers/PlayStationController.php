@@ -89,7 +89,141 @@ class PlayStationController extends Controller
             'this_week' => PlayStationSession::where('started_at', '>=', now()->startOfWeek())->count(),
         ];
 
-        return view('playstation.sessions', compact('sessions', 'games', 'stats', 'search', 'gameId'));
+        // Longest session
+        $longestSession = PlayStationSession::with('game')
+            ->orderByDesc('duration_minutes')
+            ->first();
+
+        // Shortest session (minimum 1 minute to avoid 0-minute sessions)
+        $shortestSession = PlayStationSession::with('game')
+            ->where('duration_minutes', '>', 0)
+            ->orderBy('duration_minutes')
+            ->first();
+
+        // Calculate longest streak for same game
+        $longestStreak = $this->calculateLongestStreak();
+
+        // Top 3 most common start hours
+        $topStartHours = PlayStationSession::selectRaw('HOUR(started_at) as hour, COUNT(*) as count')
+            ->groupBy('hour')
+            ->orderByDesc('count')
+            ->limit(3)
+            ->get();
+
+        return view('playstation.sessions', compact(
+            'sessions',
+            'games',
+            'stats',
+            'search',
+            'gameId',
+            'longestSession',
+            'shortestSession',
+            'longestStreak',
+            'topStartHours'
+        ));
+    }
+
+    public function show(PlayStationGame $game)
+    {
+        $sessions = PlayStationSession::where('play_station_game_id', $game->id)
+            ->orderByDesc('started_at')
+            ->paginate(50);
+
+        // Game-specific stats
+        $stats = [
+            'total_sessions' => $game->sessions,
+            'total_hours' => $game->hours,
+            'total_minutes' => PlayStationSession::where('play_station_game_id', $game->id)->sum('duration_minutes'),
+            'avg_session_minutes' => $game->sessions > 0
+                ? round(PlayStationSession::where('play_station_game_id', $game->id)->sum('duration_minutes') / $game->sessions)
+                : 0,
+            'first_played' => PlayStationSession::where('play_station_game_id', $game->id)->min('started_at'),
+            'last_played' => $game->last_played_at,
+        ];
+
+        // Longest session for this game
+        $longestSession = PlayStationSession::where('play_station_game_id', $game->id)
+            ->orderByDesc('duration_minutes')
+            ->first();
+
+        // Shortest session for this game
+        $shortestSession = PlayStationSession::where('play_station_game_id', $game->id)
+            ->where('duration_minutes', '>', 0)
+            ->orderBy('duration_minutes')
+            ->first();
+
+        // Sessions per month
+        $monthlyStats = PlayStationSession::where('play_station_game_id', $game->id)
+            ->selectRaw('YEAR(started_at) as year, MONTH(started_at) as month, COUNT(*) as sessions, SUM(duration_minutes) as minutes')
+            ->groupBy('year', 'month')
+            ->orderByDesc('year')
+            ->orderByDesc('month')
+            ->limit(12)
+            ->get();
+
+        return view('playstation.show', compact('game', 'sessions', 'stats', 'longestSession', 'shortestSession', 'monthlyStats'));
+    }
+
+    private function calculateLongestStreak(): array
+    {
+        // Get all sessions grouped by game and date
+        $sessions = PlayStationSession::with('game')
+            ->orderBy('started_at')
+            ->get()
+            ->groupBy('play_station_game_id');
+
+        $longestStreak = [
+            'days' => 0,
+            'game' => null,
+            'start_date' => null,
+            'end_date' => null,
+        ];
+
+        foreach ($sessions as $gameId => $gameSessions) {
+            // Get unique dates for this game
+            $dates = $gameSessions
+                ->map(fn ($s) => $s->started_at->toDateString())
+                ->unique()
+                ->sort()
+                ->values();
+
+            if ($dates->count() < 2) {
+                continue;
+            }
+
+            // Find longest consecutive sequence
+            $currentStreak = 1;
+            $maxStreak = 1;
+            $streakStart = 0;
+            $maxStreakStart = 0;
+
+            for ($i = 1; $i < $dates->count(); $i++) {
+                $prevDate = \Carbon\Carbon::parse($dates[$i - 1]);
+                $currDate = \Carbon\Carbon::parse($dates[$i]);
+
+                if ($prevDate->addDay()->toDateString() === $currDate->toDateString()) {
+                    $currentStreak++;
+                    if ($currentStreak > $maxStreak) {
+                        $maxStreak = $currentStreak;
+                        $maxStreakStart = $streakStart;
+                    }
+                } else {
+                    $currentStreak = 1;
+                    $streakStart = $i;
+                }
+            }
+
+            if ($maxStreak > $longestStreak['days']) {
+                $longestStreak = [
+                    'days' => $maxStreak,
+                    'game' => $gameSessions->first()->game,
+                    'start_date' => $dates[$maxStreakStart],
+                    'end_date' => $dates[$maxStreakStart + $maxStreak - 1],
+                ];
+            }
+        }
+
+        return $longestStreak;
     }
 
     public function sync(PlayStationScraperService $scraper)

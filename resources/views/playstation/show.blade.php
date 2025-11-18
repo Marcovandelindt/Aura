@@ -1,0 +1,242 @@
+@extends('layouts.app')
+
+@section('content')
+<div class="content-wrapper">
+    <div class="content-header">
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+            <div>
+                <h1>{{ $game->name }}</h1>
+                <ul class="breadcrumb">
+                    <li><a href="{{ route('home.index') }}">Home</a></li>
+                    <li><a href="{{ route('playstation.index') }}">PlayStation</a></li>
+                    <li>{{ $game->name }}</li>
+                </ul>
+            </div>
+            <div>
+                <a href="{{ route('playstation.index') }}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Back to Games
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Game Header -->
+    <div class="card" style="margin-bottom: 2rem;">
+        <div class="card-body">
+            <div style="display: flex; gap: 1.5rem; align-items: center;">
+                @if($game->image_url)
+                    <img src="{{ $game->image_url }}" alt="{{ $game->name }}" style="width: 120px; height: 120px; object-fit: cover; border-radius: 8px;">
+                @else
+                    <div style="width: 120px; height: 120px; background: #f3f4f6; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-gamepad" style="font-size: 2rem; color: #9ca3af;"></i>
+                    </div>
+                @endif
+                <div>
+                    <h2 style="margin: 0 0 0.5rem 0;">{{ $game->name }}</h2>
+                    <div style="display: flex; gap: 1rem; align-items: center;">
+                        <span class="badge" style="background: {{ match($game->platform) {
+                            'PS5' => '#003087',
+                            'PS4' => '#00439c',
+                            'PS3' => '#006cb7',
+                            'PSVITA' => '#00acee',
+                            default => '#666'
+                        } }}; color: white; padding: 4px 8px; border-radius: 4px; font-size: 11px;">
+                            {{ $game->platform }}
+                        </span>
+                        @if($game->completion_percentage)
+                            <span style="color: #666; font-size: 0.875rem;">
+                                <i class="fas fa-trophy"></i> {{ $game->completion_percentage }}% complete
+                            </span>
+                        @endif
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Grid -->
+    <div class="stats-grid" style="margin-bottom: 2rem;">
+        <div class="card">
+            <div class="card-body">
+                <div class="stat-content">
+                    <div class="stat-icon" style="background: linear-gradient(135deg, #003087 0%, #0070cc 100%);">
+                        <i class="fas fa-gamepad"></i>
+                    </div>
+                    <div class="stat-details">
+                        <h3 class="stat-value">{{ number_format($stats['total_sessions']) }}</h3>
+                        <p class="stat-label">Total Sessions</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-body">
+                <div class="stat-content">
+                    <div class="stat-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="stat-details">
+                        <h3 class="stat-value">{{ number_format($stats['total_hours'], 1) }}h</h3>
+                        <p class="stat-label">Total Playtime</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-body">
+                <div class="stat-content">
+                    <div class="stat-icon" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                        <i class="fas fa-hourglass-half"></i>
+                    </div>
+                    <div class="stat-details">
+                        @php
+                            $avgHours = floor($stats['avg_session_minutes'] / 60);
+                            $avgMins = $stats['avg_session_minutes'] % 60;
+                        @endphp
+                        <h3 class="stat-value">
+                            @if($avgHours > 0)
+                                {{ $avgHours }}h {{ $avgMins }}m
+                            @else
+                                {{ $avgMins }}m
+                            @endif
+                        </h3>
+                        <p class="stat-label">Avg Session</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-body">
+                <div class="stat-content">
+                    <div class="stat-icon" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                        <i class="fas fa-calendar"></i>
+                    </div>
+                    <div class="stat-details">
+                        <h3 class="stat-value">
+                            @if($stats['first_played'])
+                                {{ \Carbon\Carbon::parse($stats['first_played'])->diffInDays($stats['last_played']) + 1 }}
+                            @else
+                                0
+                            @endif
+                        </h3>
+                        <p class="stat-label">Days Span</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Session Records -->
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem;">
+        <!-- Longest Session -->
+        <div class="card">
+            <div class="card-body">
+                <div class="stat-content">
+                    <div class="stat-icon" style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);">
+                        <i class="fas fa-medal"></i>
+                    </div>
+                    <div class="stat-details">
+                        @if($longestSession)
+                            @php
+                                $hours = floor($longestSession->duration_minutes / 60);
+                                $mins = $longestSession->duration_minutes % 60;
+                            @endphp
+                            <h3 class="stat-value">{{ $hours }}h {{ $mins }}m</h3>
+                            <p class="stat-label">Longest Session</p>
+                            <small style="color: #999;">{{ $longestSession->started_at->format('d M Y') }}</small>
+                        @else
+                            <h3 class="stat-value">-</h3>
+                            <p class="stat-label">Longest Session</p>
+                        @endif
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Shortest Session -->
+        <div class="card">
+            <div class="card-body">
+                <div class="stat-content">
+                    <div class="stat-icon" style="background: linear-gradient(135deg, #fc4a1a 0%, #f7b733 100%);">
+                        <i class="fas fa-bolt"></i>
+                    </div>
+                    <div class="stat-details">
+                        @if($shortestSession)
+                            <h3 class="stat-value">{{ $shortestSession->duration_minutes }}m</h3>
+                            <p class="stat-label">Shortest Session</p>
+                            <small style="color: #999;">{{ $shortestSession->started_at->format('d M Y') }}</small>
+                        @else
+                            <h3 class="stat-value">-</h3>
+                            <p class="stat-label">Shortest Session</p>
+                        @endif
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Monthly Activity -->
+    @if($monthlyStats->count() > 0)
+    <div class="card" style="margin-bottom: 2rem;">
+        <div class="card-header">
+            <h3><i class="fas fa-chart-bar" style="margin-right: 8px;"></i> Monthly Activity</h3>
+        </div>
+        <div class="card-body">
+            <div class="top-list">
+                @foreach($monthlyStats as $month)
+                    <div class="top-list-item" style="padding: 0.5rem 0; border-bottom: 1px solid #eee;">
+                        <div class="item-info">
+                            <div class="item-name">{{ \Carbon\Carbon::createFromDate($month->year, $month->month, 1)->format('F Y') }}</div>
+                            <div class="item-details" style="font-size: 0.75rem; color: #666;">
+                                {{ $month->sessions }} sessions
+                            </div>
+                        </div>
+                        <div style="font-weight: 600; color: #667eea;">{{ number_format($month->minutes / 60, 1) }}h</div>
+                    </div>
+                @endforeach
+            </div>
+        </div>
+    </div>
+    @endif
+
+    <!-- Sessions List -->
+    <div class="card">
+        <div class="card-header">
+            <h3><i class="fas fa-history" style="margin-right: 8px;"></i> All Sessions</h3>
+            <p style="margin: 0; font-size: 0.875rem; color: #6b7280;">{{ $sessions->total() }} sessions total</p>
+        </div>
+        <div class="card-body">
+            @if($sessions->count() > 0)
+                <div class="top-list">
+                    @foreach($sessions as $session)
+                        <div class="top-list-item" style="padding: 0.75rem 0; border-bottom: 1px solid #eee;">
+                            <div class="item-info">
+                                <div class="item-name">{{ $session->started_at->format('l, d M Y') }}</div>
+                                <div class="item-details" style="font-size: 0.875rem; color: #666;">
+                                    {{ $session->started_at->format('H:i') }} - {{ $session->ended_at->format('H:i') }}
+                                </div>
+                            </div>
+                            <div style="font-weight: 600; color: #667eea;">
+                                @if($session->duration_minutes >= 60)
+                                    {{ floor($session->duration_minutes / 60) }}h {{ $session->duration_minutes % 60 }}m
+                                @else
+                                    {{ $session->duration_minutes }}m
+                                @endif
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+
+                <div style="margin-top: 1.5rem;">
+                    {{ $sessions->links() }}
+                </div>
+            @else
+                <p class="no-data">No sessions found for this game.</p>
+            @endif
+        </div>
+    </div>
+</div>
+@endsection
