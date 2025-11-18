@@ -32,7 +32,14 @@
                     <span class="nav-text">Music Stats</span>
                 </a>
             </li>
-            
+
+            <li class="nav-item">
+                <a href="{{ route('playstation.index') }}" class="nav-link {{ request()->routeIs('playstation.*') ? 'active' : '' }}">
+                    <i class="fas fa-gamepad nav-icon"></i>
+                    <span class="nav-text">PlayStation</span>
+                </a>
+            </li>
+
             <li class="nav-item">
                 <a href="#" class="nav-link">
                     <i class="fas fa-film nav-icon"></i>

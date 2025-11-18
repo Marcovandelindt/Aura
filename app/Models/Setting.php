@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Cache;
 class Setting extends Model
 {
     protected $fillable = ['key', 'value'];
-    
+
     protected $casts = [
         'value' => 'json',
     ];
@@ -20,6 +20,7 @@ class Setting extends Model
     {
         return Cache::remember("setting.{$key}", 3600, function () use ($key, $default) {
             $setting = static::where('key', $key)->first();
+
             return $setting ? $setting->value : $default;
         });
     }
@@ -33,7 +34,7 @@ class Setting extends Model
             ['key' => $key],
             ['value' => $value]
         );
-        
+
         Cache::forget("setting.{$key}");
     }
 
@@ -68,5 +69,41 @@ class Setting extends Model
         static::set('spotify_access_token', $credentials['access_token']);
         static::set('spotify_refresh_token', $credentials['refresh_token']);
         static::set('spotify_token_expires_at', $credentials['expires_at']);
+    }
+
+    /**
+     * Get PlayStation related settings
+     */
+    public static function getPlayStationCredentials(): array
+    {
+        return [
+            'username' => static::get('playstation_username'),
+            'session_cookie' => static::get('playstation_session_cookie'),
+        ];
+    }
+
+    /**
+     * Store PlayStation credentials
+     */
+    public static function storePlayStationCredentials(string $username, string $sessionCookie): void
+    {
+        static::set('playstation_username', $username);
+        static::set('playstation_session_cookie', $sessionCookie);
+    }
+
+    /**
+     * Get PlayStation session cookie
+     */
+    public static function getPlayStationSessionCookie(): ?string
+    {
+        return static::get('playstation_session_cookie');
+    }
+
+    /**
+     * Get PlayStation username
+     */
+    public static function getPlayStationUsername(): ?string
+    {
+        return static::get('playstation_username');
     }
 }

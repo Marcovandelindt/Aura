@@ -10,7 +10,8 @@
       "Bash(mkdir:*)",
       "Bash(ddev exec php artisan:*)",
       "Bash(ddev exec:*)",
-      "Bash(vendor/bin/pint:*)"
+      "Bash(vendor/bin/pint:*)",
+      "WebFetch(domain:raw.githubusercontent.com)"
     ],
     "deny": []
   }

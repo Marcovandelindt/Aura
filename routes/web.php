@@ -71,3 +71,12 @@ Route::prefix('settings')->group(function () {
     Route::delete('/moods/{mood}', [App\Http\Controllers\MoodSettingsController::class, 'destroy'])->name('settings.moods.destroy');
     Route::post('/moods/{mood}/toggle', [App\Http\Controllers\MoodSettingsController::class, 'toggle'])->name('settings.moods.toggle');
 });
+
+/**
+ * PlayStation Routes
+ */
+Route::prefix('playstation')->group(function () {
+    Route::get('/', [App\Http\Controllers\PlayStationController::class, 'index'])->name('playstation.index');
+    Route::get('/sessions', [App\Http\Controllers\PlayStationController::class, 'sessions'])->name('playstation.sessions');
+    Route::post('/sync', [App\Http\Controllers\PlayStationController::class, 'sync'])->name('playstation.sync');
+});

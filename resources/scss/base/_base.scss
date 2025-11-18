@@ -40,3 +40,98 @@ h3 { font-size: 1.5rem; }
 h4 { font-size: 1.25rem; }
 h5 { font-size: 1.125rem; }
 h6 { font-size: 1rem; }
+
+// Pagination
+nav[role="navigation"] {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid $medium-gray;
+    flex-wrap: wrap;
+    gap: 1rem;
+
+    .flex-1 {
+        flex: 1;
+        min-width: 200px;
+    }
+
+    p {
+        margin: 0;
+        color: $dark-gray;
+        font-size: 0.875rem;
+    }
+
+    span[aria-current="page"] span {
+        background: $primary-color;
+        color: white;
+        padding: 0.5rem 0.75rem;
+        border-radius: $border-radius;
+        font-weight: 500;
+    }
+
+    a {
+        padding: 0.5rem 0.75rem;
+        border: 1px solid $medium-gray;
+        border-radius: $border-radius;
+        color: $text-color;
+        background: white;
+
+        &:hover {
+            background: $light-gray;
+            border-color: $primary-color;
+        }
+    }
+
+    .hidden {
+        display: none;
+    }
+
+    // Mobile view
+    @media (max-width: 640px) {
+        flex-direction: column;
+        align-items: stretch;
+
+        > div {
+            text-align: center;
+        }
+    }
+}
+
+// Simple pagination (previous/next only)
+.pagination {
+    display: flex;
+    gap: 0.5rem;
+    list-style: none;
+    margin: 1rem 0 0;
+    padding: 0;
+
+    .page-item {
+        &.disabled .page-link {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        &.active .page-link {
+            background: $primary-color;
+            color: white;
+            border-color: $primary-color;
+        }
+    }
+
+    .page-link {
+        display: block;
+        padding: 0.5rem 0.75rem;
+        border: 1px solid $medium-gray;
+        border-radius: $border-radius;
+        color: $text-color;
+        background: white;
+        text-decoration: none;
+
+        &:hover {
+            background: $light-gray;
+            border-color: $primary-color;
+        }
+    }
+}
