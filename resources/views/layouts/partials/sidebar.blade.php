@@ -79,11 +79,11 @@
             <li class="nav-section">
                 <span class="nav-section-title">Settings</span>
             </li>
-            
+
             <li class="nav-item">
-                <a href="#" class="nav-link">
-                    <i class="fas fa-cog nav-icon"></i>
-                    <span class="nav-text">Settings</span>
+                <a href="{{ route('settings.moods') }}" class="nav-link {{ request()->routeIs('settings.moods*') ? 'active' : '' }}">
+                    <i class="fas fa-heart nav-icon"></i>
+                    <span class="nav-text">Moods</span>
                 </a>
             </li>
             

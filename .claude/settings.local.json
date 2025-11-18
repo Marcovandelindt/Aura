@@ -9,7 +9,8 @@
       "Bash(rm:*)",
       "Bash(mkdir:*)",
       "Bash(ddev exec php artisan:*)",
-      "Bash(ddev exec:*)"
+      "Bash(ddev exec:*)",
+      "Bash(vendor/bin/pint:*)"
     ],
     "deny": []
   }

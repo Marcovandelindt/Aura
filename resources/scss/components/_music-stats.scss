@@ -182,6 +182,152 @@
     }
 }
 
+// Moods Grid
+.moods-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+
+    @media (max-width: $mobile) {
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+    }
+}
+
+.mood-stat-card {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem;
+    background: $light-gray;
+    border-radius: $border-radius;
+    transition: $transition-base;
+    position: relative;
+    overflow: hidden;
+
+    &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    // Special styling for top 3
+    &:nth-child(1) {
+        background: linear-gradient(135deg, rgba(255, 215, 0, 0.1) 0%, rgba(255, 193, 7, 0.1) 100%);
+
+        .mood-rank {
+            background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+            color: #92400e;
+            font-weight: 700;
+        }
+    }
+
+    &:nth-child(2) {
+        background: linear-gradient(135deg, rgba(192, 192, 192, 0.1) 0%, rgba(229, 229, 229, 0.1) 100%);
+
+        .mood-rank {
+            background: linear-gradient(135deg, #c0c0c0 0%, #e5e5e5 100%);
+            color: #374151;
+            font-weight: 700;
+        }
+    }
+
+    &:nth-child(3) {
+        background: linear-gradient(135deg, rgba(205, 127, 50, 0.1) 0%, rgba(217, 119, 6, 0.1) 100%);
+
+        .mood-rank {
+            background: linear-gradient(135deg, #cd7f32 0%, #d97706 100%);
+            color: #fff;
+            font-weight: 700;
+        }
+    }
+}
+
+.mood-rank {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    background: $primary-color;
+    color: white;
+    border-radius: 50%;
+    font-weight: 600;
+    font-size: 0.75rem;
+    flex-shrink: 0;
+}
+
+.mood-stat-card .mood-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 50%;
+    flex-shrink: 0;
+
+    i {
+        font-size: 1rem;
+    }
+}
+
+.mood-info {
+    flex: 1;
+    min-width: 0;
+
+    .mood-name {
+        font-weight: 600;
+        font-size: 0.9rem;
+        color: $dark-color;
+        margin-bottom: 0.25rem;
+    }
+
+    .mood-count {
+        font-size: 0.75rem;
+        color: $dark-gray;
+    }
+}
+
+.mood-color-indicator {
+    width: 4px;
+    height: 100%;
+    position: absolute;
+    right: 0;
+    top: 0;
+    border-radius: 0 $border-radius $border-radius 0;
+}
+
+// Christmas theme for moods grid
+.theme-christmas {
+    .mood-stat-card {
+        &:nth-child(1) {
+            background: linear-gradient(135deg, rgba(251, 191, 36, 0.15) 0%, rgba(245, 158, 11, 0.15) 100%);
+
+            .mood-rank {
+                background: var(--christmas-gold);
+                color: #1f2937;
+            }
+        }
+
+        &:nth-child(2) {
+            background: linear-gradient(135deg, rgba(220, 38, 38, 0.1) 0%, rgba(185, 28, 28, 0.1) 100%);
+
+            .mood-rank {
+                background: var(--christmas-red);
+                color: white;
+            }
+        }
+
+        &:nth-child(3) {
+            background: linear-gradient(135deg, rgba(22, 163, 74, 0.1) 0%, rgba(21, 128, 61, 0.1) 100%);
+
+            .mood-rank {
+                background: var(--christmas-green);
+                color: white;
+            }
+        }
+    }
+}
+
 // Advanced Statistics Components
 
 // Weekday vs Weekend Chart

@@ -17,10 +17,10 @@ class MoodController extends Controller
     public function index(): JsonResponse
     {
         $moods = Mood::active()->popular()->get();
-        
+
         return response()->json([
             'success' => true,
-            'moods' => $moods
+            'moods' => $moods,
         ]);
     }
 
@@ -30,11 +30,11 @@ class MoodController extends Controller
     public function getTrackMoods(Request $request): JsonResponse
     {
         $spotifyTrackId = $request->input('spotify_track_id');
-        
-        if (!$spotifyTrackId) {
+
+        if (! $spotifyTrackId) {
             return response()->json([
                 'success' => false,
-                'message' => 'Spotify track ID is required'
+                'message' => 'Spotify track ID is required',
             ], 400);
         }
 
@@ -45,7 +45,7 @@ class MoodController extends Controller
             'success' => true,
             'track_moods' => $trackMoods,
             'all_moods' => $allMoods,
-            'spotify_track_id' => $spotifyTrackId
+            'spotify_track_id' => $spotifyTrackId,
         ]);
     }
 
@@ -56,14 +56,14 @@ class MoodController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'spotify_track_id' => 'required|string|max:50',
-            'mood_id' => 'required|exists:moods,id'
+            'mood_id' => 'required|exists:moods,id',
         ]);
 
         if ($validator->fails()) {
             return response()->json([
                 'success' => false,
                 'message' => 'Invalid data provided',
-                'errors' => $validator->errors()
+                'errors' => $validator->errors(),
             ], 400);
         }
 
@@ -76,7 +76,7 @@ class MoodController extends Controller
                 'spotify_track_id' => $spotifyTrackId,
                 'mood_id' => $moodId,
                 'created_at' => now(),
-                'updated_at' => now()
+                'updated_at' => now(),
             ]);
 
             // Increment mood usage count
@@ -86,13 +86,13 @@ class MoodController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Mood added to track successfully',
-                'mood' => $mood
+                'mood' => $mood,
             ]);
-            
+
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to add mood to track: ' . $e->getMessage()
+                'message' => 'Failed to add mood to track: '.$e->getMessage(),
             ], 500);
         }
     }
@@ -104,14 +104,14 @@ class MoodController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'spotify_track_id' => 'required|string|max:50',
-            'mood_id' => 'required|exists:moods,id'
+            'mood_id' => 'required|exists:moods,id',
         ]);
 
         if ($validator->fails()) {
             return response()->json([
                 'success' => false,
                 'message' => 'Invalid data provided',
-                'errors' => $validator->errors()
+                'errors' => $validator->errors(),
             ], 400);
         }
 
@@ -128,22 +128,22 @@ class MoodController extends Controller
                 // Decrement mood usage count
                 $mood = Mood::find($moodId);
                 $mood->decrement('usage_count');
-                
+
                 return response()->json([
                     'success' => true,
-                    'message' => 'Mood removed from track successfully'
+                    'message' => 'Mood removed from track successfully',
                 ]);
             } else {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Mood was not associated with this track'
+                    'message' => 'Mood was not associated with this track',
                 ], 404);
             }
-            
+
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to remove mood from track: ' . $e->getMessage()
+                'message' => 'Failed to remove mood from track: '.$e->getMessage(),
             ], 500);
         }
     }
@@ -155,16 +155,16 @@ class MoodController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255|unique:moods,name',
-            'color' => 'required|regex:/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/',
+            'color' => ['required', 'regex:/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/'],
             'icon' => 'required|string|max:255',
-            'description' => 'nullable|string'
+            'description' => 'nullable|string',
         ]);
 
         if ($validator->fails()) {
             return response()->json([
                 'success' => false,
                 'message' => 'Invalid data provided',
-                'errors' => $validator->errors()
+                'errors' => $validator->errors(),
             ], 400);
         }
 
@@ -174,13 +174,13 @@ class MoodController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Mood created successfully',
-                'mood' => $mood
+                'mood' => $mood,
             ], 201);
-            
+
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to create mood: ' . $e->getMessage()
+                'message' => 'Failed to create mood: '.$e->getMessage(),
             ], 500);
         }
     }

@@ -1,7 +1,7 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Spotify\SpotifyAuthController;
+use Illuminate\Support\Facades\Route;
 
 Route::get('/', [App\Http\Controllers\HomeController::class, 'index'])->name('home.index');
 
@@ -17,7 +17,6 @@ Route::middleware(['spotify.connected'])->prefix('spotify')->group(function () {
     Route::post('/playback/next', [App\Http\Controllers\Spotify\SpotifyPlaybackController::class, 'skipToNext'])->name('spotify.playback.next');
     Route::post('/playback/previous', [App\Http\Controllers\Spotify\SpotifyPlaybackController::class, 'skipToPrevious'])->name('spotify.playback.previous');
 });
-
 
 /**
  * Music Routes
@@ -60,4 +59,15 @@ Route::prefix('moods')->group(function () {
     Route::post('/add', [App\Http\Controllers\MoodController::class, 'addMoodToTrack'])->name('moods.add');
     Route::delete('/remove', [App\Http\Controllers\MoodController::class, 'removeMoodFromTrack'])->name('moods.remove');
     Route::post('/create', [App\Http\Controllers\MoodController::class, 'store'])->name('moods.store');
+});
+
+/**
+ * Settings Routes
+ */
+Route::prefix('settings')->group(function () {
+    Route::get('/moods', [App\Http\Controllers\MoodSettingsController::class, 'index'])->name('settings.moods');
+    Route::post('/moods', [App\Http\Controllers\MoodSettingsController::class, 'store'])->name('settings.moods.store');
+    Route::put('/moods/{mood}', [App\Http\Controllers\MoodSettingsController::class, 'update'])->name('settings.moods.update');
+    Route::delete('/moods/{mood}', [App\Http\Controllers\MoodSettingsController::class, 'destroy'])->name('settings.moods.destroy');
+    Route::post('/moods/{mood}/toggle', [App\Http\Controllers\MoodSettingsController::class, 'toggle'])->name('settings.moods.toggle');
 });

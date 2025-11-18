@@ -111,7 +111,36 @@
             @endif
         </div>
     </div>
-    
+
+    <!-- Top Moods -->
+    <div class="card" style="margin-top: 2rem;">
+        <div class="card-header">
+            <h3><i class="fas fa-heart"></i> Top Moods</h3>
+            <p style="margin: 0; font-size: 0.875rem; color: #6b7280;">Your most tagged moods</p>
+        </div>
+        <div class="card-body">
+            @if(count($stats['top_moods']) > 0)
+                <div class="moods-grid">
+                    @foreach($stats['top_moods'] as $index => $mood)
+                        <div class="mood-stat-card">
+                            <div class="mood-rank">{{ $index + 1 }}</div>
+                            <div class="mood-icon" style="background-color: {{ $mood['color'] }}20; color: {{ $mood['color'] }};">
+                                <i class="{{ $mood['icon'] }}"></i>
+                            </div>
+                            <div class="mood-info">
+                                <div class="mood-name">{{ $mood['name'] }}</div>
+                                <div class="mood-count">{{ number_format($mood['play_count']) }} {{ $mood['play_count'] === 1 ? 'play' : 'plays' }} &bull; {{ $mood['track_count'] }} {{ $mood['track_count'] === 1 ? 'track' : 'tracks' }}</div>
+                            </div>
+                            <div class="mood-color-indicator" style="background-color: {{ $mood['color'] }};"></div>
+                        </div>
+                    @endforeach
+                </div>
+            @else
+                <p class="no-data">No moods tagged yet. Add moods to your tracks to see statistics!</p>
+            @endif
+        </div>
+    </div>
+
     <!-- Advanced Statistics -->
     <div class="content-grid" style="margin-top: 2rem;">
         <!-- Weekday vs Weekend -->

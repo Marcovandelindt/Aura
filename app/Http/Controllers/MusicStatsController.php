@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Mood;
 use App\Models\PlayedTrack;
 use Illuminate\Support\Carbon;
 use Illuminate\View\View;
@@ -17,6 +18,7 @@ class MusicStatsController extends Controller
             'top_artists' => $this->getTopArtists(),
             'top_tracks' => $this->getTopTracks(),
             'top_albums' => $this->getTopAlbums(),
+            'top_moods' => $this->getTopMoods(),
             'listening_stats' => $this->getListeningStats(),
             'top_listening_times' => $this->getTopListeningTimes(),
             'weekday_vs_weekend' => $this->getWeekdayVsWeekendStats(),
@@ -24,23 +26,23 @@ class MusicStatsController extends Controller
             'binge_sessions' => $this->getBingeSessions(),
             'discovery_rate' => $this->getDiscoveryRate(),
         ];
-        
+
         return view('music.stats', compact('stats'));
     }
-    
+
     /**
      * Get top artists by play count
      */
     private function getTopArtists(int $limit = 10): array
     {
         $artistStats = [];
-        
+
         // Get all played tracks and count artist plays
         $tracks = PlayedTrack::select('artist_names', 'played_at', 'duration_ms', 'spotify_track_id')->get();
-        
+
         foreach ($tracks as $track) {
             foreach ($track->artist_names as $artist) {
-                if (!isset($artistStats[$artist])) {
+                if (! isset($artistStats[$artist])) {
                     $artistStats[$artist] = [
                         'name' => $artist,
                         'play_count' => 0,
@@ -50,34 +52,34 @@ class MusicStatsController extends Controller
                         'last_played' => null,
                     ];
                 }
-                
+
                 $artistStats[$artist]['play_count']++;
                 $artistStats[$artist]['total_duration_ms'] += $track->duration_ms;
                 $artistStats[$artist]['unique_tracks'][$track->spotify_track_id] = true;
-                
-                if (!$artistStats[$artist]['first_played'] || $track->played_at < $artistStats[$artist]['first_played']) {
+
+                if (! $artistStats[$artist]['first_played'] || $track->played_at < $artistStats[$artist]['first_played']) {
                     $artistStats[$artist]['first_played'] = $track->played_at;
                 }
-                
-                if (!$artistStats[$artist]['last_played'] || $track->played_at > $artistStats[$artist]['last_played']) {
+
+                if (! $artistStats[$artist]['last_played'] || $track->played_at > $artistStats[$artist]['last_played']) {
                     $artistStats[$artist]['last_played'] = $track->played_at;
                 }
             }
         }
-        
+
         // Convert unique tracks count and sort by play count
         foreach ($artistStats as &$stats) {
             $stats['unique_tracks_count'] = count($stats['unique_tracks']);
             unset($stats['unique_tracks']);
         }
-        
-        usort($artistStats, function($a, $b) {
+
+        usort($artistStats, function ($a, $b) {
             return $b['play_count'] <=> $a['play_count'];
         });
-        
+
         return array_slice($artistStats, 0, $limit);
     }
-    
+
     /**
      * Get top tracks by play count
      */
@@ -91,21 +93,23 @@ class MusicStatsController extends Controller
             ->orderBy('play_count', 'desc')
             ->limit($limit)
             ->get()
-            ->map(function($track) {
+            ->map(function ($track) {
                 $track->artists_string = implode(', ', $track->artist_names);
+
                 return $track;
             });
 
         // Get moods for tracks
         $trackIds = $tracks->pluck('spotify_track_id')->toArray();
         $trackMoods = PlayedTrack::getMoodsForTracks($trackIds);
-        
-        return $tracks->map(function($track) use ($trackMoods) {
+
+        return $tracks->map(function ($track) use ($trackMoods) {
             $track->moods = $trackMoods[$track->spotify_track_id] ?? [];
+
             return $track;
         })->toArray();
     }
-    
+
     /**
      * Get top albums by play count
      */
@@ -120,13 +124,43 @@ class MusicStatsController extends Controller
             ->orderBy('play_count', 'desc')
             ->limit($limit)
             ->get()
-            ->map(function($album) {
+            ->map(function ($album) {
                 $album->artists_string = implode(', ', array_unique($album->artist_names));
+
                 return $album;
             })
             ->toArray();
     }
-    
+
+    /**
+     * Get top moods by total play count
+     */
+    private function getTopMoods(int $limit = 10): array
+    {
+        return Mood::query()
+            ->select('moods.id', 'moods.name', 'moods.color', 'moods.icon')
+            ->selectRaw('COUNT(played_tracks.id) as play_count')
+            ->selectRaw('COUNT(DISTINCT played_track_mood.spotify_track_id) as track_count')
+            ->join('played_track_mood', 'moods.id', '=', 'played_track_mood.mood_id')
+            ->join('played_tracks', 'played_track_mood.spotify_track_id', '=', 'played_tracks.spotify_track_id')
+            ->where('moods.is_active', true)
+            ->groupBy('moods.id', 'moods.name', 'moods.color', 'moods.icon')
+            ->orderByDesc('play_count')
+            ->limit($limit)
+            ->get()
+            ->map(function ($mood) {
+                return [
+                    'id' => $mood->id,
+                    'name' => $mood->name,
+                    'color' => $mood->color,
+                    'icon' => $mood->icon,
+                    'play_count' => $mood->play_count,
+                    'track_count' => $mood->track_count,
+                ];
+            })
+            ->toArray();
+    }
+
     /**
      * Get general listening statistics
      */
@@ -135,20 +169,20 @@ class MusicStatsController extends Controller
         $totalTracks = PlayedTrack::count();
         $uniqueTracks = PlayedTrack::distinct('spotify_track_id')->count();
         $totalDuration = PlayedTrack::sum('duration_ms');
-        
+
         $firstTrack = PlayedTrack::orderBy('played_at', 'asc')->first();
         $lastTrack = PlayedTrack::orderBy('played_at', 'desc')->first();
-        
+
         // Stats for different time periods
         $todayTracks = PlayedTrack::whereDate('played_at', Carbon::today())->count();
         $weekTracks = PlayedTrack::whereBetween('played_at', [
             Carbon::now()->startOfWeek(),
-            Carbon::now()->endOfWeek()
+            Carbon::now()->endOfWeek(),
         ])->count();
         $monthTracks = PlayedTrack::whereMonth('played_at', Carbon::now()->month)
             ->whereYear('played_at', Carbon::now()->year)
             ->count();
-        
+
         return [
             'total_tracks' => $totalTracks,
             'unique_tracks' => $uniqueTracks,
@@ -162,7 +196,7 @@ class MusicStatsController extends Controller
             'average_per_day' => $firstTrack ? round($totalTracks / max(1, $firstTrack->played_at->diffInDays(Carbon::now())), 1) : 0,
         ];
     }
-    
+
     /**
      * Get top 3 listening times of the day
      */
@@ -174,14 +208,14 @@ class MusicStatsController extends Controller
             ->orderBy('play_count', 'desc')
             ->limit(3)
             ->get();
-        
+
         $timeStats = [];
-        
+
         foreach ($tracks as $track) {
             $hour = $track->hour;
             $timeLabel = $this->getTimeLabel($hour);
             $timeRange = $this->getTimeRange($hour);
-            
+
             $timeStats[] = [
                 'hour' => $hour,
                 'time_label' => $timeLabel,
@@ -191,10 +225,10 @@ class MusicStatsController extends Controller
                 'description' => $this->getTimeDescription($hour),
             ];
         }
-        
+
         return $timeStats;
     }
-    
+
     /**
      * Get time label for an hour (24h format)
      */
@@ -202,16 +236,17 @@ class MusicStatsController extends Controller
     {
         return sprintf('%02d:00', $hour);
     }
-    
+
     /**
      * Get time range for an hour
      */
     private function getTimeRange(int $hour): string
     {
         $nextHour = $hour + 1;
+
         return sprintf('%02d:00 - %02d:00', $hour, $nextHour);
     }
-    
+
     /**
      * Get emoji for time of day
      */
@@ -227,7 +262,7 @@ class MusicStatsController extends Controller
             return '🌙'; // Night
         }
     }
-    
+
     /**
      * Get description for time of day
      */
@@ -251,7 +286,7 @@ class MusicStatsController extends Controller
             return 'Night Owl';
         }
     }
-    
+
     /**
      * Get weekday vs weekend listening statistics
      */
@@ -261,14 +296,14 @@ class MusicStatsController extends Controller
         $weekdayPlays = PlayedTrack::selectRaw('COUNT(*) as play_count')
             ->whereRaw('WEEKDAY(played_at) BETWEEN 0 AND 4') // Monday(0) to Friday(4)
             ->first()->play_count ?? 0;
-        
+
         // Get weekend plays
         $weekendPlays = PlayedTrack::selectRaw('COUNT(*) as play_count')
             ->whereRaw('WEEKDAY(played_at) IN (5, 6)') // Saturday(5) and Sunday(6)
             ->first()->play_count ?? 0;
-        
+
         $totalPlays = $weekdayPlays + $weekendPlays;
-        
+
         return [
             'weekday_count' => $weekdayPlays,
             'weekend_count' => $weekendPlays,
@@ -277,7 +312,7 @@ class MusicStatsController extends Controller
             'preference' => $weekdayPlays > $weekendPlays ? 'weekday' : ($weekendPlays > $weekdayPlays ? 'weekend' : 'equal'),
         ];
     }
-    
+
     /**
      * Get repeat ratio statistics
      */
@@ -285,17 +320,17 @@ class MusicStatsController extends Controller
     {
         $totalPlays = PlayedTrack::count();
         $uniqueTracks = PlayedTrack::distinct('spotify_track_id')->count();
-        
+
         $repeatPlays = $totalPlays - $uniqueTracks;
         $repeatPercentage = $totalPlays > 0 ? round(($repeatPlays / $totalPlays) * 100, 1) : 0;
-        
+
         // Get most repeated track
         $mostRepeated = PlayedTrack::select('spotify_track_id', 'track_name', 'artist_names')
             ->selectRaw('COUNT(*) as play_count')
             ->groupBy('spotify_track_id', 'track_name', 'artist_names')
             ->orderBy('play_count', 'desc')
             ->first();
-        
+
         return [
             'total_plays' => $totalPlays,
             'unique_tracks' => $uniqueTracks,
@@ -309,7 +344,7 @@ class MusicStatsController extends Controller
             ] : null,
         ];
     }
-    
+
     /**
      * Get binge sessions (periods of continuous listening)
      */
@@ -319,13 +354,13 @@ class MusicStatsController extends Controller
         $plays = PlayedTrack::select('played_at', 'duration_ms')
             ->orderBy('played_at')
             ->get();
-        
+
         $sessions = [];
         $currentSession = null;
-        
+
         foreach ($plays as $index => $play) {
             $playTime = $play->played_at;
-            
+
             if ($currentSession === null) {
                 // Start first session
                 $currentSession = [
@@ -337,7 +372,7 @@ class MusicStatsController extends Controller
             } else {
                 // Check if this play is within 10 minutes of the last play
                 $timeSinceLastPlay = $playTime->diffInMinutes($currentSession['end_time']);
-                
+
                 if ($timeSinceLastPlay <= 10) {
                     // Continue current session
                     $currentSession['end_time'] = $playTime;
@@ -348,7 +383,7 @@ class MusicStatsController extends Controller
                     if ($currentSession['track_count'] >= 3) { // Only count sessions with 3+ tracks
                         $sessions[] = $currentSession;
                     }
-                    
+
                     $currentSession = [
                         'start_time' => $playTime,
                         'end_time' => $playTime,
@@ -358,34 +393,34 @@ class MusicStatsController extends Controller
                 }
             }
         }
-        
+
         // Don't forget the last session
         if ($currentSession && $currentSession['track_count'] >= 3) {
             $sessions[] = $currentSession;
         }
-        
+
         // Sort sessions by track count (longest first)
-        usort($sessions, function($a, $b) {
+        usort($sessions, function ($a, $b) {
             return $b['track_count'] <=> $a['track_count'];
         });
-        
+
         // Get top 3 sessions
         $topSessions = array_slice($sessions, 0, 3);
-        
+
         // Calculate session durations in minutes
         foreach ($topSessions as &$session) {
             $session['duration_minutes'] = round($session['total_duration_ms'] / 1000 / 60, 1);
             $session['session_length_minutes'] = $session['start_time']->diffInMinutes($session['end_time']);
         }
-        
+
         return [
             'total_sessions' => count($sessions),
             'top_sessions' => $topSessions,
-            'longest_session_tracks' => !empty($topSessions) ? $topSessions[0]['track_count'] : 0,
+            'longest_session_tracks' => ! empty($topSessions) ? $topSessions[0]['track_count'] : 0,
             'total_binge_tracks' => array_sum(array_column($sessions, 'track_count')),
         ];
     }
-    
+
     /**
      * Get discovery rate (new vs known tracks)
      */
@@ -393,16 +428,16 @@ class MusicStatsController extends Controller
     {
         $totalDays = PlayedTrack::selectRaw('DATEDIFF(MAX(played_at), MIN(played_at)) + 1 as total_days')
             ->first()->total_days ?? 1;
-        
+
         $tracksPerDay = [];
         $discoveredTracks = [];
-        
+
         // Get daily discovery stats
         $dailyStats = PlayedTrack::selectRaw('DATE(played_at) as date, COUNT(*) as total_tracks, COUNT(DISTINCT spotify_track_id) as unique_tracks')
             ->groupBy('date')
             ->orderBy('date')
             ->get();
-        
+
         foreach ($dailyStats as $day) {
             $date = $day->date;
             $tracksPerDay[$date] = [
@@ -411,13 +446,13 @@ class MusicStatsController extends Controller
                 'repeat' => $day->total_tracks - $day->unique_tracks,
             ];
         }
-        
+
         // Calculate overall discovery metrics
         $avgTracksPerDay = PlayedTrack::count() / max(1, $totalDays);
         $avgUniquePerDay = PlayedTrack::distinct('spotify_track_id')->count() / max(1, $totalDays);
-        
+
         return [
-            'total_days_tracked' => (int)$totalDays,
+            'total_days_tracked' => (int) $totalDays,
             'avg_tracks_per_day' => round($avgTracksPerDay, 1),
             'avg_unique_tracks_per_day' => round($avgUniquePerDay, 1),
             'discovery_percentage' => $avgTracksPerDay > 0 ? round(($avgUniquePerDay / $avgTracksPerDay) * 100, 1) : 0,
