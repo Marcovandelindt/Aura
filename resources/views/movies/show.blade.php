@@ -130,10 +130,38 @@
         </div>
         <div class="mood-popup-content">
             <p style="margin-bottom: 1rem; color: #9ca3af;">{{ $movie->title }}</p>
+
+            <!-- Date Type Selection -->
             <div class="form-group">
-                <label>Watched At <span style="color: #6b7280; font-size: 0.875rem;">(optional)</span></label>
+                <label>Date Type</label>
+                <div style="display: flex; gap: 1rem;">
+                    <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                        <input type="radio" name="dateType" value="none" onchange="toggleDateInput()">
+                        <span>No date</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                        <input type="radio" name="dateType" value="year" onchange="toggleDateInput()">
+                        <span>Year only</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                        <input type="radio" name="dateType" value="full" checked onchange="toggleDateInput()">
+                        <span>Full date</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Year Input -->
+            <div class="form-group" id="yearInputGroup" style="display: none;">
+                <label>Year</label>
+                <input type="number" id="watchedYear" class="form-control" placeholder="2024" min="1900" max="2100">
+            </div>
+
+            <!-- Full Date Input -->
+            <div class="form-group" id="dateInputGroup">
+                <label>Watched At</label>
                 <input type="date" id="watchedAt" class="form-control">
             </div>
+
             <div style="display: flex; gap: 0.5rem; margin-top: 1.5rem;">
                 <button onclick="submitWatch()" class="btn btn-primary" style="flex: 1;">
                     <i class="fas fa-check"></i> Add Watch
@@ -148,11 +176,23 @@
 
 <script>
 function openWatchModal() {
-    // Clear the date field (optional)
+    // Reset form
     document.getElementById('watchedAt').value = '';
+    document.getElementById('watchedYear').value = '';
+    document.querySelector('input[name="dateType"][value="full"]').checked = true;
+    toggleDateInput();
 
     const modal = document.getElementById('watchModal');
     modal.classList.add('active');
+}
+
+function toggleDateInput() {
+    const dateType = document.querySelector('input[name="dateType"]:checked').value;
+    const yearGroup = document.getElementById('yearInputGroup');
+    const dateGroup = document.getElementById('dateInputGroup');
+
+    yearGroup.style.display = dateType === 'year' ? 'block' : 'none';
+    dateGroup.style.display = dateType === 'full' ? 'block' : 'none';
 }
 
 function closeWatchModal() {
@@ -161,7 +201,18 @@ function closeWatchModal() {
 }
 
 function submitWatch() {
-    const watchedAt = document.getElementById('watchedAt').value;
+    const dateType = document.querySelector('input[name="dateType"]:checked').value;
+    let watchedAt = null;
+
+    if (dateType === 'full') {
+        watchedAt = document.getElementById('watchedAt').value || null;
+    } else if (dateType === 'year') {
+        const year = document.getElementById('watchedYear').value;
+        if (year) {
+            // Use January 1st of the given year
+            watchedAt = `${year}-01-01`;
+        }
+    }
 
     fetch('{{ route('movies.watch', $movie->id) }}', {
         method: 'POST',
@@ -169,7 +220,7 @@ function submitWatch() {
             'Content-Type': 'application/json',
             'X-CSRF-TOKEN': '{{ csrf_token() }}'
         },
-        body: JSON.stringify({ watched_at: watchedAt || null })
+        body: JSON.stringify({ watched_at: watchedAt })
     })
     .then(response => response.json())
     .then(data => {

@@ -37,9 +37,28 @@
             </div>
         </div>
     @else
-        <div class="games-grid">
+        <!-- Search Bar -->
+        <div class="card" style="margin-bottom: 2rem;">
+            <div class="card-body">
+                <div class="form-group" style="margin-bottom: 0;">
+                    <div style="position: relative;">
+                        <i class="fas fa-search" style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: #6b7280;"></i>
+                        <input
+                            type="text"
+                            id="seriesSearchInput"
+                            class="form-control"
+                            placeholder="Search TV series..."
+                            style="padding-left: 2.5rem;"
+                            oninput="filterSeries()"
+                        >
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="games-grid" id="seriesGrid">
             @foreach($series as $show)
-                <a href="{{ route('tv.show', $show->id) }}" class="game-card tv-card">
+                <a href="{{ route('tv.show', $show->id) }}" class="game-card tv-card series-item" data-series-name="{{ strtolower($show->name) }}">
                     @if($show->poster_url)
                         <div class="game-cover movie-poster">
                             <img src="{{ $show->poster_url }}" alt="{{ $show->name }}">
@@ -238,6 +257,39 @@ document.getElementById('addSeriesModal').addEventListener('click', (e) => {
         closeAddSeriesModal();
     }
 });
+
+// Filter series function
+function filterSeries() {
+    const searchInput = document.getElementById('seriesSearchInput');
+    const searchTerm = searchInput.value.toLowerCase().trim();
+    const seriesItems = document.querySelectorAll('.series-item');
+    let visibleCount = 0;
+
+    seriesItems.forEach(item => {
+        const seriesName = item.getAttribute('data-series-name');
+
+        if (seriesName.includes(searchTerm)) {
+            item.style.display = '';
+            visibleCount++;
+        } else {
+            item.style.display = 'none';
+        }
+    });
+
+    // Show/hide no results message
+    let noResultsMsg = document.getElementById('noResultsMessage');
+    if (visibleCount === 0 && searchTerm !== '') {
+        if (!noResultsMsg) {
+            noResultsMsg = document.createElement('div');
+            noResultsMsg.id = 'noResultsMessage';
+            noResultsMsg.style.cssText = 'grid-column: 1/-1; text-align: center; padding: 3rem; color: #9ca3af;';
+            noResultsMsg.innerHTML = '<i class="fas fa-search" style="font-size: 3rem; margin-bottom: 1rem; display: block;"></i><p>No series found matching your search.</p>';
+            document.getElementById('seriesGrid').appendChild(noResultsMsg);
+        }
+    } else if (noResultsMsg) {
+        noResultsMsg.remove();
+    }
+}
 </script>
 
 <style>

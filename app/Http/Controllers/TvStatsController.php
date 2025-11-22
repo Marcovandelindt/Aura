@@ -81,8 +81,6 @@ class TvStatsController extends Controller
     {
         return TvSeries::where('episodes_watched', '>', 0)
             ->with('seasons.episodes.watches')
-            ->orderByDesc('episodes_watched')
-            ->limit($limit)
             ->get()
             ->map(function ($series) {
                 $episodes = $series->seasons->flatMap(fn ($season) => $season->episodes);
@@ -102,8 +100,12 @@ class TvStatsController extends Controller
                     'vote_average' => $series->vote_average,
                     'total_watches' => $totalWatches,
                     'total_hours' => round($totalMinutes / 60, 1),
+                    'total_minutes' => $totalMinutes,
                 ];
             })
+            ->sortByDesc('total_minutes')
+            ->take($limit)
+            ->values()
             ->toArray();
     }
 
