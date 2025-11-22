@@ -19,9 +19,20 @@ class TvSeriesController extends Controller
     public function index(): View
     {
         $series = TvSeries::query()
+            ->with('seasons.episodes.watches')
             ->orderBy('last_watched_at', 'desc')
             ->orderBy('created_at', 'desc')
-            ->get();
+            ->get()
+            ->map(function ($show) {
+                $episodes = $show->seasons->flatMap(fn ($season) => $season->episodes);
+                $totalWatches = $episodes->sum(fn ($episode) => $episode->watches->count());
+                $totalMinutes = $episodes->sum(fn ($episode) => ($episode->runtime ?? 0) * $episode->watches->count());
+
+                $show->total_watches = $totalWatches;
+                $show->total_hours = round($totalMinutes / 60, 1);
+
+                return $show;
+            });
 
         return view('tv.index', compact('series'));
     }

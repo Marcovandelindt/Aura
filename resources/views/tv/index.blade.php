@@ -69,6 +69,16 @@
                                 </span>
                             @endif
                         </div>
+                        @if($show->total_watches > 0)
+                            <div style="margin-top: 0.5rem; display: flex; flex-wrap: wrap; gap: 0.25rem;">
+                                <span style="display: inline-block; padding: 0.25rem 0.5rem; background: #10b981; color: white; border-radius: 0.25rem; font-size: 0.75rem; font-weight: 600;">
+                                    {{ $show->total_watches }} plays
+                                </span>
+                                <span style="display: inline-block; padding: 0.25rem 0.5rem; background: #3b82f6; color: white; border-radius: 0.25rem; font-size: 0.75rem; font-weight: 600;">
+                                    {{ $show->total_hours }}h
+                                </span>
+                            </div>
+                        @endif
                     </div>
                 </a>
             @endforeach

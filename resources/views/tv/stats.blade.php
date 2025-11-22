@@ -172,6 +172,14 @@
                                 <p style="font-size: 0.75rem; color: #6b7280; margin-top: 0.25rem;">
                                     {{ $series['episodes_watched'] }}/{{ $series['number_of_episodes'] }} episodes
                                 </p>
+                                <div style="margin-top: 0.5rem; display: flex; flex-wrap: wrap; gap: 0.25rem;">
+                                    <span style="display: inline-block; padding: 0.25rem 0.5rem; background: #10b981; color: white; border-radius: 0.25rem; font-size: 0.75rem; font-weight: 600;">
+                                        {{ $series['total_watches'] }} plays
+                                    </span>
+                                    <span style="display: inline-block; padding: 0.25rem 0.5rem; background: #3b82f6; color: white; border-radius: 0.25rem; font-size: 0.75rem; font-weight: 600;">
+                                        {{ $series['total_hours'] }}h
+                                    </span>
+                                </div>
                             </div>
                         </a>
                     @endforeach

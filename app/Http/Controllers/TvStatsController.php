@@ -80,19 +80,30 @@ class TvStatsController extends Controller
     private function getTopSeries(int $limit = 10): array
     {
         return TvSeries::where('episodes_watched', '>', 0)
+            ->with('seasons.episodes.watches')
             ->orderByDesc('episodes_watched')
             ->limit($limit)
             ->get()
-            ->map(fn ($series) => [
-                'id' => $series->id,
-                'name' => $series->name,
-                'episodes_watched' => $series->episodes_watched,
-                'number_of_episodes' => $series->number_of_episodes,
-                'completion_percentage' => $series->completion_percentage,
-                'poster_url' => $series->poster_url,
-                'last_watched_at' => $series->last_watched_at,
-                'vote_average' => $series->vote_average,
-            ])
+            ->map(function ($series) {
+                $episodes = $series->seasons->flatMap(fn ($season) => $season->episodes);
+                $totalWatches = $episodes->sum(fn ($episode) => $episode->watches->count());
+
+                // Calculate total watch time (runtime * number of watches per episode)
+                $totalMinutes = $episodes->sum(fn ($episode) => ($episode->runtime ?? 0) * $episode->watches->count());
+
+                return [
+                    'id' => $series->id,
+                    'name' => $series->name,
+                    'episodes_watched' => $series->episodes_watched,
+                    'number_of_episodes' => $series->number_of_episodes,
+                    'completion_percentage' => $series->completion_percentage,
+                    'poster_url' => $series->poster_url,
+                    'last_watched_at' => $series->last_watched_at,
+                    'vote_average' => $series->vote_average,
+                    'total_watches' => $totalWatches,
+                    'total_hours' => round($totalMinutes / 60, 1),
+                ];
+            })
             ->toArray();
     }
 
