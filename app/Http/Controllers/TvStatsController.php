@@ -14,7 +14,7 @@ class TvStatsController extends Controller
     {
         $stats = [
             'overview' => $this->getOverviewStats(),
-            'top_series' => $this->getTopSeries(),
+            'top_series' => $this->getTopSeries(18),
             'recently_watched' => $this->getRecentlyWatched(),
             'watch_history' => $this->getWatchHistory(),
             'genre_stats' => $this->getGenreStats(),

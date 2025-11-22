@@ -184,6 +184,11 @@ function openWatchModal() {
 
     const modal = document.getElementById('watchModal');
     modal.classList.add('active');
+
+    // Focus on date input after modal animation
+    setTimeout(() => {
+        document.getElementById('watchedAt').focus();
+    }, 100);
 }
 
 function toggleDateInput() {
