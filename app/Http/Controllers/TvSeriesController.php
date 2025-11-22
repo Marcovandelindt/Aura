@@ -148,6 +148,43 @@ class TvSeriesController extends Controller
         }
     }
 
+    public function bulkWatch(Request $request, TvSeries $series): JsonResponse
+    {
+        try {
+            $watchedAt = $request->input('watched_at');
+            $count = 0;
+
+            $series->load('seasons.episodes');
+
+            foreach ($series->seasons as $season) {
+                foreach ($season->episodes as $episode) {
+                    EpisodeWatch::create([
+                        'tv_episode_id' => $episode->id,
+                        'watched_at' => $watchedAt,
+                    ]);
+                    $count++;
+                }
+
+                // Update progress for each season
+                $season->updateProgress();
+            }
+
+            $series->updateProgress();
+            $series->recordWatch();
+
+            return response()->json([
+                'success' => true,
+                'count' => $count,
+                'message' => "Added {$count} episode watches successfully",
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to add bulk watches: '.$e->getMessage(),
+            ], 500);
+        }
+    }
+
     public function destroy(TvSeries $series): JsonResponse
     {
         try {

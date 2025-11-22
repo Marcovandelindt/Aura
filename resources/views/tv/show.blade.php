@@ -13,6 +13,10 @@
                 </ul>
             </div>
             <div style="display: flex; gap: 1rem;">
+                <button onclick="openBulkWatchModal()" class="btn btn-primary">
+                    <i class="fas fa-check-double"></i>
+                    Mark All Watched
+                </button>
                 <button onclick="deleteSeries()" class="btn btn-danger">
                     <i class="fas fa-trash"></i>
                     Delete
@@ -127,7 +131,11 @@
                                         <div style="margin-top: 0.5rem; display: flex; flex-wrap: wrap; gap: 0.25rem;">
                                             @foreach($episode->watches()->orderBy('watched_at', 'desc')->get() as $watch)
                                                 <span style="display: inline-flex; align-items: center; gap: 0.25rem; padding: 0.125rem 0.5rem; background: #374151; border-radius: 0.25rem; font-size: 0.75rem; color: #f3f4f6;">
-                                                    {{ $watch->watched_at ? $watch->watched_at->format('M d, Y') : 'No date' }}
+                                                    @if($watch->watched_at)
+                                                        {{ $watch->watched_at->format('m-d') === '01-01' ? $watch->watched_at->format('Y') : $watch->watched_at->format('M d, Y') }}
+                                                    @else
+                                                        No date
+                                                    @endif
                                                     <button onclick="deleteWatch({{ $watch->id }}, event)" style="background: none; border: none; color: #ef4444; cursor: pointer; padding: 0; margin-left: 0.25rem;">
                                                         <i class="fas fa-times"></i>
                                                     </button>
@@ -196,6 +204,61 @@
                     <i class="fas fa-check"></i> Add Watch
                 </button>
                 <button onclick="closeWatchModal()" class="btn btn-secondary">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bulk Watch Modal -->
+<div class="mood-popup-overlay" id="bulkWatchModal">
+    <div class="mood-popup">
+        <div class="mood-popup-header">
+            <h3>Mark All Episodes Watched</h3>
+            <button class="mood-popup-close" onclick="closeBulkWatchModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="mood-popup-content">
+            <p style="margin-bottom: 1rem; color: #9ca3af;">This will mark ALL episodes of "{{ $series->name }}" as watched once.</p>
+
+            <!-- Date Type Selection -->
+            <div class="form-group">
+                <label>Date Type</label>
+                <div style="display: flex; gap: 1rem;">
+                    <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                        <input type="radio" name="bulkDateType" value="none" onchange="toggleBulkDateInput()">
+                        <span>No date</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                        <input type="radio" name="bulkDateType" value="year" checked onchange="toggleBulkDateInput()">
+                        <span>Year only</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                        <input type="radio" name="bulkDateType" value="full" onchange="toggleBulkDateInput()">
+                        <span>Full date</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Year Input -->
+            <div class="form-group" id="bulkYearInputGroup">
+                <label>Year</label>
+                <input type="number" id="bulkWatchedYear" class="form-control" placeholder="2024" min="1900" max="2100">
+            </div>
+
+            <!-- Full Date Input -->
+            <div class="form-group" id="bulkDateInputGroup" style="display: none;">
+                <label>Watched At</label>
+                <input type="date" id="bulkWatchedAt" class="form-control">
+            </div>
+
+            <div style="display: flex; gap: 0.5rem; margin-top: 1.5rem;">
+                <button onclick="submitBulkWatch()" class="btn btn-primary" style="flex: 1;">
+                    <i class="fas fa-check-double"></i> Mark All Watched
+                </button>
+                <button onclick="closeBulkWatchModal()" class="btn btn-secondary">
                     Cancel
                 </button>
             </div>
@@ -317,6 +380,79 @@ function submitWatch() {
     });
 }
 
+function openBulkWatchModal() {
+    document.getElementById('bulkWatchedYear').value = '';
+    document.getElementById('bulkWatchedAt').value = '';
+    document.querySelector('input[name="bulkDateType"][value="year"]').checked = true;
+    toggleBulkDateInput();
+
+    const modal = document.getElementById('bulkWatchModal');
+    modal.classList.add('active');
+
+    setTimeout(() => {
+        document.getElementById('bulkWatchedYear').focus();
+    }, 100);
+}
+
+function closeBulkWatchModal() {
+    const modal = document.getElementById('bulkWatchModal');
+    modal.classList.remove('active');
+}
+
+function toggleBulkDateInput() {
+    const dateType = document.querySelector('input[name="bulkDateType"]:checked').value;
+    const yearGroup = document.getElementById('bulkYearInputGroup');
+    const dateGroup = document.getElementById('bulkDateInputGroup');
+
+    yearGroup.style.display = dateType === 'year' ? 'block' : 'none';
+    dateGroup.style.display = dateType === 'full' ? 'block' : 'none';
+}
+
+function submitBulkWatch() {
+    const dateType = document.querySelector('input[name="bulkDateType"]:checked').value;
+    let watchedAt = null;
+
+    if (dateType === 'full') {
+        watchedAt = document.getElementById('bulkWatchedAt').value || null;
+    } else if (dateType === 'year') {
+        const year = document.getElementById('bulkWatchedYear').value;
+        if (year) {
+            watchedAt = `${year}-01-01`;
+        }
+    }
+
+    if (!confirm(`Are you sure you want to mark ALL episodes of "{{ $series->name }}" as watched?`)) {
+        return;
+    }
+
+    const notification = showNotification('Marking episodes as watched...', 'info');
+
+    fetch('{{ route('tv.bulk-watch', $series->id) }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+        },
+        body: JSON.stringify({ watched_at: watchedAt })
+    })
+    .then(response => response.json())
+    .then(data => {
+        notification.remove();
+        if (data.success) {
+            showNotification(`Successfully marked ${data.count} episodes as watched!`);
+            closeBulkWatchModal();
+            setTimeout(() => location.reload(), 1000);
+        } else {
+            showNotification(data.message, 'error');
+        }
+    })
+    .catch(error => {
+        notification.remove();
+        console.error('Error:', error);
+        showNotification('Failed to mark episodes as watched', 'error');
+    });
+}
+
 function deleteWatch(watchId, event) {
     event.stopPropagation();
 
@@ -382,7 +518,7 @@ function showNotification(message, type = 'success') {
         top: 2rem;
         right: 2rem;
         padding: 1rem 1.5rem;
-        background: ${type === 'success' ? '#10b981' : '#ef4444'};
+        background: ${type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#3b82f6'};
         color: white;
         border-radius: 0.5rem;
         box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
@@ -391,7 +527,10 @@ function showNotification(message, type = 'success') {
     `;
 
     document.body.appendChild(notification);
-    setTimeout(() => notification.remove(), 3000);
+    if (type !== 'info') {
+        setTimeout(() => notification.remove(), 3000);
+    }
+    return notification;
 }
 </script>
 
