@@ -179,7 +179,7 @@ class PlayStationStatsController extends Controller
             ->map(fn ($row) => [
                 'hour' => $row->hour,
                 'count' => $row->count,
-                'time_range' => sprintf('%02d:00 - %02d:00', $row->hour, $row->hour + 1),
+                'time_range' => sprintf('%02d:00 - %02d:00', $row->hour, ($row->hour + 1) % 24),
                 'description' => $this->getTimeDescription($row->hour),
             ])
             ->toArray();

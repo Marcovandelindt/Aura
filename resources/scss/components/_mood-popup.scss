@@ -249,6 +249,96 @@
     }
 }
 
+// Game selector section
+.game-selector {
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    background: $light-gray;
+    border-radius: $border-radius;
+    border: 2px solid $primary-color;
+
+    h3 {
+        font-size: 1rem;
+        color: $dark-color;
+        margin: 0 0 0.5rem 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .game-select,
+    .new-game-input {
+        width: 100%;
+        padding: 0.625rem 0.75rem;
+        border: 1px solid $medium-gray;
+        border-radius: $border-radius;
+        font-size: 0.875rem;
+        transition: $transition-base;
+        background: white;
+
+        &:focus {
+            outline: none;
+            border-color: $primary-color;
+            box-shadow: 0 0 0 3px rgba($primary-color, 0.1);
+        }
+    }
+
+    .form-actions {
+        display: flex;
+        gap: 0.5rem;
+
+        button {
+            padding: 0.5rem 1rem;
+            border-radius: $border-radius;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: $transition-base;
+
+            &.btn-primary {
+                background: $primary-color;
+                color: white;
+                border: none;
+
+                &:hover {
+                    background: $primary-hover;
+                }
+            }
+
+            &.btn-secondary {
+                background: white;
+                color: $dark-color;
+                border: 1px solid $medium-gray;
+
+                &:hover {
+                    background: $medium-gray;
+                }
+            }
+        }
+    }
+}
+
+// Mood game link (shown in current moods)
+.mood-game-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.125rem 0.375rem;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+    font-size: 0.75rem;
+    color: white;
+    text-decoration: none;
+    transition: $transition-base;
+
+    &:hover {
+        background: rgba(255, 255, 255, 0.3);
+    }
+
+    i {
+        font-size: 0.625rem;
+    }
+}
+
 // Create new mood section
 .create-mood-section {
     margin-top: 1.5rem;

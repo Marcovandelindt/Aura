@@ -98,7 +98,33 @@
             </div>
         </div>
     </div>
-    
+
+    <!-- Game Management Section (only visible if track has "Game" mood) -->
+    <div id="gameManagementSection" style="display: none; margin-bottom: 2rem;">
+        <div class="card game-management-card">
+            <div class="card-header game-management-header">
+                <div class="game-management-header-content">
+                    <div class="game-management-title">
+                        <i class="fas fa-gamepad"></i>
+                        <div>
+                            <h3>Game Soundtrack</h3>
+                            <p>Assign this track to a game</p>
+                        </div>
+                    </div>
+                    <button onclick="openGameModal()" class="btn btn-light game-assign-btn">
+                        <i class="fas fa-plus"></i> Assign Game
+                    </button>
+                </div>
+            </div>
+            <div class="card-body" id="assignedGamesContainer">
+                <div class="empty-state">
+                    <i class="fas fa-gamepad"></i>
+                    <p>No game assigned yet</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Stats Grid -->
     <div class="stats-grid" style="margin-bottom: 2rem;">
         <div class="card">
@@ -249,4 +275,535 @@
         </div>
     </div>
 </div>
+
+<!-- Game Assignment Modal -->
+<div class="mood-popup-overlay" id="gameModal">
+    <div class="mood-popup game-modal" onclick="event.stopPropagation()">
+        <div class="mood-popup-header game-modal-header">
+            <div class="track-info">
+                <div class="track-name">
+                    <i class="fas fa-gamepad"></i> Assign Game
+                </div>
+                <div class="track-artist">Select or create a game for this track</div>
+            </div>
+            <button class="close-btn" onclick="closeGameModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="mood-popup-content">
+            <div class="game-modal-section">
+                <label for="gameSelectModal" class="game-modal-label">
+                    <i class="fas fa-list"></i> Select Existing Game
+                </label>
+                <select id="gameSelectModal" class="game-modal-select">
+                    <option value="">Choose a game...</option>
+                </select>
+            </div>
+
+            <div class="game-modal-divider">
+                <span>OR</span>
+            </div>
+
+            <div class="game-modal-section">
+                <label for="newGameNameModal" class="game-modal-label">
+                    <i class="fas fa-plus-circle"></i> Create New Game
+                </label>
+                <input type="text" id="newGameNameModal" class="game-modal-input" placeholder="Type new game name...">
+                <small class="game-modal-hint">
+                    <i class="fas fa-info-circle"></i> Enter the name of a game that's not in the list
+                </small>
+            </div>
+
+            <div class="game-modal-actions">
+                <button type="button" class="btn-secondary" onclick="closeGameModal()">
+                    <i class="fas fa-times"></i> Cancel
+                </button>
+                <button type="button" class="btn-primary" onclick="assignGame()">
+                    <i class="fas fa-check"></i> Assign Game
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const trackId = '{{ $track->spotify_track_id }}';
+
+    // Load track games on page load
+    document.addEventListener('DOMContentLoaded', async function() {
+        await loadTrackGames();
+    });
+
+    // Load track games
+    async function loadTrackGames() {
+        try {
+            const response = await fetch(`{{ route('moods.track-games') }}?spotify_track_id=${trackId}`);
+            const data = await response.json();
+
+            if (data.success && data.has_game_mood) {
+                // Show game management section
+                document.getElementById('gameManagementSection').style.display = 'block';
+
+                // Display assigned games
+                const container = document.getElementById('assignedGamesContainer');
+                if (data.assigned_games && data.assigned_games.length > 0) {
+                    container.innerHTML = data.assigned_games.map(game => `
+                        <div class="game-card-assigned">
+                            ${game.cover_image ? `
+                                <img src="${game.cover_image}" alt="${game.name}" class="game-cover">
+                            ` : `
+                                <div class="game-cover-placeholder">
+                                    <i class="fas fa-gamepad"></i>
+                                </div>
+                            `}
+                            <div class="game-info">
+                                <h4>${game.name}</h4>
+                                ${game.developer ? `<p class="game-developer">${game.developer}</p>` : ''}
+                                <a href="{{ url('games') }}/${game.slug}" class="game-link">
+                                    <i class="fas fa-external-link-alt"></i> View Game
+                                </a>
+                            </div>
+                            <button onclick="changeGame()" class="btn btn-secondary game-change-btn">
+                                <i class="fas fa-edit"></i> Change
+                            </button>
+                        </div>
+                    `).join('');
+                } else {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <i class="fas fa-gamepad"></i>
+                            <p>No game assigned yet. Click "Assign Game" to add one.</p>
+                        </div>
+                    `;
+                }
+            }
+        } catch (error) {
+            console.error('Error loading track games:', error);
+        }
+    }
+
+    // Open game modal
+    async function openGameModal() {
+        try {
+            const response = await fetch(`{{ route('moods.track-games') }}?spotify_track_id=${trackId}`);
+            const data = await response.json();
+
+            if (data.success) {
+                // Populate game select
+                const gameSelect = document.getElementById('gameSelectModal');
+                gameSelect.innerHTML = '<option value="">Choose a game...</option>' +
+                    data.all_games.map(game => `<option value="${game.id}">${game.name}</option>`).join('');
+
+                // Reset new game input
+                document.getElementById('newGameNameModal').value = '';
+
+                // Show modal
+                document.getElementById('gameModal').classList.add('active');
+            }
+        } catch (error) {
+            console.error('Error loading games:', error);
+        }
+    }
+
+    // Close game modal
+    function closeGameModal() {
+        document.getElementById('gameModal').classList.remove('active');
+    }
+
+    // Close modal when clicking overlay
+    document.getElementById('gameModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeGameModal();
+        }
+    });
+
+    // Change game (same as open modal)
+    function changeGame() {
+        openGameModal();
+    }
+
+    // Assign game
+    async function assignGame() {
+        const gameId = document.getElementById('gameSelectModal').value;
+        const gameName = document.getElementById('newGameNameModal').value.trim();
+
+        if (!gameId && !gameName) {
+            alert('Please select a game or enter a new game name');
+            return;
+        }
+
+        try {
+            const response = await fetch('{{ route('moods.assign-game') }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({
+                    spotify_track_id: trackId,
+                    game_id: gameId || null,
+                    game_name: gameName || null
+                })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                // Close modal
+                closeGameModal();
+
+                // Reload games
+                await loadTrackGames();
+
+                // Show success notification
+                showNotification('Game assigned successfully!', 'success');
+            } else {
+                showNotification(data.message || 'Failed to assign game', 'error');
+            }
+        } catch (error) {
+            console.error('Error assigning game:', error);
+            showNotification('Failed to assign game', 'error');
+        }
+    }
+
+    // Show notification
+    function showNotification(message, type = 'success') {
+        const notification = document.createElement('div');
+        notification.className = `notification notification-${type}`;
+        notification.innerHTML = `
+            <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
+            <span>${message}</span>
+        `;
+
+        document.body.appendChild(notification);
+
+        // Trigger animation
+        setTimeout(() => notification.classList.add('show'), 10);
+
+        // Remove after 3 seconds
+        setTimeout(() => {
+            notification.classList.remove('show');
+            setTimeout(() => notification.remove(), 300);
+        }, 3000);
+    }
+</script>
+
+<style>
+    /* Game Modal Styles */
+    .game-modal {
+        max-width: 550px;
+    }
+
+    .game-modal-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+
+    .game-modal-section {
+        margin-bottom: 1.5rem;
+    }
+
+    .game-modal-label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+        color: #1f2937;
+        font-size: 0.9375rem;
+    }
+
+    .game-modal-label i {
+        margin-right: 0.5rem;
+        color: #6366f1;
+    }
+
+    .game-modal-select,
+    .game-modal-input {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border: 2px solid #e5e7eb;
+        border-radius: 8px;
+        font-size: 1rem;
+        transition: all 0.2s;
+        background: white;
+    }
+
+    .game-modal-select:focus,
+    .game-modal-input:focus {
+        outline: none;
+        border-color: #6366f1;
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    }
+
+    .game-modal-hint {
+        display: block;
+        margin-top: 0.5rem;
+        font-size: 0.875rem;
+        color: #6b7280;
+    }
+
+    .game-modal-hint i {
+        margin-right: 0.25rem;
+    }
+
+    .game-modal-divider {
+        text-align: center;
+        margin: 2rem 0;
+        position: relative;
+    }
+
+    .game-modal-divider::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 0;
+        right: 0;
+        height: 1px;
+        background: #e5e7eb;
+    }
+
+    .game-modal-divider span {
+        position: relative;
+        background: white;
+        padding: 0 1rem;
+        color: #9ca3af;
+        font-weight: 600;
+        font-size: 0.875rem;
+    }
+
+    .game-modal-actions {
+        display: flex;
+        gap: 0.75rem;
+        margin-top: 2rem;
+        justify-content: flex-end;
+    }
+
+    .game-modal-actions button {
+        padding: 0.625rem 1.25rem;
+        border-radius: 8px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+        border: none;
+    }
+
+    .game-modal-actions .btn-primary {
+        background: #6366f1;
+        color: white;
+    }
+
+    .game-modal-actions .btn-primary:hover {
+        background: #4f46e5;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+    }
+
+    .game-modal-actions .btn-secondary {
+        background: #f3f4f6;
+        color: #4b5563;
+    }
+
+    .game-modal-actions .btn-secondary:hover {
+        background: #e5e7eb;
+    }
+
+    /* Game Management Card */
+    .game-management-card {
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        border-radius: 12px;
+        overflow: hidden;
+        border: none;
+    }
+
+    .game-management-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 1.5rem;
+        border: none;
+    }
+
+    .game-management-header-content {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .game-management-title {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .game-management-title > i {
+        font-size: 2rem;
+    }
+
+    .game-management-title h3 {
+        margin: 0;
+        font-size: 1.25rem;
+        font-weight: 600;
+    }
+
+    .game-management-title p {
+        margin: 0;
+        font-size: 0.875rem;
+        opacity: 0.9;
+    }
+
+    .game-assign-btn {
+        background: white;
+        color: #667eea;
+        border: none;
+        padding: 0.625rem 1.25rem;
+        border-radius: 8px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .game-assign-btn:hover {
+        background: #f9fafb;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Game Card Assigned */
+    .game-card-assigned {
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+        padding: 1.5rem;
+        background: #f9fafb;
+        border-radius: 12px;
+    }
+
+    .game-cover {
+        width: 100px;
+        height: 100px;
+        border-radius: 8px;
+        object-fit: cover;
+        flex-shrink: 0;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .game-cover-placeholder {
+        width: 100px;
+        height: 100px;
+        border-radius: 8px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .game-cover-placeholder i {
+        font-size: 2.5rem;
+        color: rgba(255, 255, 255, 0.5);
+    }
+
+    .game-info {
+        flex: 1;
+    }
+
+    .game-info h4 {
+        margin: 0 0 0.25rem 0;
+        font-size: 1.25rem;
+        color: #1f2937;
+        font-weight: 600;
+    }
+
+    .game-developer {
+        margin: 0 0 0.75rem 0;
+        color: #6b7280;
+        font-size: 0.875rem;
+    }
+
+    .game-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: #6366f1;
+        text-decoration: none;
+        font-size: 0.9375rem;
+        font-weight: 500;
+        transition: color 0.2s;
+    }
+
+    .game-link:hover {
+        color: #4f46e5;
+    }
+
+    .game-change-btn {
+        padding: 0.625rem 1.25rem;
+        border-radius: 8px;
+        border: 1px solid #e5e7eb;
+        background: white;
+        color: #4b5563;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .game-change-btn:hover {
+        background: #f3f4f6;
+        border-color: #d1d5db;
+    }
+
+    /* Notification */
+    .notification {
+        position: fixed;
+        bottom: 2rem;
+        right: 2rem;
+        padding: 1rem 1.5rem;
+        border-radius: 8px;
+        color: white;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        opacity: 0;
+        transform: translateY(20px);
+        transition: all 0.3s ease;
+        z-index: 10000;
+    }
+
+    .notification.show {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    .notification-success {
+        background: #10b981;
+    }
+
+    .notification-error {
+        background: #ef4444;
+    }
+
+    .notification i {
+        font-size: 1.25rem;
+    }
+
+    /* Empty State */
+    .empty-state {
+        text-align: center;
+        padding: 3rem 2rem;
+        color: #9ca3af;
+    }
+
+    .empty-state i {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        opacity: 0.3;
+        display: block;
+    }
+
+    .empty-state p {
+        margin: 0;
+        font-size: 0.9375rem;
+    }
+</style>
+
 @endsection

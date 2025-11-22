@@ -59,6 +59,8 @@ Route::prefix('moods')->group(function () {
     Route::post('/add', [App\Http\Controllers\MoodController::class, 'addMoodToTrack'])->name('moods.add');
     Route::delete('/remove', [App\Http\Controllers\MoodController::class, 'removeMoodFromTrack'])->name('moods.remove');
     Route::post('/create', [App\Http\Controllers\MoodController::class, 'store'])->name('moods.store');
+    Route::get('/track-games', [App\Http\Controllers\MoodController::class, 'getTrackGames'])->name('moods.track-games');
+    Route::post('/assign-game', [App\Http\Controllers\MoodController::class, 'assignGameToTrack'])->name('moods.assign-game');
 });
 
 /**
@@ -70,6 +72,14 @@ Route::prefix('settings')->group(function () {
     Route::put('/moods/{mood}', [App\Http\Controllers\MoodSettingsController::class, 'update'])->name('settings.moods.update');
     Route::delete('/moods/{mood}', [App\Http\Controllers\MoodSettingsController::class, 'destroy'])->name('settings.moods.destroy');
     Route::post('/moods/{mood}/toggle', [App\Http\Controllers\MoodSettingsController::class, 'toggle'])->name('settings.moods.toggle');
+});
+
+/**
+ * Game Routes
+ */
+Route::prefix('games')->middleware(['spotify.connected'])->group(function () {
+    Route::get('/', [App\Http\Controllers\GameController::class, 'index'])->name('games.index');
+    Route::get('/{game:slug}', [App\Http\Controllers\GameController::class, 'show'])->name('games.show');
 });
 
 /**

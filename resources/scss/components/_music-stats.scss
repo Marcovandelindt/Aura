@@ -510,9 +510,11 @@
     background: $light-gray;
     border-radius: $border-radius;
     transition: $transition-base;
-    
+    cursor: pointer;
+
     &:hover {
         background: darken($light-gray, 5%);
+        transform: translateX(4px);
     }
 }
 
@@ -856,29 +858,396 @@
     }
 }
 
+// Session Modal
+.session-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 9999;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+
+    &.active {
+        display: flex;
+    }
+}
+
+.session-modal-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(4px);
+}
+
+.session-modal-content {
+    position: relative;
+    background: white;
+    border-radius: $border-radius;
+    max-width: 600px;
+    width: 100%;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.session-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.5rem;
+    border-bottom: 1px solid $light-gray;
+
+    h3 {
+        margin: 0;
+        color: $dark-color;
+        font-size: 1.25rem;
+    }
+}
+
+.session-modal-close {
+    background: none;
+    border: none;
+    font-size: 2rem;
+    line-height: 1;
+    color: $dark-gray;
+    cursor: pointer;
+    padding: 0;
+    width: 2rem;
+    height: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: $border-radius;
+    transition: $transition-base;
+
+    &:hover {
+        background: $light-gray;
+        color: $dark-color;
+    }
+}
+
+.session-modal-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1rem;
+}
+
+.session-tracks-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.session-track-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    background: $light-gray;
+    border-radius: $border-radius;
+    transition: $transition-base;
+    text-decoration: none;
+    color: inherit;
+
+    &:hover {
+        background: darken($light-gray, 3%);
+        transform: translateX(2px);
+    }
+}
+
+.session-track-number {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.5rem;
+    height: 1.5rem;
+    background: white;
+    color: $dark-gray;
+    border-radius: 4px;
+    font-weight: 600;
+    font-size: 0.75rem;
+    flex-shrink: 0;
+}
+
+.session-track-image {
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 4px;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.session-track-placeholder {
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 4px;
+    background: $medium-gray;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: $dark-gray;
+    flex-shrink: 0;
+
+    i {
+        font-size: 1rem;
+    }
+}
+
+.session-track-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.session-track-name {
+    font-weight: 600;
+    color: $dark-color;
+    font-size: 0.875rem;
+    margin-bottom: 0.125rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.session-track-artist {
+    font-size: 0.75rem;
+    color: $dark-gray;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.session-track-time {
+    font-size: 0.75rem;
+    color: $dark-gray;
+    font-weight: 500;
+    flex-shrink: 0;
+}
+
 // Responsive design
 @media (max-width: $mobile) {
     .top-list-item {
         gap: 0.75rem;
         padding: 0.5rem;
     }
-    
+
     .track-cover {
         width: 2.5rem;
         height: 2.5rem;
     }
-    
+
     .rank-number {
         width: 1.75rem;
         height: 1.75rem;
         font-size: 0.8rem;
     }
-    
+
     .item-details {
         font-size: 0.8rem;
     }
-    
+
     .play-count {
         font-size: 1rem;
+    }
+
+    .session-modal-content {
+        max-height: 90vh;
+    }
+
+    .session-modal-header {
+        padding: 1rem;
+
+        h3 {
+            font-size: 1rem;
+        }
+    }
+
+    .session-track-item {
+        gap: 0.5rem;
+        padding: 0.5rem;
+    }
+
+    .session-track-image,
+    .session-track-placeholder {
+        width: 2rem;
+        height: 2rem;
+    }
+}
+
+// Track List Styling (for game detail pages)
+.track-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.track-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    border-bottom: 1px solid $light-gray;
+    transition: $transition-base;
+
+    &:hover {
+        background: $light-gray;
+    }
+
+    &:last-child {
+        border-bottom: none;
+    }
+}
+
+.track-number {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 2rem;
+    color: $dark-gray;
+    font-weight: 600;
+    font-size: 0.875rem;
+}
+
+.track-image {
+    width: 3rem;
+    height: 3rem;
+    border-radius: 4px;
+    overflow: hidden;
+    flex-shrink: 0;
+
+    img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+}
+
+.track-placeholder {
+    width: 3rem;
+    height: 3rem;
+    border-radius: 4px;
+    background: $medium-gray;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: $dark-gray;
+    flex-shrink: 0;
+
+    i {
+        font-size: 1.25rem;
+    }
+}
+
+.track-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.track-name {
+    font-weight: 600;
+    color: $dark-color;
+    margin-bottom: 0.25rem;
+    text-decoration: none;
+    display: inline-block;
+    transition: $transition-base;
+
+    &:hover {
+        color: $primary-color;
+    }
+}
+
+.track-artist {
+    font-size: 0.875rem;
+    color: $dark-gray;
+    margin-bottom: 0.25rem;
+}
+
+.track-moods {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.375rem;
+    margin-top: 0.5rem;
+}
+
+.mood-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    border: 1px solid;
+    text-decoration: none;
+    transition: $transition-base;
+
+    i {
+        font-size: 0.625rem;
+    }
+
+    &:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+}
+
+.track-stats {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-shrink: 0;
+}
+
+.track-play-count {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    color: $primary-color;
+    font-weight: 600;
+    font-size: 0.875rem;
+
+    i {
+        font-size: 0.75rem;
+    }
+}
+
+.track-duration {
+    color: $dark-gray;
+    font-size: 0.875rem;
+    min-width: 3rem;
+    text-align: right;
+}
+
+@media (max-width: $mobile) {
+    .track-item {
+        gap: 0.75rem;
+        padding: 0.75rem;
+    }
+
+    .track-image,
+    .track-placeholder {
+        width: 2.5rem;
+        height: 2.5rem;
+    }
+
+    .track-stats {
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 0.25rem;
+    }
+
+    .track-moods {
+        gap: 0.25rem;
+    }
+
+    .mood-badge {
+        padding: 0.125rem 0.375rem;
+        font-size: 0.625rem;
     }
 }

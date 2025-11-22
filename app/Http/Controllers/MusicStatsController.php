@@ -202,8 +202,8 @@ class MusicStatsController extends Controller
      */
     private function getTopListeningTimes(): array
     {
-        // Get all played tracks with hour information
-        $tracks = PlayedTrack::selectRaw('HOUR(played_at) as hour, COUNT(*) as play_count')
+        // Get all played tracks with hour information, converted to Europe/Amsterdam timezone
+        $tracks = PlayedTrack::selectRaw("HOUR(CONVERT_TZ(played_at, 'UTC', 'Europe/Amsterdam')) as hour, COUNT(*) as play_count")
             ->groupBy('hour')
             ->orderBy('play_count', 'desc')
             ->limit(3)
@@ -242,7 +242,7 @@ class MusicStatsController extends Controller
      */
     private function getTimeRange(int $hour): string
     {
-        $nextHour = $hour + 1;
+        $nextHour = ($hour + 1) % 24;
 
         return sprintf('%02d:00 - %02d:00', $hour, $nextHour);
     }
@@ -346,17 +346,20 @@ class MusicStatsController extends Controller
     }
 
     /**
-     * Get binge sessions (periods of continuous listening)
+     * Get binge sessions (periods of intensive continuous listening)
      */
     private function getBingeSessions(): array
     {
         // Get all plays ordered by time
-        $plays = PlayedTrack::select('played_at', 'duration_ms')
+        $plays = PlayedTrack::select('played_at', 'duration_ms', 'track_name', 'artist_names', 'album_image_url', 'spotify_track_id')
             ->orderBy('played_at')
             ->get();
 
         $sessions = [];
         $currentSession = null;
+        $minSessionTracks = 5; // Minimum tracks for a binge session
+        $maxGapMinutes = 10; // Maximum gap between tracks to stay in same session
+        $maxSessionHours = 6; // Maximum duration for a single session
 
         foreach ($plays as $index => $play) {
             $playTime = $play->played_at;
@@ -368,19 +371,39 @@ class MusicStatsController extends Controller
                     'end_time' => $playTime,
                     'track_count' => 1,
                     'total_duration_ms' => $play->duration_ms,
+                    'tracks' => [
+                        [
+                            'name' => $play->track_name,
+                            'artists' => implode(', ', $play->artist_names),
+                            'played_at' => $playTime,
+                            'album_image_url' => $play->album_image_url,
+                            'spotify_track_id' => $play->spotify_track_id,
+                        ],
+                    ],
                 ];
             } else {
-                // Check if this play is within 10 minutes of the last play
-                $timeSinceLastPlay = $playTime->diffInMinutes($currentSession['end_time']);
+                // Check if this play is within the max gap of the last play
+                $timeSinceLastPlay = abs($playTime->diffInMinutes($currentSession['end_time']));
+                $sessionDuration = abs($playTime->diffInHours($currentSession['start_time']));
 
-                if ($timeSinceLastPlay <= 10) {
+                // Check if same day (to prevent multi-day sessions)
+                $sameDay = $playTime->isSameDay($currentSession['start_time']);
+
+                if ($timeSinceLastPlay <= $maxGapMinutes && $sessionDuration < $maxSessionHours && $sameDay) {
                     // Continue current session
                     $currentSession['end_time'] = $playTime;
                     $currentSession['track_count']++;
                     $currentSession['total_duration_ms'] += $play->duration_ms;
+                    $currentSession['tracks'][] = [
+                        'name' => $play->track_name,
+                        'artists' => implode(', ', $play->artist_names),
+                        'played_at' => $playTime,
+                        'album_image_url' => $play->album_image_url,
+                        'spotify_track_id' => $play->spotify_track_id,
+                    ];
                 } else {
                     // End current session and start new one
-                    if ($currentSession['track_count'] >= 3) { // Only count sessions with 3+ tracks
+                    if ($currentSession['track_count'] >= $minSessionTracks) {
                         $sessions[] = $currentSession;
                     }
 
@@ -389,13 +412,22 @@ class MusicStatsController extends Controller
                         'end_time' => $playTime,
                         'track_count' => 1,
                         'total_duration_ms' => $play->duration_ms,
+                        'tracks' => [
+                            [
+                                'name' => $play->track_name,
+                                'artists' => implode(', ', $play->artist_names),
+                                'played_at' => $playTime,
+                                'album_image_url' => $play->album_image_url,
+                                'spotify_track_id' => $play->spotify_track_id,
+                            ],
+                        ],
                     ];
                 }
             }
         }
 
         // Don't forget the last session
-        if ($currentSession && $currentSession['track_count'] >= 3) {
+        if ($currentSession && $currentSession['track_count'] >= $minSessionTracks) {
             $sessions[] = $currentSession;
         }
 

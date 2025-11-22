@@ -1,0 +1,131 @@
+// Games Grid
+.games-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+}
+
+.game-card {
+    display: block;
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    text-decoration: none;
+    color: inherit;
+
+    &:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+
+        .game-cover img {
+            transform: scale(1.05);
+        }
+    }
+}
+
+.game-cover {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    overflow: hidden;
+    position: relative;
+
+    img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.3s ease;
+    }
+}
+
+.game-cover-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    i {
+        font-size: 4rem;
+        color: rgba(255, 255, 255, 0.5);
+    }
+}
+
+.game-info {
+    padding: 1.25rem;
+}
+
+.game-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin: 0 0 0.25rem 0;
+    color: #1f2937;
+}
+
+.game-developer {
+    font-size: 0.875rem;
+    color: #6b7280;
+    margin: 0 0 0.75rem 0;
+}
+
+.game-stats {
+    display: flex;
+    gap: 1rem;
+    font-size: 0.875rem;
+    color: #6b7280;
+}
+
+.game-stat {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+
+    i {
+        font-size: 0.75rem;
+        opacity: 0.7;
+    }
+}
+
+// Game Detail Page
+.game-detail-cover {
+    width: 160px;
+    height: 160px;
+    border-radius: 12px;
+    object-fit: cover;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    flex-shrink: 0;
+}
+
+.game-detail-cover-placeholder {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    i {
+        font-size: 4rem;
+        color: rgba(255, 255, 255, 0.5);
+    }
+}
+
+// Dark Mode
+.dark-mode {
+    .game-card {
+        background: #1f2937;
+
+        &:hover {
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.5);
+        }
+    }
+
+    .game-title {
+        color: #f9fafb;
+    }
+
+    .game-developer,
+    .game-stats,
+    .game-stat {
+        color: #9ca3af;
+    }
+}

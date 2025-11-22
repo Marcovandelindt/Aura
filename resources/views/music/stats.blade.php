@@ -225,7 +225,7 @@
                 @if(count($stats['binge_sessions']['top_sessions']) > 0)
                     <div class="binge-sessions-list">
                         @foreach($stats['binge_sessions']['top_sessions'] as $index => $session)
-                            <div class="session-item">
+                            <div class="session-item" onclick="openSessionModal({{ $index }})" style="cursor: pointer;">
                                 <div class="session-rank">{{ $index + 1 }}</div>
                                 <div class="session-info">
                                     <div class="session-tracks">{{ $session['track_count'] }} tracks</div>
@@ -411,5 +411,78 @@
             </div>
         </div>
     </div>
+
+    <!-- Session Details Modal -->
+    <div id="sessionModal" class="session-modal">
+        <div class="session-modal-overlay" onclick="closeSessionModal()"></div>
+        <div class="session-modal-content">
+            <div class="session-modal-header">
+                <h3 id="sessionModalTitle">Session Details</h3>
+                <button class="session-modal-close" onclick="closeSessionModal()">&times;</button>
+            </div>
+            <div class="session-modal-body">
+                <div id="sessionTracksContainer"></div>
+            </div>
+        </div>
+    </div>
 </div>
+
+<script>
+    const sessionData = @json($stats['binge_sessions']['top_sessions']);
+
+    function openSessionModal(sessionIndex) {
+        const session = sessionData[sessionIndex];
+        const modal = document.getElementById('sessionModal');
+        const title = document.getElementById('sessionModalTitle');
+        const container = document.getElementById('sessionTracksContainer');
+
+        title.textContent = `Session ${sessionIndex + 1} - ${session.track_count} tracks`;
+
+        let tracksHtml = '<div class="session-tracks-list">';
+        session.tracks.forEach((track, index) => {
+            const playedAt = new Date(track.played_at);
+            const timeStr = playedAt.toLocaleTimeString('nl-NL', {
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: false,
+                timeZone: 'Europe/Amsterdam'
+            });
+
+            const trackUrl = `/tracks/${track.spotify_track_id}`;
+
+            tracksHtml += `
+                <a href="${trackUrl}" class="session-track-item">
+                    <div class="session-track-number">${index + 1}</div>
+                    ${track.album_image_url ?
+                        `<img src="${track.album_image_url}" alt="${track.name}" class="session-track-image">` :
+                        '<div class="session-track-placeholder"><i class="fas fa-music"></i></div>'
+                    }
+                    <div class="session-track-info">
+                        <div class="session-track-name">${track.name}</div>
+                        <div class="session-track-artist">${track.artists}</div>
+                    </div>
+                    <div class="session-track-time">${timeStr}</div>
+                </a>
+            `;
+        });
+        tracksHtml += '</div>';
+
+        container.innerHTML = tracksHtml;
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeSessionModal() {
+        const modal = document.getElementById('sessionModal');
+        modal.classList.remove('active');
+        document.body.style.overflow = '';
+    }
+
+    // Close modal on Escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeSessionModal();
+        }
+    });
+</script>
 @endsection

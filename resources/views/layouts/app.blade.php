@@ -10,7 +10,10 @@
 
     @vite(['resources/scss/app.scss', 'resources/js/app.js'])
 
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css"
+        integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+   
 </head>
 
 <body class="{{ $themeClass }}">
@@ -19,77 +22,77 @@
         <div class="app-content">
             @yield('content')
         </div>
-        
+
         <!-- Global Currently Playing Bar -->
         @if($globalCurrentlyPlaying)
-            <div class="floating-player">
-                <div class="floating-player-content">
-                    @if($globalCurrentlyPlaying->album_image_url)
-                        <img src="{{ $globalCurrentlyPlaying->album_image_url }}" 
-                             alt="{{ $globalCurrentlyPlaying->album_name }}"
-                             class="floating-album-art">
-                    @endif
-                    
-                    <div class="floating-track-info">
-                        <div class="floating-track-name">{{ $globalCurrentlyPlaying->track_name }}</div>
-                        <div class="floating-artist-name">
-                            @foreach($globalCurrentlyPlaying->artist_names as $index => $artistName)
-                                <a href="{{ route('artists.show', ['artist' => urlencode($artistName)]) }}" 
-                                   style="color: inherit; text-decoration: none; transition: color 0.2s;"
-                                   onmouseover="this.style.color='#1DB954'" 
-                                   onmouseout="this.style.color='#888'">{{ $artistName }}</a>@if($index < count($globalCurrentlyPlaying->artist_names) - 1), @endif
+        <div class="floating-player">
+            <div class="floating-player-content">
+                @if($globalCurrentlyPlaying->album_image_url)
+                <img src="{{ $globalCurrentlyPlaying->album_image_url }}"
+                    alt="{{ $globalCurrentlyPlaying->album_name }}" class="floating-album-art">
+                @endif
+
+                <div class="floating-track-info">
+                    <div class="floating-track-name">{{ $globalCurrentlyPlaying->track_name }}</div>
+                    <div class="floating-artist-name">
+                        @foreach($globalCurrentlyPlaying->artist_names as $index => $artistName)
+                        <a href="{{ route('artists.show', ['artist' => urlencode($artistName)]) }}"
+                            style="color: inherit; text-decoration: none; transition: color 0.2s;"
+                            onmouseover="this.style.color='#1DB954'" onmouseout="this.style.color='#888'">{{ $artistName
+                            }}</a>@if($index < count($globalCurrentlyPlaying->artist_names) - 1), @endif
                             @endforeach
-                        </div>
                     </div>
-                    
-                    <div class="floating-controls">
-                        <button class="playback-control" onclick="skipToPrevious()" title="Previous track">
-                            <i class="fas fa-step-backward"></i>
-                        </button>
-                        
-                        <button class="playback-control play-pause-btn" onclick="togglePlayPause()" title="{{ $globalCurrentlyPlaying->is_playing ? 'Pause' : 'Play' }}">
-                            <i class="fas fa-play play-icon" style="{{ $globalCurrentlyPlaying->is_playing ? 'display: none;' : '' }}"></i>
-                            <i class="fas fa-pause pause-icon" style="{{ $globalCurrentlyPlaying->is_playing ? '' : 'display: none;' }}"></i>
-                        </button>
-                        
-                        <button class="playback-control" onclick="skipToNext()" title="Next track">
-                            <i class="fas fa-step-forward"></i>
-                        </button>
-                        
-                        @if($globalCurrentlyPlaying->external_url)
-                            <a href="{{ $globalCurrentlyPlaying->external_url }}" 
-                               target="_blank" 
-                               class="floating-spotify-link"
-                               title="Open in Spotify">
-                                <i class="fab fa-spotify" style="color: #1DB954;"></i>
-                            </a>
-                        @endif
-                    </div>
-                    
-                    @if($globalCurrentlyPlaying->progress_ms && $globalCurrentlyPlaying->duration_ms)
-                        @php
-                            $progressPercent = ($globalCurrentlyPlaying->progress_ms / $globalCurrentlyPlaying->duration_ms) * 100;
-                            $progressMinutes = floor($globalCurrentlyPlaying->progress_ms / 1000 / 60);
-                            $progressSeconds = floor(($globalCurrentlyPlaying->progress_ms / 1000) % 60);
-                            $durationMinutes = floor($globalCurrentlyPlaying->duration_ms / 1000 / 60);
-                            $durationSeconds = floor(($globalCurrentlyPlaying->duration_ms / 1000) % 60);
-                        @endphp
-                        <div class="floating-progress">
-                            <div class="floating-progress-fill" style="width: {{ $progressPercent }}%"></div>
-                        </div>
-                        <div class="floating-time">
-                            <span class="current-time">{{ sprintf('%d:%02d', $progressMinutes, $progressSeconds) }}</span>
-                            <span class="total-time">{{ sprintf('%d:%02d', $durationMinutes, $durationSeconds) }}</span>
-                        </div>
+                </div>
+
+                <div class="floating-controls">
+                    <button class="playback-control" onclick="skipToPrevious()" title="Previous track">
+                        <i class="fas fa-step-backward"></i>
+                    </button>
+
+                    <button class="playback-control play-pause-btn" onclick="togglePlayPause()"
+                        title="{{ $globalCurrentlyPlaying->is_playing ? 'Pause' : 'Play' }}">
+                        <i class="fas fa-play play-icon"
+                            style="{{ $globalCurrentlyPlaying->is_playing ? 'display: none;' : '' }}"></i>
+                        <i class="fas fa-pause pause-icon"
+                            style="{{ $globalCurrentlyPlaying->is_playing ? '' : 'display: none;' }}"></i>
+                    </button>
+
+                    <button class="playback-control" onclick="skipToNext()" title="Next track">
+                        <i class="fas fa-step-forward"></i>
+                    </button>
+
+                    @if($globalCurrentlyPlaying->external_url)
+                    <a href="{{ $globalCurrentlyPlaying->external_url }}" target="_blank" class="floating-spotify-link"
+                        title="Open in Spotify">
+                        <i class="fab fa-spotify" style="color: #1DB954;"></i>
+                    </a>
                     @endif
                 </div>
+
+                @if($globalCurrentlyPlaying->progress_ms && $globalCurrentlyPlaying->duration_ms)
+                @php
+                $progressPercent = ($globalCurrentlyPlaying->progress_ms / $globalCurrentlyPlaying->duration_ms) * 100;
+                $progressMinutes = floor($globalCurrentlyPlaying->progress_ms / 1000 / 60);
+                $progressSeconds = floor(($globalCurrentlyPlaying->progress_ms / 1000) % 60);
+                $durationMinutes = floor($globalCurrentlyPlaying->duration_ms / 1000 / 60);
+                $durationSeconds = floor(($globalCurrentlyPlaying->duration_ms / 1000) % 60);
+                @endphp
+                <div class="floating-progress">
+                    <div class="floating-progress-fill" style="width: {{ $progressPercent }}%"></div>
+                </div>
+                <div class="floating-time">
+                    <span class="current-time">{{ sprintf('%d:%02d', $progressMinutes, $progressSeconds) }}</span>
+                    <span class="total-time">{{ sprintf('%d:%02d', $durationMinutes, $durationSeconds) }}</span>
+                </div>
+                @endif
             </div>
+        </div>
         @endif
     </div>
-    
+
     @if($globalCurrentlyPlaying)
-        <script>
-            // CSRF Token for AJAX requests
+    <script>
+        // CSRF Token for AJAX requests
             const csrfToken = '{{ csrf_token() }}';
             
             async function makePlaybackRequest(url) {
@@ -160,9 +163,9 @@
                     }, 1000);
                 }
             }
-        </script>
+    </script>
     @endif
-    
+
     <!-- Mood Popup HTML -->
     <div class="mood-popup-overlay" id="moodPopup">
         <div class="mood-popup">
@@ -183,7 +186,7 @@
                         <div class="empty-state">No moods assigned yet</div>
                     </div>
                 </div>
-                
+
                 <!-- Available moods -->
                 <div class="available-moods">
                     <h3><i class="fas fa-palette"></i> Add Moods</h3>
@@ -191,7 +194,7 @@
                         <!-- Populated via JavaScript -->
                     </div>
                 </div>
-                
+
                 <!-- Create new mood -->
                 <div class="create-mood-section">
                     <button class="create-mood-toggle" onclick="toggleCreateMoodForm()">
@@ -229,18 +232,18 @@
     <!-- Mood Popup JavaScript -->
     <script>
         let currentTrackId = null;
-        
+
         // Open mood popup for a track
         async function openMoodPopup(spotifyTrackId, trackName, trackArtist) {
             currentTrackId = spotifyTrackId;
-            
+
             // Update track info in popup
             document.getElementById('moodTrackName').textContent = trackName;
             document.getElementById('moodTrackArtist').textContent = trackArtist;
-            
+
             // Show popup
             document.getElementById('moodPopup').classList.add('active');
-            
+
             // Load mood data
             await loadTrackMoods(spotifyTrackId);
         }
@@ -263,9 +266,9 @@
             try {
                 const response = await fetch(`{{ route('moods.track') }}?spotify_track_id=${spotifyTrackId}`);
                 const data = await response.json();
-                
+
                 if (data.success) {
-                    displayCurrentMoods(data.track_moods);
+                    displayCurrentMoods(data.track_moods, data.track_mood_games);
                     displayAvailableMoods(data.all_moods, data.track_moods);
                 } else {
                     console.error('Failed to load moods:', data.message);
@@ -276,23 +279,33 @@
         }
         
         // Display current moods
-        function displayCurrentMoods(trackMoods) {
+        function displayCurrentMoods(trackMoods, trackMoodGames) {
             const container = document.getElementById('currentMoods');
-            
+
             if (trackMoods.length === 0) {
                 container.innerHTML = '<div class="empty-state">No moods assigned yet</div>';
                 return;
             }
-            
-            container.innerHTML = trackMoods.map(mood => `
-                <div class="mood-tag assigned" style="background-color: ${mood.color};">
-                    <i class="${mood.icon} mood-icon"></i>
-                    <span>${mood.name}</span>
-                    <button class="remove-mood" onclick="removeMoodFromTrack(${mood.id})" title="Remove mood">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-            `).join('');
+
+            container.innerHTML = trackMoods.map(mood => {
+                const games = trackMoodGames && trackMoodGames[mood.id] ? trackMoodGames[mood.id] : [];
+                const gameLinks = games.map(game => `
+                    <a href="{{ url('games') }}/${game.slug}" class="mood-game-link" title="View ${game.name}">
+                        <i class="fas fa-gamepad"></i> ${game.name}
+                    </a>
+                `).join('');
+
+                return `
+                    <div class="mood-tag assigned" style="background-color: ${mood.color};">
+                        <i class="${mood.icon} mood-icon"></i>
+                        <span>${mood.name}</span>
+                        ${gameLinks}
+                        <button class="remove-mood" onclick="removeMoodFromTrack(${mood.id})" title="Remove mood">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                `;
+            }).join('');
         }
         
         // Display available moods
@@ -316,7 +329,7 @@
         // Add mood to track
         async function addMoodToTrack(moodId) {
             if (!currentTrackId) return;
-            
+
             try {
                 const response = await fetch('{{ route('moods.add') }}', {
                     method: 'POST',
@@ -330,15 +343,20 @@
                         mood_id: moodId
                     })
                 });
-                
+
                 const data = await response.json();
-                
+
                 if (data.success) {
                     // Reload moods to update display
                     await loadTrackMoods(currentTrackId);
-                    
+
                     // Update mood trigger buttons on page
                     updateMoodTriggerButtons(currentTrackId);
+
+                    // Reload track game section if on track detail page
+                    if (typeof loadTrackGames === 'function') {
+                        await loadTrackGames();
+                    }
                 } else {
                     console.error('Failed to add mood:', data.message);
                 }
@@ -350,7 +368,7 @@
         // Remove mood from track
         async function removeMoodFromTrack(moodId) {
             if (!currentTrackId) return;
-            
+
             try {
                 const response = await fetch('{{ route('moods.remove') }}', {
                     method: 'DELETE',
@@ -364,15 +382,20 @@
                         mood_id: moodId
                     })
                 });
-                
+
                 const data = await response.json();
-                
+
                 if (data.success) {
                     // Reload moods to update display
                     await loadTrackMoods(currentTrackId);
-                    
+
                     // Update mood trigger buttons on page
                     updateMoodTriggerButtons(currentTrackId);
+
+                    // Reload track game section if on track detail page
+                    if (typeof loadTrackGames === 'function') {
+                        await loadTrackGames();
+                    }
                 } else {
                     console.error('Failed to remove mood:', data.message);
                 }
