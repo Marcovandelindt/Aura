@@ -4,8 +4,60 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "dec9e7c97cb6eb08b5b2fed54ba8255f",
+    "content-hash": "8153f3a28ef6d1c954516bbdd3beb59c",
     "packages": [
+        {
+            "name": "antwerpes/data-transfer-object",
+            "version": "1.0.5",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/antwerpes/data-transfer-object.git",
+                "reference": "1508218840093662a45a8485b340fd4ac358cd45"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/antwerpes/data-transfer-object/zipball/1508218840093662a45a8485b340fd4ac358cd45",
+                "reference": "1508218840093662a45a8485b340fd4ac358cd45",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^8.2"
+            },
+            "require-dev": {
+                "chiiya/code-style-php": "^3.0",
+                "friendsofphp/php-cs-fixer": "^3.21.1",
+                "phpro/grumphp": "^2.7",
+                "phpunit/phpunit": "^10.3.2"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Antwerpes\\DataTransferObject\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Elisha Witte",
+                    "email": "github@chiiya.moe",
+                    "role": "Developer"
+                }
+            ],
+            "description": "Simple json encoding and decoding for PHP data objects",
+            "homepage": "https://github.com/antwerpes/data-transfer-object",
+            "keywords": [
+                "chiiya",
+                "json-encoding"
+            ],
+            "support": {
+                "issues": "https://github.com/antwerpes/data-transfer-object/issues",
+                "source": "https://github.com/antwerpes/data-transfer-object/tree/1.0.5"
+            },
+            "time": "2024-10-10T11:46:37+00:00"
+        },
         {
             "name": "brick/math",
             "version": "0.14.0",
@@ -134,6 +186,140 @@
                 }
             ],
             "time": "2024-02-09T16:56:22+00:00"
+        },
+        {
+            "name": "chiiya/laravel-tmdb",
+            "version": "1.4.2",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/chiiya/laravel-tmdb.git",
+                "reference": "1a19a5b6027c6b746a459fe33fc636d9203b1d50"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/chiiya/laravel-tmdb/zipball/1a19a5b6027c6b746a459fe33fc636d9203b1d50",
+                "reference": "1a19a5b6027c6b746a459fe33fc636d9203b1d50",
+                "shasum": ""
+            },
+            "require": {
+                "chiiya/tmdb-php": "^1.0",
+                "illuminate/contracts": "^9.0|^10.0|^11.0|^12.0",
+                "php": "^8.2",
+                "spatie/laravel-package-tools": "^1.92"
+            },
+            "require-dev": {
+                "chiiya/laravel-code-style": "^3.2",
+                "nunomaduro/collision": "^8.8",
+                "orchestra/testbench": "^10.6",
+                "phpunit/phpunit": "^12.3",
+                "squizlabs/php_codesniffer": "^3.0"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "Chiiya\\LaravelTmdb\\LaravelTmdbServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Chiiya\\LaravelTmdb\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Elisha Witte",
+                    "email": "github@chiiya.moe",
+                    "role": "Developer"
+                }
+            ],
+            "description": "Laravel SDK for the TMDB API",
+            "homepage": "https://github.com/chiiya/laravel-tmdb",
+            "keywords": [
+                "chiiya",
+                "laravel",
+                "movies",
+                "tmdb",
+                "tv"
+            ],
+            "support": {
+                "issues": "https://github.com/chiiya/laravel-tmdb/issues",
+                "source": "https://github.com/chiiya/laravel-tmdb/tree/1.4.2"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/chiiya",
+                    "type": "github"
+                }
+            ],
+            "time": "2025-09-21T16:28:58+00:00"
+        },
+        {
+            "name": "chiiya/tmdb-php",
+            "version": "1.0.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/chiiya/tmdb-php.git",
+                "reference": "8cc62c94f814899e83dd47a16de16bbc2042eab7"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/chiiya/tmdb-php/zipball/8cc62c94f814899e83dd47a16de16bbc2042eab7",
+                "reference": "8cc62c94f814899e83dd47a16de16bbc2042eab7",
+                "shasum": ""
+            },
+            "require": {
+                "antwerpes/data-transfer-object": "^1.0",
+                "guzzlehttp/guzzle": "^7.4",
+                "php": "^8.2"
+            },
+            "require-dev": {
+                "blastcloud/guzzler": "^2.0",
+                "chiiya/code-style-php": "^3.1",
+                "phpro/grumphp": "^2.13",
+                "phpunit/phpunit": "^12.0",
+                "squizlabs/php_codesniffer": "^3.0",
+                "symfony/var-dumper": "^7.0"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Chiiya\\Tmdb\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Elisha Witte",
+                    "email": "github@chiiya.moe",
+                    "role": "Developer"
+                }
+            ],
+            "description": "PHP SDK for the TMDB API",
+            "homepage": "https://github.com/chiiya/tmdb-php",
+            "keywords": [
+                "chiiya",
+                "tmdb-php"
+            ],
+            "support": {
+                "issues": "https://github.com/chiiya/tmdb-php/issues",
+                "source": "https://github.com/chiiya/tmdb-php/tree/1.0.1"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/chiiya",
+                    "type": "github"
+                }
+            ],
+            "time": "2025-09-27T14:19:01+00:00"
         },
         {
             "name": "dflydev/dot-access-data",
@@ -3396,6 +3582,67 @@
                 "source": "https://github.com/ramsey/uuid/tree/4.9.1"
             },
             "time": "2025-09-04T20:59:21+00:00"
+        },
+        {
+            "name": "spatie/laravel-package-tools",
+            "version": "1.92.7",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/spatie/laravel-package-tools.git",
+                "reference": "f09a799850b1ed765103a4f0b4355006360c49a5"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/spatie/laravel-package-tools/zipball/f09a799850b1ed765103a4f0b4355006360c49a5",
+                "reference": "f09a799850b1ed765103a4f0b4355006360c49a5",
+                "shasum": ""
+            },
+            "require": {
+                "illuminate/contracts": "^9.28|^10.0|^11.0|^12.0",
+                "php": "^8.0"
+            },
+            "require-dev": {
+                "mockery/mockery": "^1.5",
+                "orchestra/testbench": "^7.7|^8.0|^9.0|^10.0",
+                "pestphp/pest": "^1.23|^2.1|^3.1",
+                "phpunit/php-code-coverage": "^9.0|^10.0|^11.0",
+                "phpunit/phpunit": "^9.5.24|^10.5|^11.5",
+                "spatie/pest-plugin-test-time": "^1.1|^2.2"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Spatie\\LaravelPackageTools\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Freek Van der Herten",
+                    "email": "freek@spatie.be",
+                    "role": "Developer"
+                }
+            ],
+            "description": "Tools for creating Laravel packages",
+            "homepage": "https://github.com/spatie/laravel-package-tools",
+            "keywords": [
+                "laravel-package-tools",
+                "spatie"
+            ],
+            "support": {
+                "issues": "https://github.com/spatie/laravel-package-tools/issues",
+                "source": "https://github.com/spatie/laravel-package-tools/tree/1.92.7"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/spatie",
+                    "type": "github"
+                }
+            ],
+            "time": "2025-07-17T15:46:43+00:00"
         },
         {
             "name": "symfony/clock",

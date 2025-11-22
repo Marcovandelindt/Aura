@@ -92,3 +92,31 @@ Route::prefix('playstation')->group(function () {
     Route::get('/games/{game}', [App\Http\Controllers\PlayStationController::class, 'show'])->name('playstation.games.show');
     Route::post('/sync', [App\Http\Controllers\PlayStationController::class, 'sync'])->name('playstation.sync');
 });
+
+/**
+ * Movie Routes
+ */
+Route::prefix('movies')->group(function () {
+    Route::get('/', [App\Http\Controllers\MovieController::class, 'index'])->name('movies.index');
+    Route::get('/stats', [App\Http\Controllers\MovieStatsController::class, 'index'])->name('movies.stats');
+    Route::get('/{movie}', [App\Http\Controllers\MovieController::class, 'show'])->name('movies.show');
+    Route::post('/search', [App\Http\Controllers\MovieController::class, 'search'])->name('movies.search');
+    Route::post('/store', [App\Http\Controllers\MovieController::class, 'store'])->name('movies.store');
+    Route::post('/{movie}/watch', [App\Http\Controllers\MovieController::class, 'markWatched'])->name('movies.watch');
+    Route::delete('/watches/{watch}', [App\Http\Controllers\MovieController::class, 'deleteWatch'])->name('movies.watches.destroy');
+    Route::delete('/{movie}', [App\Http\Controllers\MovieController::class, 'destroy'])->name('movies.destroy');
+});
+
+/**
+ * TV Series Routes
+ */
+Route::prefix('tv')->group(function () {
+    Route::get('/', [App\Http\Controllers\TvSeriesController::class, 'index'])->name('tv.index');
+    Route::get('/stats', [App\Http\Controllers\TvStatsController::class, 'index'])->name('tv.stats');
+    Route::get('/{series}', [App\Http\Controllers\TvSeriesController::class, 'show'])->name('tv.show');
+    Route::post('/search', [App\Http\Controllers\TvSeriesController::class, 'search'])->name('tv.search');
+    Route::post('/store', [App\Http\Controllers\TvSeriesController::class, 'store'])->name('tv.store');
+    Route::post('/episodes/{episode}/watch', [App\Http\Controllers\TvSeriesController::class, 'addEpisodeWatch'])->name('tv.episodes.watch');
+    Route::delete('/watches/{watch}', [App\Http\Controllers\TvSeriesController::class, 'deleteWatch'])->name('tv.watches.destroy');
+    Route::delete('/{series}', [App\Http\Controllers\TvSeriesController::class, 'destroy'])->name('tv.destroy');
+});

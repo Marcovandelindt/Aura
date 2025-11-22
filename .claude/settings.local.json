@@ -14,7 +14,8 @@
       "WebFetch(domain:raw.githubusercontent.com)",
       "Bash(npm run build:*)",
       "WebSearch",
-      "WebFetch(domain:www.omdbapi.com)"
+      "WebFetch(domain:www.omdbapi.com)",
+      "Bash(composer require:*)"
     ],
     "deny": []
   }

@@ -41,9 +41,16 @@
             </li>
 
             <li class="nav-item">
-                <a href="#" class="nav-link">
+                <a href="{{ route('movies.index') }}" class="nav-link {{ request()->routeIs('movies.*') ? 'active' : '' }}">
                     <i class="fas fa-film nav-icon"></i>
-                    <span class="nav-text">Movies & Shows</span>
+                    <span class="nav-text">Movies</span>
+                </a>
+            </li>
+
+            <li class="nav-item">
+                <a href="{{ route('tv.index') }}" class="nav-link {{ request()->routeIs('tv.*') ? 'active' : '' }}">
+                    <i class="fas fa-tv nav-icon"></i>
+                    <span class="nav-text">TV Series</span>
                 </a>
             </li>
             
