@@ -2,13 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\PlayStationGame;
-use App\Models\PlayStationSession;
+use App\Models\NintendoSwitchGame;
+use App\Models\NintendoSwitchSession;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
-class PlayStationStatsController extends Controller
+class NintendoSwitchStatsController extends Controller
 {
     public function index(Request $request): View
     {
@@ -24,7 +24,6 @@ class PlayStationStatsController extends Controller
             'top_start_hours' => $this->getTopStartHours(),
             'weekday_vs_weekend' => $this->getWeekdayVsWeekendStats(),
             'monthly_stats' => $this->getMonthlyStats(),
-            'platform_stats' => $this->getPlatformStats(),
             'longest_session' => $this->getLongestSession(),
             'shortest_session' => $this->getShortestSession(),
             'earliest_session' => $this->getEarliestSession(),
@@ -45,7 +44,7 @@ class PlayStationStatsController extends Controller
             'end_date' => $dateRange['end']?->format('Y-m-d'),
         ];
 
-        return view('playstation.stats', compact('stats', 'filterData'));
+        return view('nintendo-switch.stats', compact('stats', 'filterData'));
     }
 
     private function getDateRange(string $filter, ?string $startDate, ?string $endDate): array
@@ -78,7 +77,7 @@ class PlayStationStatsController extends Controller
 
     private function getDailyPlaytime(?Carbon $startDate, ?Carbon $endDate): array
     {
-        $query = PlayStationSession::with('game');
+        $query = NintendoSwitchSession::with('game');
 
         if ($startDate) {
             $query->where('started_at', '>=', $startDate);
@@ -90,7 +89,7 @@ class PlayStationStatsController extends Controller
         return $query->get()
             ->groupBy(fn ($session) => $session->started_at->format('Y-m-d'))
             ->map(function ($sessions, $date) {
-                $games = $sessions->groupBy('play_station_game_id')
+                $games = $sessions->groupBy('nintendo_switch_game_id')
                     ->map(function ($gameSessions) {
                         $game = $gameSessions->first()->game;
                         $minutes = $gameSessions->sum('duration_minutes');
@@ -122,16 +121,16 @@ class PlayStationStatsController extends Controller
 
     private function getOverviewStats(): array
     {
-        $totalSessions = PlayStationSession::count();
-        $totalMinutes = PlayStationSession::sum('duration_minutes');
-        $totalGames = PlayStationGame::count();
-        $uniqueGamesPlayed = PlayStationSession::distinct('play_station_game_id')->count();
+        $totalSessions = NintendoSwitchSession::count();
+        $totalMinutes = NintendoSwitchSession::sum('duration_minutes');
+        $totalGames = NintendoSwitchGame::count();
+        $uniqueGamesPlayed = NintendoSwitchSession::distinct('nintendo_switch_game_id')->count();
 
-        $firstSession = PlayStationSession::orderBy('started_at')->first();
-        $lastSession = PlayStationSession::orderByDesc('started_at')->first();
+        $firstSession = NintendoSwitchSession::orderBy('started_at')->first();
+        $lastSession = NintendoSwitchSession::orderByDesc('started_at')->first();
 
-        $thisWeek = PlayStationSession::where('started_at', '>=', now()->startOfWeek())->count();
-        $thisMonth = PlayStationSession::whereMonth('started_at', now()->month)
+        $thisWeek = NintendoSwitchSession::where('started_at', '>=', now()->startOfWeek())->count();
+        $thisMonth = NintendoSwitchSession::whereMonth('started_at', now()->month)
             ->whereYear('started_at', now()->year)
             ->count();
 
@@ -153,7 +152,7 @@ class PlayStationStatsController extends Controller
 
     private function getTopGames(int $limit = 10): array
     {
-        return PlayStationGame::withSum('sessions', 'duration_minutes')
+        return NintendoSwitchGame::withSum('sessions', 'duration_minutes')
             ->withCount('sessions')
             ->orderByDesc('sessions_sum_duration_minutes')
             ->limit($limit)
@@ -161,19 +160,17 @@ class PlayStationStatsController extends Controller
             ->map(fn ($game) => [
                 'id' => $game->id,
                 'name' => $game->name,
-                'platform' => $game->platform,
                 'hours' => $game->calculated_hours,
                 'sessions' => $game->calculated_sessions,
                 'image_url' => $game->image_url,
                 'last_played_at' => $game->last_played_at,
-                'completion_percentage' => $game->completion_percentage,
             ])
             ->toArray();
     }
 
     private function getTopStartHours(): array
     {
-        return PlayStationSession::selectRaw('HOUR(started_at) as hour, COUNT(*) as count')
+        return NintendoSwitchSession::selectRaw('HOUR(started_at) as hour, COUNT(*) as count')
             ->groupBy('hour')
             ->orderByDesc('count')
             ->limit(5)
@@ -210,16 +207,16 @@ class PlayStationStatsController extends Controller
 
     private function getWeekdayVsWeekendStats(): array
     {
-        $weekdayMinutes = PlayStationSession::selectRaw('SUM(duration_minutes) as total')
+        $weekdayMinutes = NintendoSwitchSession::selectRaw('SUM(duration_minutes) as total')
             ->whereRaw('WEEKDAY(started_at) BETWEEN 0 AND 4')
             ->first()->total ?? 0;
 
-        $weekendMinutes = PlayStationSession::selectRaw('SUM(duration_minutes) as total')
+        $weekendMinutes = NintendoSwitchSession::selectRaw('SUM(duration_minutes) as total')
             ->whereRaw('WEEKDAY(started_at) IN (5, 6)')
             ->first()->total ?? 0;
 
-        $weekdaySessions = PlayStationSession::whereRaw('WEEKDAY(started_at) BETWEEN 0 AND 4')->count();
-        $weekendSessions = PlayStationSession::whereRaw('WEEKDAY(started_at) IN (5, 6)')->count();
+        $weekdaySessions = NintendoSwitchSession::whereRaw('WEEKDAY(started_at) BETWEEN 0 AND 4')->count();
+        $weekendSessions = NintendoSwitchSession::whereRaw('WEEKDAY(started_at) IN (5, 6)')->count();
 
         $totalMinutes = $weekdayMinutes + $weekendMinutes;
 
@@ -236,7 +233,7 @@ class PlayStationStatsController extends Controller
 
     private function getMonthlyStats(): array
     {
-        return PlayStationSession::selectRaw('YEAR(started_at) as year, MONTH(started_at) as month, COUNT(*) as sessions, SUM(duration_minutes) as minutes')
+        return NintendoSwitchSession::selectRaw('YEAR(started_at) as year, MONTH(started_at) as month, COUNT(*) as sessions, SUM(duration_minutes) as minutes')
             ->groupBy('year', 'month')
             ->orderByDesc('year')
             ->orderByDesc('month')
@@ -252,25 +249,9 @@ class PlayStationStatsController extends Controller
             ->toArray();
     }
 
-    private function getPlatformStats(): array
-    {
-        return PlayStationSession::join('play_station_games', 'play_station_sessions.play_station_game_id', '=', 'play_station_games.id')
-            ->selectRaw('play_station_games.platform, COUNT(DISTINCT play_station_games.id) as games, COUNT(*) as total_sessions, SUM(play_station_sessions.duration_minutes) as total_minutes')
-            ->groupBy('play_station_games.platform')
-            ->orderByDesc('total_minutes')
-            ->get()
-            ->map(fn ($row) => [
-                'platform' => $row->platform,
-                'games' => $row->games,
-                'hours' => round(($row->total_minutes ?? 0) / 60, 1),
-                'sessions' => $row->total_sessions ?? 0,
-            ])
-            ->toArray();
-    }
-
     private function getLongestSession(): ?array
     {
-        $session = PlayStationSession::with('game')
+        $session = NintendoSwitchSession::with('game')
             ->orderByDesc('duration_minutes')
             ->first();
 
@@ -283,14 +264,13 @@ class PlayStationStatsController extends Controller
             'hours' => floor($session->duration_minutes / 60),
             'minutes' => $session->duration_minutes % 60,
             'game_name' => $session->game?->name ?? 'Unknown',
-            'platform' => $session->game?->platform,
             'date' => $session->started_at,
         ];
     }
 
     private function getShortestSession(): ?array
     {
-        $session = PlayStationSession::with('game')
+        $session = NintendoSwitchSession::with('game')
             ->where('duration_minutes', '>', 0)
             ->orderBy('duration_minutes')
             ->first();
@@ -302,16 +282,13 @@ class PlayStationStatsController extends Controller
         return [
             'duration_minutes' => $session->duration_minutes,
             'game_name' => $session->game?->name ?? 'Unknown',
-            'platform' => $session->game?->platform,
             'date' => $session->started_at,
         ];
     }
 
     private function getEarliestSession(): ?array
     {
-        // Early starts at 06:00, so order: 06:00 -> 23:59 -> 00:00 -> 05:59
-        // Shift hours by 18 to get correct order: (hour + 18) % 24
-        $session = PlayStationSession::with('game')
+        $session = NintendoSwitchSession::with('game')
             ->orderByRaw('(HOUR(started_at) + 18) % 24 ASC, MINUTE(started_at) ASC')
             ->first();
 
@@ -322,7 +299,6 @@ class PlayStationStatsController extends Controller
         return [
             'time' => $session->started_at->format('H:i'),
             'game_name' => $session->game?->name ?? 'Unknown',
-            'platform' => $session->game?->platform,
             'date' => $session->started_at,
             'day_name' => $session->started_at->format('l'),
         ];
@@ -330,9 +306,7 @@ class PlayStationStatsController extends Controller
 
     private function getLatestSession(): ?array
     {
-        // Late ends at 05:59, so order: 06:00 -> 23:59 -> 00:00 -> 05:59
-        // Shift hours by 18 to get correct order: (hour + 18) % 24
-        $session = PlayStationSession::with('game')
+        $session = NintendoSwitchSession::with('game')
             ->orderByRaw('(HOUR(started_at) + 18) % 24 DESC, MINUTE(started_at) DESC')
             ->first();
 
@@ -343,7 +317,6 @@ class PlayStationStatsController extends Controller
         return [
             'time' => $session->started_at->format('H:i'),
             'game_name' => $session->game?->name ?? 'Unknown',
-            'platform' => $session->game?->platform,
             'date' => $session->started_at,
             'day_name' => $session->started_at->format('l'),
         ];
@@ -351,10 +324,10 @@ class PlayStationStatsController extends Controller
 
     private function getLongestStreak(): array
     {
-        $sessions = PlayStationSession::with('game')
+        $sessions = NintendoSwitchSession::with('game')
             ->orderBy('started_at')
             ->get()
-            ->groupBy('play_station_game_id');
+            ->groupBy('nintendo_switch_game_id');
 
         $longestStreak = [
             'days' => 0,
@@ -410,7 +383,7 @@ class PlayStationStatsController extends Controller
 
     private function getCurrentStreak(): array
     {
-        $dates = PlayStationSession::selectRaw('DATE(started_at) as date')
+        $dates = NintendoSwitchSession::selectRaw('DATE(started_at) as date')
             ->groupBy('date')
             ->orderByDesc('date')
             ->pluck('date')
@@ -423,7 +396,6 @@ class PlayStationStatsController extends Controller
         $today = Carbon::today()->toDateString();
         $yesterday = Carbon::yesterday()->toDateString();
 
-        // Check if streak is active (played today or yesterday)
         if ($dates[0] !== $today && $dates[0] !== $yesterday) {
             return ['days' => 0, 'start_date' => null];
         }
@@ -448,16 +420,16 @@ class PlayStationStatsController extends Controller
 
     private function getLateNightSessions(): array
     {
-        $lateNightSessions = PlayStationSession::with('game')
+        $lateNightSessions = NintendoSwitchSession::with('game')
             ->whereRaw('HOUR(started_at) >= 0 AND HOUR(started_at) < 6')
             ->count();
 
-        $totalSessions = PlayStationSession::count();
+        $totalSessions = NintendoSwitchSession::count();
 
-        $topLateNightGame = PlayStationSession::with('game')
-            ->selectRaw('play_station_game_id, COUNT(*) as count')
+        $topLateNightGame = NintendoSwitchSession::with('game')
+            ->selectRaw('nintendo_switch_game_id, COUNT(*) as count')
             ->whereRaw('HOUR(started_at) >= 0 AND HOUR(started_at) < 6')
-            ->groupBy('play_station_game_id')
+            ->groupBy('nintendo_switch_game_id')
             ->orderByDesc('count')
             ->first();
 
@@ -472,15 +444,14 @@ class PlayStationStatsController extends Controller
     {
         $threshold = now()->subDays($daysThreshold);
 
-        return PlayStationGame::withSum('sessions', 'duration_minutes')
+        return NintendoSwitchGame::withSum('sessions', 'duration_minutes')
             ->where('last_played_at', '<', $threshold)
-            ->having('sessions_sum_duration_minutes', '>', 60) // More than 1 hour
+            ->having('sessions_sum_duration_minutes', '>', 60)
             ->orderByDesc('sessions_sum_duration_minutes')
             ->limit(5)
             ->get()
             ->map(fn ($game) => [
                 'name' => $game->name,
-                'platform' => $game->platform,
                 'hours' => $game->calculated_hours,
                 'last_played_at' => $game->last_played_at,
                 'days_since' => $game->last_played_at?->diffInDays(now()),
@@ -492,7 +463,7 @@ class PlayStationStatsController extends Controller
     {
         $thirtyDaysAgo = now()->subDays(30);
 
-        return PlayStationSession::selectRaw('DATE(started_at) as date, COUNT(*) as sessions, SUM(duration_minutes) as minutes')
+        return NintendoSwitchSession::selectRaw('DATE(started_at) as date, COUNT(*) as sessions, SUM(duration_minutes) as minutes')
             ->where('started_at', '>=', $thirtyDaysAgo)
             ->groupBy('date')
             ->orderBy('date')
@@ -507,7 +478,7 @@ class PlayStationStatsController extends Controller
 
     private function getYearlyComparison(): array
     {
-        return PlayStationSession::selectRaw('YEAR(started_at) as year, COUNT(*) as sessions, SUM(duration_minutes) as minutes')
+        return NintendoSwitchSession::selectRaw('YEAR(started_at) as year, COUNT(*) as sessions, SUM(duration_minutes) as minutes')
             ->groupBy('year')
             ->orderByDesc('year')
             ->get()
@@ -523,8 +494,7 @@ class PlayStationStatsController extends Controller
     {
         $days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
-        // Get total minutes per weekday and count unique days
-        $stats = PlayStationSession::selectRaw('WEEKDAY(started_at) as day_num, SUM(duration_minutes) as total_minutes, COUNT(*) as sessions, COUNT(DISTINCT DATE(started_at)) as unique_days')
+        $stats = NintendoSwitchSession::selectRaw('WEEKDAY(started_at) as day_num, SUM(duration_minutes) as total_minutes, COUNT(*) as sessions, COUNT(DISTINCT DATE(started_at)) as unique_days')
             ->groupBy('day_num')
             ->orderBy('day_num')
             ->get()

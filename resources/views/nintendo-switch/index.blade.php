@@ -5,24 +5,21 @@
     <div class="content-header">
         <div style="display: flex; align-items: center; justify-content: space-between;">
             <div>
-                <h1>PlayStation Games</h1>
+                <h1>Nintendo Switch Games</h1>
                 <ul class="breadcrumb">
                     <li><a href="{{ route('home.index') }}">Home</a></li>
-                    <li>PlayStation</li>
+                    <li>Nintendo Switch</li>
                 </ul>
             </div>
             <div style="display: flex; gap: 0.5rem;">
-                <a href="{{ route('playstation.stats') }}" class="btn btn-secondary">
+                <a href="{{ route('nintendo-switch.stats') }}" class="btn btn-secondary">
                     <i class="fas fa-chart-bar" style="margin-right: 8px;"></i>
                     Statistics
                 </a>
-                <form action="{{ route('playstation.sync') }}" method="POST" style="display: inline;">
-                    @csrf
-                    <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-sync-alt" style="margin-right: 8px;"></i>
-                        Sync Now
-                    </button>
-                </form>
+                <a href="{{ route('nintendo-switch.create') }}" class="btn btn-primary">
+                    <i class="fas fa-plus" style="margin-right: 8px;"></i>
+                    Add Game
+                </a>
             </div>
         </div>
     </div>
@@ -40,7 +37,7 @@
         <div class="card">
             <div class="card-body">
                 <div class="stat-content">
-                    <div class="stat-icon" style="background: linear-gradient(135deg, #003087 0%, #0070cc 100%);">
+                    <div class="stat-icon" style="background: linear-gradient(135deg, #e60012 0%, #ff4444 100%);">
                         <i class="fas fa-gamepad"></i>
                     </div>
                     <div class="stat-details">
@@ -86,10 +83,10 @@
         <div class="card-body">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
                 <h3 style="font-size: 1.1rem; margin: 0;">
-                    <i class="fas fa-history" style="margin-right: 8px; color: #667eea;"></i>
+                    <i class="fas fa-history" style="margin-right: 8px; color: #e60012;"></i>
                     Recent Sessions
                 </h3>
-                <a href="{{ route('playstation.sessions') }}" class="btn btn-sm btn-secondary">
+                <a href="{{ route('nintendo-switch.sessions') }}" class="btn btn-sm btn-secondary">
                     View All
                 </a>
             </div>
@@ -98,10 +95,8 @@
                     <thead>
                         <tr>
                             <th>Game</th>
-                            <th>Platform</th>
+                            <th>Date</th>
                             <th>Duration</th>
-                            <th>Start</th>
-                            <th>End</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -115,33 +110,11 @@
                                 @endif
                             </td>
                             <td>
-                                @if($session->game)
-                                    <span class="badge" style="background: {{ match($session->game->platform) {
-                                        'PS5' => '#003087',
-                                        'PS4' => '#00439c',
-                                        'PS3' => '#006cb7',
-                                        'PSVITA' => '#00acee',
-                                        default => '#666'
-                                    } }}; color: white; padding: 4px 8px; border-radius: 4px; font-size: 11px;">
-                                        {{ $session->game->platform }}
-                                    </span>
-                                @endif
-                            </td>
-                            <td>{{ $session->formatted_duration }}</td>
-                            <td>
                                 <span title="{{ $session->started_at->diffForHumans() }}">
-                                    {{ $session->started_at->format('d M H:i') }}
+                                    {{ $session->started_at->format('d M Y') }}
                                 </span>
                             </td>
-                            <td>
-                                @if($session->ended_at)
-                                    <span title="{{ $session->ended_at->diffForHumans() }}">
-                                        {{ $session->ended_at->format('H:i') }}
-                                    </span>
-                                @else
-                                    -
-                                @endif
-                            </td>
+                            <td style="font-weight: 600; color: #e60012;">{{ $session->formatted_duration }}</td>
                         </tr>
                         @endforeach
                     </tbody>
@@ -154,22 +127,12 @@
     <!-- Filters -->
     <div class="card" style="margin-bottom: 1.5rem;">
         <div class="card-body">
-            <form method="GET" action="{{ route('playstation.index') }}" style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+            <form method="GET" action="{{ route('nintendo-switch.index') }}" style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
                 <div style="flex: 1; min-width: 200px;">
                     <input type="text" name="search" value="{{ $search }}"
                            placeholder="Search games..."
                            class="form-control"
                            style="width: 100%;">
-                </div>
-                <div>
-                    <select name="platform" class="form-control" onchange="this.form.submit()">
-                        <option value="">All Platforms</option>
-                        @foreach($stats['platforms'] as $platformName => $count)
-                            <option value="{{ $platformName }}" {{ $platform == $platformName ? 'selected' : '' }}>
-                                {{ $platformName }} ({{ $count }})
-                            </option>
-                        @endforeach
-                    </select>
                 </div>
                 <div>
                     <select name="sort" class="form-control" onchange="this.form.submit()">
@@ -180,8 +143,8 @@
                     </select>
                 </div>
                 <button type="submit" class="btn btn-primary">Search</button>
-                @if($search || $platform || $sort != 'hours')
-                    <a href="{{ route('playstation.index') }}" class="btn btn-secondary">Clear</a>
+                @if($search || $sort != 'hours')
+                    <a href="{{ route('nintendo-switch.index') }}" class="btn btn-secondary">Clear</a>
                 @endif
             </form>
         </div>
@@ -197,11 +160,11 @@
                             <tr>
                                 <th width="50"></th>
                                 <th>Game</th>
-                                <th>Platform</th>
                                 <th>Playtime</th>
                                 <th>Sessions</th>
                                 <th>Avg Session</th>
                                 <th>Last Played</th>
+                                <th width="100">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -213,36 +176,15 @@
                                              alt="{{ $game->name }}"
                                              style="width: 40px; height: 40px; border-radius: 4px; object-fit: cover;">
                                     @else
-                                        <div style="width: 40px; height: 40px; border-radius: 4px; background: #e0e0e0; display: flex; align-items: center; justify-content: center;">
-                                            <i class="fas fa-gamepad" style="color: #999;"></i>
+                                        <div style="width: 40px; height: 40px; border-radius: 4px; background: #e60012; display: flex; align-items: center; justify-content: center;">
+                                            <i class="fas fa-gamepad" style="color: white;"></i>
                                         </div>
                                     @endif
                                 </td>
                                 <td>
-                                    <a href="{{ route('playstation.games.show', $game) }}" style="text-decoration: none; color: inherit;">
+                                    <a href="{{ route('nintendo-switch.games.show', $game) }}" style="text-decoration: none; color: inherit;">
                                         <strong>{{ $game->name }}</strong>
                                     </a>
-                                    @if($game->completion_percentage)
-                                        <br>
-                                        <small style="color: #666;">
-                                            <i class="fas fa-trophy" style="color: #ffd700;"></i>
-                                            {{ $game->completion_percentage }}%
-                                            @if($game->trophies)
-                                                ({{ $game->trophies }} trophies)
-                                            @endif
-                                        </small>
-                                    @endif
-                                </td>
-                                <td>
-                                    <span class="badge" style="background: {{ match($game->platform) {
-                                        'PS5' => '#003087',
-                                        'PS4' => '#00439c',
-                                        'PS3' => '#006cb7',
-                                        'PSVITA' => '#00acee',
-                                        default => '#666'
-                                    } }}; color: white; padding: 4px 8px; border-radius: 4px; font-size: 11px;">
-                                        {{ $game->platform }}
-                                    </span>
                                 </td>
                                 <td>
                                     <strong>{{ $game->formatted_hours }}</strong>
@@ -258,6 +200,11 @@
                                         -
                                     @endif
                                 </td>
+                                <td>
+                                    <a href="{{ route('nintendo-switch.games.edit', $game) }}" class="btn btn-sm btn-secondary" title="Edit">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                </td>
                             </tr>
                             @endforeach
                         </tbody>
@@ -267,7 +214,7 @@
                 {{ $games->links() }}
             @else
                 <p class="text-center" style="padding: 2rem;">
-                    No games found. Try syncing your PlayStation data.
+                    No games found. <a href="{{ route('nintendo-switch.create') }}">Add your first game</a>.
                 </p>
             @endif
         </div>

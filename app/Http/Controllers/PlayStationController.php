@@ -15,7 +15,9 @@ class PlayStationController extends Controller
         $platform = $request->get('platform');
         $sort = $request->get('sort', 'hours');
 
-        $query = PlayStationGame::query();
+        $query = PlayStationGame::query()
+            ->withSum('sessions', 'duration_minutes')
+            ->withCount('sessions');
 
         if ($search) {
             $query->where('name', 'like', "%{$search}%");
@@ -27,10 +29,10 @@ class PlayStationController extends Controller
 
         // Sorting
         $query->orderByDesc(match ($sort) {
-            'sessions' => 'sessions',
+            'sessions' => 'sessions_count',
             'last_played' => 'last_played_at',
             'name' => 'name',
-            default => 'hours',
+            default => 'sessions_sum_duration_minutes',
         });
 
         if ($sort === 'name') {
@@ -39,11 +41,11 @@ class PlayStationController extends Controller
 
         $games = $query->paginate(25)->withQueryString();
 
-        // Statistics
+        // Statistics (calculated from sessions)
         $stats = [
             'total_games' => PlayStationGame::count(),
-            'total_hours' => PlayStationGame::sum('hours'),
-            'total_sessions' => PlayStationGame::sum('sessions'),
+            'total_hours' => round(PlayStationSession::sum('duration_minutes') / 60, 1),
+            'total_sessions' => PlayStationSession::count(),
             'platforms' => PlayStationGame::selectRaw('platform, count(*) as count')
                 ->groupBy('platform')
                 ->pluck('count', 'platform')
@@ -129,16 +131,17 @@ class PlayStationController extends Controller
             ->orderByDesc('started_at')
             ->paginate(50);
 
-        // Game-specific stats
+        // Game-specific stats (calculated from sessions)
+        $totalMinutes = PlayStationSession::where('play_station_game_id', $game->id)->sum('duration_minutes');
+        $sessionCount = PlayStationSession::where('play_station_game_id', $game->id)->count();
+
         $stats = [
-            'total_sessions' => $game->sessions,
-            'total_hours' => $game->hours,
-            'total_minutes' => PlayStationSession::where('play_station_game_id', $game->id)->sum('duration_minutes'),
-            'avg_session_minutes' => $game->sessions > 0
-                ? round(PlayStationSession::where('play_station_game_id', $game->id)->sum('duration_minutes') / $game->sessions)
-                : 0,
+            'total_sessions' => $sessionCount,
+            'total_hours' => round($totalMinutes / 60, 1),
+            'total_minutes' => $totalMinutes,
+            'avg_session_minutes' => $sessionCount > 0 ? round($totalMinutes / $sessionCount) : 0,
             'first_played' => PlayStationSession::where('play_station_game_id', $game->id)->min('started_at'),
-            'last_played' => $game->last_played_at,
+            'last_played' => PlayStationSession::where('play_station_game_id', $game->id)->max('started_at'),
         ];
 
         // Longest session for this game

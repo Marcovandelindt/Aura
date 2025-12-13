@@ -41,6 +41,13 @@
             </li>
 
             <li class="nav-item">
+                <a href="{{ route('nintendo-switch.index') }}" class="nav-link {{ request()->routeIs('nintendo-switch.*') ? 'active' : '' }}">
+                    <i class="fas fa-gamepad nav-icon"></i>
+                    <span class="nav-text">Nintendo Switch</span>
+                </a>
+            </li>
+
+            <li class="nav-item">
                 <a href="{{ route('movies.index') }}" class="nav-link {{ request()->routeIs('movies.*') ? 'active' : '' }}">
                     <i class="fas fa-film nav-icon"></i>
                     <span class="nav-text">Movies</span>

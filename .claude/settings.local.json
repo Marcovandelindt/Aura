@@ -15,7 +15,8 @@
       "Bash(npm run build:*)",
       "WebSearch",
       "WebFetch(domain:www.omdbapi.com)",
-      "Bash(composer require:*)"
+      "Bash(composer require:*)",
+      "Bash(find:*)"
     ],
     "deny": []
   }

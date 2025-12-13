@@ -94,6 +94,24 @@ Route::prefix('playstation')->group(function () {
 });
 
 /**
+ * Nintendo Switch Routes
+ */
+Route::prefix('nintendo-switch')->group(function () {
+    Route::get('/', [App\Http\Controllers\NintendoSwitchController::class, 'index'])->name('nintendo-switch.index');
+    Route::get('/create', [App\Http\Controllers\NintendoSwitchController::class, 'create'])->name('nintendo-switch.create');
+    Route::post('/', [App\Http\Controllers\NintendoSwitchController::class, 'store'])->name('nintendo-switch.store');
+    Route::get('/sessions', [App\Http\Controllers\NintendoSwitchController::class, 'sessions'])->name('nintendo-switch.sessions');
+    Route::get('/stats', [App\Http\Controllers\NintendoSwitchStatsController::class, 'index'])->name('nintendo-switch.stats');
+    Route::get('/games/{game}', [App\Http\Controllers\NintendoSwitchController::class, 'show'])->name('nintendo-switch.games.show');
+    Route::get('/games/{game}/edit', [App\Http\Controllers\NintendoSwitchController::class, 'edit'])->name('nintendo-switch.games.edit');
+    Route::put('/games/{game}', [App\Http\Controllers\NintendoSwitchController::class, 'update'])->name('nintendo-switch.games.update');
+    Route::delete('/games/{game}', [App\Http\Controllers\NintendoSwitchController::class, 'destroy'])->name('nintendo-switch.games.destroy');
+    Route::post('/games/{game}/sessions', [App\Http\Controllers\NintendoSwitchSessionController::class, 'store'])->name('nintendo-switch.sessions.store');
+    Route::put('/sessions/{session}', [App\Http\Controllers\NintendoSwitchSessionController::class, 'update'])->name('nintendo-switch.sessions.update');
+    Route::delete('/sessions/{session}', [App\Http\Controllers\NintendoSwitchSessionController::class, 'destroy'])->name('nintendo-switch.sessions.destroy');
+});
+
+/**
  * Movie Routes
  */
 Route::prefix('movies')->group(function () {

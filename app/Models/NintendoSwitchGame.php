@@ -5,24 +5,15 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class PlayStationGame extends Model
+class NintendoSwitchGame extends Model
 {
-    public function sessions(): HasMany
-    {
-        return $this->hasMany(PlayStationSession::class);
-    }
-
     protected $fillable = [
         'name',
-        'platform',
         'image_url',
         'hours',
         'sessions',
         'avg_session_minutes',
         'last_played_at',
-        'trophies',
-        'completion_percentage',
-        'psn_url',
     ];
 
     protected function casts(): array
@@ -32,9 +23,12 @@ class PlayStationGame extends Model
             'sessions' => 'integer',
             'avg_session_minutes' => 'integer',
             'last_played_at' => 'date',
-            'trophies' => 'integer',
-            'completion_percentage' => 'decimal:2',
         ];
+    }
+
+    public function sessions(): HasMany
+    {
+        return $this->hasMany(NintendoSwitchSession::class);
     }
 
     public function scopeMostPlayed($query, int $limit = 10)
@@ -47,11 +41,6 @@ class PlayStationGame extends Model
         return $query->orderByDesc('last_played_at')->limit($limit);
     }
 
-    public function scopeByPlatform($query, string $platform)
-    {
-        return $query->where('platform', $platform);
-    }
-
     public function getFormattedHoursAttribute(): string
     {
         return number_format($this->calculated_hours, 1).'h';
@@ -59,7 +48,6 @@ class PlayStationGame extends Model
 
     public function getCalculatedHoursAttribute(): float
     {
-        // Use eager loaded sum if available, otherwise calculate from relationship
         if ($this->attributes['sessions_sum_duration_minutes'] ?? null) {
             return round($this->attributes['sessions_sum_duration_minutes'] / 60, 1);
         }
@@ -69,7 +57,6 @@ class PlayStationGame extends Model
 
     public function getCalculatedSessionsAttribute(): int
     {
-        // Use eager loaded count if available, otherwise count from relationship
         if (isset($this->attributes['sessions_count'])) {
             return (int) $this->attributes['sessions_count'];
         }
