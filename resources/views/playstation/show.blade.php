@@ -12,9 +12,20 @@
                     <li>{{ $game->name }}</li>
                 </ul>
             </div>
-            <div>
+            <div style="display: flex; gap: 0.5rem;">
+                @if($game->sessions()->count() > 0 && !$game->exclude_from_sync)
+                    <form action="{{ route('playstation.games.convert-to-manual', $game) }}" method="POST" style="display: inline;" onsubmit="return confirm('This will delete all {{ $game->sessions()->count() }} sessions and switch to manual time tracking. Are you sure?');">
+                        @csrf
+                        <button type="submit" class="btn btn-warning">
+                            <i class="fas fa-hand-paper"></i> Manual
+                        </button>
+                    </form>
+                @endif
+                <a href="{{ route('playstation.games.edit', $game) }}" class="btn btn-secondary">
+                    <i class="fas fa-edit"></i> Edit
+                </a>
                 <a href="{{ route('playstation.index') }}" class="btn btn-secondary">
-                    <i class="fas fa-arrow-left"></i> Back to Games
+                    <i class="fas fa-arrow-left"></i> Back
                 </a>
             </div>
         </div>
@@ -33,7 +44,7 @@
                 @endif
                 <div>
                     <h2 style="margin: 0 0 0.5rem 0;">{{ $game->name }}</h2>
-                    <div style="display: flex; gap: 1rem; align-items: center;">
+                    <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
                         <span class="badge" style="background: {{ match($game->platform) {
                             'PS5' => '#003087',
                             'PS4' => '#00439c',
@@ -43,6 +54,16 @@
                         } }}; color: white; padding: 4px 8px; border-radius: 4px; font-size: 11px;">
                             {{ $game->platform }}
                         </span>
+                        @if($game->price)
+                            <span class="badge" style="background: #10b981; color: white; padding: 4px 8px; border-radius: 4px; font-size: 11px;">
+                                €{{ number_format($game->price, 2, ',', '.') }}
+                            </span>
+                        @endif
+                        @if($game->exclude_from_sync)
+                            <span class="badge" style="background: #f59e0b; color: white; padding: 4px 8px; border-radius: 4px; font-size: 11px;">
+                                Manual tracking
+                            </span>
+                        @endif
                         @if($game->completion_percentage)
                             <span style="color: #666; font-size: 0.875rem;">
                                 <i class="fas fa-trophy"></i> {{ $game->completion_percentage }}% complete
@@ -79,6 +100,11 @@
                     <div class="stat-details">
                         <h3 class="stat-value">{{ number_format($stats['total_hours'], 1) }}h</h3>
                         <p class="stat-label">Total Playtime</p>
+                        @if($stats['manual_minutes'] > 0)
+                            <small style="color: #999;">
+                                incl. {{ number_format($stats['manual_minutes'] / 60, 1) }}h manual
+                            </small>
+                        @endif
                     </div>
                 </div>
             </div>

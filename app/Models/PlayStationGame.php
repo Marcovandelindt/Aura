@@ -16,6 +16,9 @@ class PlayStationGame extends Model
         'name',
         'platform',
         'image_url',
+        'price',
+        'manual_minutes',
+        'exclude_from_sync',
         'hours',
         'sessions',
         'avg_session_minutes',
@@ -28,6 +31,9 @@ class PlayStationGame extends Model
     protected function casts(): array
     {
         return [
+            'price' => 'decimal:2',
+            'manual_minutes' => 'integer',
+            'exclude_from_sync' => 'boolean',
             'hours' => 'decimal:1',
             'sessions' => 'integer',
             'avg_session_minutes' => 'integer',
@@ -59,12 +65,31 @@ class PlayStationGame extends Model
 
     public function getCalculatedHoursAttribute(): float
     {
+        $sessionMinutes = 0;
+
         // Use eager loaded sum if available, otherwise calculate from relationship
         if ($this->attributes['sessions_sum_duration_minutes'] ?? null) {
-            return round($this->attributes['sessions_sum_duration_minutes'] / 60, 1);
+            $sessionMinutes = $this->attributes['sessions_sum_duration_minutes'];
+        } else {
+            $sessionMinutes = $this->sessions()->sum('duration_minutes');
         }
 
-        return round($this->sessions()->sum('duration_minutes') / 60, 1);
+        // Add manual minutes if set
+        $manualMinutes = $this->manual_minutes ?? 0;
+
+        return round(($sessionMinutes + $manualMinutes) / 60, 1);
+    }
+
+    public function getFormattedManualTimeAttribute(): string
+    {
+        if (! $this->manual_minutes) {
+            return '-';
+        }
+
+        $hours = floor($this->manual_minutes / 60);
+        $minutes = $this->manual_minutes % 60;
+
+        return $hours > 0 ? "{$hours}h {$minutes}m" : "{$minutes}m";
     }
 
     public function getCalculatedSessionsAttribute(): int

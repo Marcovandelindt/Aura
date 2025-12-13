@@ -123,7 +123,9 @@ class PlayStationStatsController extends Controller
     private function getOverviewStats(): array
     {
         $totalSessions = PlayStationSession::count();
-        $totalMinutes = PlayStationSession::sum('duration_minutes');
+        $sessionMinutes = PlayStationSession::sum('duration_minutes');
+        $manualMinutes = PlayStationGame::sum('manual_minutes') ?? 0;
+        $totalMinutes = $sessionMinutes + $manualMinutes;
         $totalGames = PlayStationGame::count();
         $uniqueGamesPlayed = PlayStationSession::distinct('play_station_game_id')->count();
 
@@ -140,6 +142,7 @@ class PlayStationStatsController extends Controller
         return [
             'total_sessions' => $totalSessions,
             'total_hours' => round($totalMinutes / 60, 1),
+            'manual_hours' => round($manualMinutes / 60, 1),
             'total_games' => $totalGames,
             'unique_games_played' => $uniqueGamesPlayed,
             'first_session_date' => $firstSession?->started_at,

@@ -87,9 +87,14 @@ Route::prefix('games')->middleware(['spotify.connected'])->group(function () {
  */
 Route::prefix('playstation')->group(function () {
     Route::get('/', [App\Http\Controllers\PlayStationController::class, 'index'])->name('playstation.index');
+    Route::get('/create', [App\Http\Controllers\PlayStationController::class, 'create'])->name('playstation.create');
+    Route::post('/', [App\Http\Controllers\PlayStationController::class, 'store'])->name('playstation.store');
     Route::get('/sessions', [App\Http\Controllers\PlayStationController::class, 'sessions'])->name('playstation.sessions');
     Route::get('/stats', [App\Http\Controllers\PlayStationStatsController::class, 'index'])->name('playstation.stats');
     Route::get('/games/{game}', [App\Http\Controllers\PlayStationController::class, 'show'])->name('playstation.games.show');
+    Route::get('/games/{game}/edit', [App\Http\Controllers\PlayStationController::class, 'edit'])->name('playstation.games.edit');
+    Route::put('/games/{game}', [App\Http\Controllers\PlayStationController::class, 'update'])->name('playstation.games.update');
+    Route::post('/games/{game}/convert-to-manual', [App\Http\Controllers\PlayStationController::class, 'convertToManual'])->name('playstation.games.convert-to-manual');
     Route::post('/sync', [App\Http\Controllers\PlayStationController::class, 'sync'])->name('playstation.sync');
 });
 

@@ -16,11 +16,15 @@
                     <i class="fas fa-chart-bar" style="margin-right: 8px;"></i>
                     Statistics
                 </a>
+                <a href="{{ route('playstation.create') }}" class="btn btn-primary">
+                    <i class="fas fa-plus" style="margin-right: 8px;"></i>
+                    Add Game
+                </a>
                 <form action="{{ route('playstation.sync') }}" method="POST" style="display: inline;">
                     @csrf
-                    <button type="submit" class="btn btn-primary">
+                    <button type="submit" class="btn btn-secondary">
                         <i class="fas fa-sync-alt" style="margin-right: 8px;"></i>
-                        Sync Now
+                        Sync
                     </button>
                 </form>
             </div>
@@ -74,6 +78,20 @@
                     <div class="stat-details">
                         <h3 class="stat-value">{{ number_format($stats['total_sessions']) }}</h3>
                         <p class="stat-label">Total Sessions</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-body">
+                <div class="stat-content">
+                    <div class="stat-icon" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+                        <i class="fas fa-euro-sign"></i>
+                    </div>
+                    <div class="stat-details">
+                        <h3 class="stat-value">€{{ number_format($stats['total_spent'] ?? 0, 2, ',', '.') }}</h3>
+                        <p class="stat-label">Total Spent</p>
                     </div>
                 </div>
             </div>
@@ -172,6 +190,12 @@
                     </select>
                 </div>
                 <div>
+                    <select name="playtime" class="form-control" onchange="this.form.submit()">
+                        <option value="">All Playtime</option>
+                        <option value="zero" {{ $playtime == 'zero' ? 'selected' : '' }}>No Playtime</option>
+                    </select>
+                </div>
+                <div>
                     <select name="sort" class="form-control" onchange="this.form.submit()">
                         <option value="hours" {{ $sort == 'hours' ? 'selected' : '' }}>Most Played</option>
                         <option value="sessions" {{ $sort == 'sessions' ? 'selected' : '' }}>Most Sessions</option>
@@ -180,7 +204,7 @@
                     </select>
                 </div>
                 <button type="submit" class="btn btn-primary">Search</button>
-                @if($search || $platform || $sort != 'hours')
+                @if($search || $platform || $playtime || $sort != 'hours')
                     <a href="{{ route('playstation.index') }}" class="btn btn-secondary">Clear</a>
                 @endif
             </form>

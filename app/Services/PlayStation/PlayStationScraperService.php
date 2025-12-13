@@ -171,17 +171,40 @@ class PlayStationScraperService
             ];
         }
 
-        // Upsert all games
+        // Get games excluded from sync
+        $excludedGames = PlayStationGame::where('exclude_from_sync', true)
+            ->get()
+            ->map(fn ($game) => $game->name.'|'.$game->platform)
+            ->toArray();
+
+        // Filter out excluded games
+        $gamesToSync = array_filter($games, function ($game) use ($excludedGames) {
+            return ! in_array($game['name'].'|'.$game['platform'], $excludedGames);
+        });
+
+        $skipped = count($games) - count($gamesToSync);
+
+        if (empty($gamesToSync)) {
+            return [
+                'success' => true,
+                'synced' => 0,
+                'skipped' => $skipped,
+                'message' => 'No games to sync (all excluded)',
+            ];
+        }
+
+        // Upsert games that are not excluded
         PlayStationGame::upsert(
-            $games,
+            array_values($gamesToSync),
             ['name', 'platform'], // Unique keys
             ['image_url', 'hours', 'sessions', 'avg_session_minutes', 'last_played_at', 'trophies', 'completion_percentage', 'psn_url'] // Update columns
         );
 
         return [
             'success' => true,
-            'synced' => count($games),
-            'message' => 'Successfully synced '.count($games).' games',
+            'synced' => count($gamesToSync),
+            'skipped' => $skipped,
+            'message' => 'Successfully synced '.count($gamesToSync).' games'.($skipped > 0 ? " ({$skipped} excluded)" : ''),
         ];
     }
 

@@ -6,6 +6,7 @@ use App\Models\PlayStationGame;
 use App\Models\PlayStationSession;
 use App\Services\PlayStation\PlayStationScraperService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class PlayStationController extends Controller
 {
@@ -14,6 +15,7 @@ class PlayStationController extends Controller
         $search = $request->get('search');
         $platform = $request->get('platform');
         $sort = $request->get('sort', 'hours');
+        $playtime = $request->get('playtime');
 
         $query = PlayStationGame::query()
             ->withSum('sessions', 'duration_minutes')
@@ -25,6 +27,13 @@ class PlayStationController extends Controller
 
         if ($platform) {
             $query->where('platform', $platform);
+        }
+
+        if ($playtime === 'zero') {
+            $query->whereDoesntHave('sessions')
+                ->where(function ($q) {
+                    $q->whereNull('manual_minutes')->orWhere('manual_minutes', 0);
+                });
         }
 
         // Sorting
@@ -41,11 +50,15 @@ class PlayStationController extends Controller
 
         $games = $query->paginate(25)->withQueryString();
 
-        // Statistics (calculated from sessions)
+        // Statistics (calculated from sessions + manual minutes)
+        $sessionMinutes = PlayStationSession::sum('duration_minutes');
+        $manualMinutes = PlayStationGame::sum('manual_minutes') ?? 0;
+
         $stats = [
             'total_games' => PlayStationGame::count(),
-            'total_hours' => round(PlayStationSession::sum('duration_minutes') / 60, 1),
+            'total_hours' => round(($sessionMinutes + $manualMinutes) / 60, 1),
             'total_sessions' => PlayStationSession::count(),
+            'total_spent' => PlayStationGame::sum('price'),
             'platforms' => PlayStationGame::selectRaw('platform, count(*) as count')
                 ->groupBy('platform')
                 ->pluck('count', 'platform')
@@ -58,7 +71,7 @@ class PlayStationController extends Controller
             ->limit(10)
             ->get();
 
-        return view('playstation.index', compact('games', 'stats', 'search', 'platform', 'sort', 'recentSessions'));
+        return view('playstation.index', compact('games', 'stats', 'search', 'platform', 'sort', 'playtime', 'recentSessions'));
     }
 
     public function sessions(Request $request)
@@ -131,15 +144,19 @@ class PlayStationController extends Controller
             ->orderByDesc('started_at')
             ->paginate(50);
 
-        // Game-specific stats (calculated from sessions)
-        $totalMinutes = PlayStationSession::where('play_station_game_id', $game->id)->sum('duration_minutes');
+        // Game-specific stats (calculated from sessions + manual minutes)
+        $sessionMinutes = PlayStationSession::where('play_station_game_id', $game->id)->sum('duration_minutes');
+        $manualMinutes = $game->manual_minutes ?? 0;
+        $totalMinutes = $sessionMinutes + $manualMinutes;
         $sessionCount = PlayStationSession::where('play_station_game_id', $game->id)->count();
 
         $stats = [
             'total_sessions' => $sessionCount,
             'total_hours' => round($totalMinutes / 60, 1),
             'total_minutes' => $totalMinutes,
-            'avg_session_minutes' => $sessionCount > 0 ? round($totalMinutes / $sessionCount) : 0,
+            'session_minutes' => $sessionMinutes,
+            'manual_minutes' => $manualMinutes,
+            'avg_session_minutes' => $sessionCount > 0 ? round($sessionMinutes / $sessionCount) : 0,
             'first_played' => PlayStationSession::where('play_station_game_id', $game->id)->min('started_at'),
             'last_played' => PlayStationSession::where('play_station_game_id', $game->id)->max('started_at'),
         ];
@@ -165,6 +182,89 @@ class PlayStationController extends Controller
             ->get();
 
         return view('playstation.show', compact('game', 'sessions', 'stats', 'longestSession', 'shortestSession', 'monthlyStats'));
+    }
+
+    public function create()
+    {
+        return view('playstation.create');
+    }
+
+    public function store(Request $request)
+    {
+        $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'platform' => ['required', 'in:PS5,PS4,PS3,PSVITA'],
+            'image' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:2048'],
+            'price' => ['nullable', 'numeric', 'min:0', 'max:999999.99'],
+        ]);
+
+        $data = [
+            'name' => $request->name,
+            'platform' => $request->platform,
+            'price' => $request->price,
+        ];
+
+        if ($request->hasFile('image')) {
+            $path = $request->file('image')->store('playstation', 'public');
+            $data['image_url'] = Storage::url($path);
+        }
+
+        $game = PlayStationGame::create($data);
+
+        return redirect()->route('playstation.games.show', $game)
+            ->with('success', 'Game added successfully.');
+    }
+
+    public function edit(PlayStationGame $game)
+    {
+        return view('playstation.edit', compact('game'));
+    }
+
+    public function update(Request $request, PlayStationGame $game)
+    {
+        $request->validate([
+            'price' => ['nullable', 'numeric', 'min:0', 'max:999999.99'],
+            'manual_hours' => ['nullable', 'numeric', 'min:0'],
+            'manual_minutes' => ['nullable', 'integer', 'min:0', 'max:59'],
+        ]);
+
+        // Convert hours and minutes to total minutes
+        $totalMinutes = null;
+        if ($request->filled('manual_hours') || $request->filled('manual_minutes')) {
+            $hours = (int) ($request->manual_hours ?? 0);
+            $minutes = (int) ($request->manual_minutes ?? 0);
+            $totalMinutes = ($hours * 60) + $minutes;
+
+            // Set to null if total is 0
+            if ($totalMinutes === 0) {
+                $totalMinutes = null;
+            }
+        }
+
+        $game->update([
+            'price' => $request->price,
+            'manual_minutes' => $totalMinutes,
+        ]);
+
+        return redirect()->route('playstation.games.show', $game)
+            ->with('success', 'Game updated successfully.');
+    }
+
+    public function convertToManual(PlayStationGame $game)
+    {
+        // Delete all sessions for this game
+        $game->sessions()->delete();
+
+        // Mark as excluded from sync
+        $game->update([
+            'exclude_from_sync' => true,
+            'hours' => null,
+            'sessions' => null,
+            'avg_session_minutes' => null,
+        ]);
+
+        return redirect()->route('playstation.games.edit', $game)
+            ->with('success', 'Sessions deleted. You can now set manual playtime.');
     }
 
     private function calculateLongestStreak(): array
