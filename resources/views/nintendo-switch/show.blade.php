@@ -47,9 +47,16 @@
                 @endif
                 <div>
                     <h2 style="margin: 0 0 0.5rem 0;">{{ $game->name }}</h2>
-                    <span class="badge" style="background: #e60012; color: white; padding: 4px 8px; border-radius: 4px; font-size: 11px;">
-                        Nintendo Switch
-                    </span>
+                    <div style="display: flex; gap: 0.5rem; align-items: center;">
+                        <span class="badge" style="background: #e60012; color: white; padding: 4px 8px; border-radius: 4px; font-size: 11px;">
+                            Nintendo Switch
+                        </span>
+                        @if($game->price)
+                            <span class="badge" style="background: #10b981; color: white; padding: 4px 8px; border-radius: 4px; font-size: 11px;">
+                                €{{ number_format($game->price, 2, ',', '.') }}
+                            </span>
+                        @endif
+                    </div>
                 </div>
             </div>
         </div>

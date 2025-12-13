@@ -43,6 +43,7 @@ class NintendoSwitchController extends Controller
             'total_games' => NintendoSwitchGame::count(),
             'total_hours' => round(NintendoSwitchSession::sum('duration_minutes') / 60, 1),
             'total_sessions' => NintendoSwitchSession::count(),
+            'total_spent' => NintendoSwitchGame::sum('price'),
         ];
 
         $recentSessions = NintendoSwitchSession::with('game')
@@ -149,7 +150,10 @@ class NintendoSwitchController extends Controller
 
     public function store(StoreNintendoSwitchGameRequest $request): RedirectResponse
     {
-        $data = ['name' => $request->name];
+        $data = [
+            'name' => $request->name,
+            'price' => $request->price,
+        ];
 
         if ($request->hasFile('image')) {
             $path = $request->file('image')->store('nintendo-switch', 'public');
@@ -169,7 +173,10 @@ class NintendoSwitchController extends Controller
 
     public function update(UpdateNintendoSwitchGameRequest $request, NintendoSwitchGame $game): RedirectResponse
     {
-        $data = ['name' => $request->name];
+        $data = [
+            'name' => $request->name,
+            'price' => $request->price,
+        ];
 
         if ($request->hasFile('image')) {
             // Delete old image if exists

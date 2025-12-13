@@ -75,6 +75,20 @@
                 </div>
             </div>
         </div>
+
+        <div class="card">
+            <div class="card-body">
+                <div class="stat-content">
+                    <div class="stat-icon" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+                        <i class="fas fa-euro-sign"></i>
+                    </div>
+                    <div class="stat-details">
+                        <h3 class="stat-value">€{{ number_format($stats['total_spent'] ?? 0, 2, ',', '.') }}</h3>
+                        <p class="stat-label">Total Spent</p>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Recent Sessions -->

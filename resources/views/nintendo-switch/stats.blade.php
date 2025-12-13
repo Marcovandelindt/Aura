@@ -287,79 +287,6 @@
         </div>
     </div>
 
-    <!-- Earliest & Latest Session -->
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 2rem;">
-        <!-- Earliest Session -->
-        <div class="card">
-            <div class="card-body">
-                <div class="stat-content">
-                    <div class="stat-icon" style="background: linear-gradient(135deg, #F2994A 0%, #F2C94C 100%);">
-                        <i class="fas fa-sun"></i>
-                    </div>
-                    <div class="stat-details">
-                        @if($stats['earliest_session'])
-                            <h3 class="stat-value">{{ $stats['earliest_session']['time'] }}</h3>
-                            <p class="stat-label">Earliest Session</p>
-                            <small style="color: #666;">{{ $stats['earliest_session']['game_name'] }}</small>
-                            <br><small style="color: #999;">{{ $stats['earliest_session']['day_name'] }}, {{ $stats['earliest_session']['date']->format('d M Y') }}</small>
-                        @else
-                            <h3 class="stat-value">-</h3>
-                            <p class="stat-label">Earliest Session</p>
-                        @endif
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Latest Session -->
-        <div class="card">
-            <div class="card-body">
-                <div class="stat-content">
-                    <div class="stat-icon" style="background: linear-gradient(135deg, #2C3E50 0%, #4CA1AF 100%);">
-                        <i class="fas fa-moon"></i>
-                    </div>
-                    <div class="stat-details">
-                        @if($stats['latest_session'])
-                            <h3 class="stat-value">{{ $stats['latest_session']['time'] }}</h3>
-                            <p class="stat-label">Latest Session</p>
-                            <small style="color: #666;">{{ $stats['latest_session']['game_name'] }}</small>
-                            <br><small style="color: #999;">{{ $stats['latest_session']['day_name'] }}, {{ $stats['latest_session']['date']->format('d M Y') }}</small>
-                        @else
-                            <h3 class="stat-value">-</h3>
-                            <p class="stat-label">Latest Session</p>
-                        @endif
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Top Playing Times -->
-    <div class="card" style="margin-top: 2rem;">
-        <div class="card-header">
-            <h3><i class="fas fa-clock" style="margin-right: 8px;"></i> Top Playing Times</h3>
-            <p style="margin: 0; font-size: 0.875rem; color: #6b7280;">When you play games most</p>
-        </div>
-        <div class="card-body">
-            @if(count($stats['top_start_hours']) > 0)
-                <div class="listening-times-grid">
-                    @foreach($stats['top_start_hours'] as $index => $timeStats)
-                        <div class="time-stat-card">
-                            <div class="time-rank">{{ $index + 1 }}</div>
-                            <div class="time-info">
-                                <div class="time-label">{{ $timeStats['time_range'] }}</div>
-                                <div class="time-description">{{ $timeStats['description'] }}</div>
-                                <div class="time-count">{{ number_format($timeStats['count']) }} sessions</div>
-                            </div>
-                        </div>
-                    @endforeach
-                </div>
-            @else
-                <p class="no-data">Not enough data yet to determine playing patterns.</p>
-            @endif
-        </div>
-    </div>
-
     <!-- Advanced Statistics Grid -->
     <div class="content-grid" style="margin-top: 2rem;">
         <!-- Weekday vs Weekend -->
@@ -401,28 +328,6 @@
             </div>
         </div>
 
-        <!-- Late Night Sessions -->
-        <div class="card">
-            <div class="card-header">
-                <h3><i class="fas fa-moon" style="margin-right: 8px;"></i> Late Night Gaming</h3>
-                <p style="margin: 0; font-size: 0.875rem; color: #6b7280;">Sessions between 00:00 - 06:00</p>
-            </div>
-            <div class="card-body">
-                <div style="text-align: center; padding: 1rem 0;">
-                    <div style="font-size: 2.5rem; font-weight: bold; color: #e60012;">
-                        {{ $stats['late_night_sessions']['count'] }}
-                    </div>
-                    <div style="color: #666; margin-bottom: 1rem;">
-                        {{ $stats['late_night_sessions']['percentage'] }}% of all sessions
-                    </div>
-                    @if($stats['late_night_sessions']['top_game'])
-                        <div style="font-size: 0.875rem; color: #999;">
-                            Most played at night: <strong>{{ $stats['late_night_sessions']['top_game'] }}</strong>
-                        </div>
-                    @endif
-                </div>
-            </div>
-        </div>
     </div>
 
     <!-- Playtime by Day Charts -->

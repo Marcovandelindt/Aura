@@ -21,16 +21,12 @@ class NintendoSwitchStatsController extends Controller
         $stats = [
             'overview' => $this->getOverviewStats(),
             'top_games' => $this->getTopGames(),
-            'top_start_hours' => $this->getTopStartHours(),
             'weekday_vs_weekend' => $this->getWeekdayVsWeekendStats(),
             'monthly_stats' => $this->getMonthlyStats(),
             'longest_session' => $this->getLongestSession(),
             'shortest_session' => $this->getShortestSession(),
-            'earliest_session' => $this->getEarliestSession(),
-            'latest_session' => $this->getLatestSession(),
             'longest_streak' => $this->getLongestStreak(),
             'current_streak' => $this->getCurrentStreak(),
-            'late_night_sessions' => $this->getLateNightSessions(),
             'abandoned_games' => $this->getAbandonedGames(),
             'recent_activity' => $this->getRecentActivity(),
             'yearly_comparison' => $this->getYearlyComparison(),
@@ -168,43 +164,6 @@ class NintendoSwitchStatsController extends Controller
             ->toArray();
     }
 
-    private function getTopStartHours(): array
-    {
-        return NintendoSwitchSession::selectRaw('HOUR(started_at) as hour, COUNT(*) as count')
-            ->groupBy('hour')
-            ->orderByDesc('count')
-            ->limit(5)
-            ->get()
-            ->map(fn ($row) => [
-                'hour' => $row->hour,
-                'count' => $row->count,
-                'time_range' => sprintf('%02d:00 - %02d:00', $row->hour, ($row->hour + 1) % 24),
-                'description' => $this->getTimeDescription($row->hour),
-            ])
-            ->toArray();
-    }
-
-    private function getTimeDescription(int $hour): string
-    {
-        if ($hour >= 6 && $hour < 9) {
-            return 'Early Morning';
-        } elseif ($hour >= 9 && $hour < 12) {
-            return 'Late Morning';
-        } elseif ($hour >= 12 && $hour < 14) {
-            return 'Lunch Time';
-        } elseif ($hour >= 14 && $hour < 17) {
-            return 'Afternoon';
-        } elseif ($hour >= 17 && $hour < 19) {
-            return 'Early Evening';
-        } elseif ($hour >= 19 && $hour < 21) {
-            return 'Prime Time';
-        } elseif ($hour >= 21 && $hour < 24) {
-            return 'Late Evening';
-        } else {
-            return 'Night Owl';
-        }
-    }
-
     private function getWeekdayVsWeekendStats(): array
     {
         $weekdayMinutes = NintendoSwitchSession::selectRaw('SUM(duration_minutes) as total')
@@ -283,42 +242,6 @@ class NintendoSwitchStatsController extends Controller
             'duration_minutes' => $session->duration_minutes,
             'game_name' => $session->game?->name ?? 'Unknown',
             'date' => $session->started_at,
-        ];
-    }
-
-    private function getEarliestSession(): ?array
-    {
-        $session = NintendoSwitchSession::with('game')
-            ->orderByRaw('(HOUR(started_at) + 18) % 24 ASC, MINUTE(started_at) ASC')
-            ->first();
-
-        if (! $session) {
-            return null;
-        }
-
-        return [
-            'time' => $session->started_at->format('H:i'),
-            'game_name' => $session->game?->name ?? 'Unknown',
-            'date' => $session->started_at,
-            'day_name' => $session->started_at->format('l'),
-        ];
-    }
-
-    private function getLatestSession(): ?array
-    {
-        $session = NintendoSwitchSession::with('game')
-            ->orderByRaw('(HOUR(started_at) + 18) % 24 DESC, MINUTE(started_at) DESC')
-            ->first();
-
-        if (! $session) {
-            return null;
-        }
-
-        return [
-            'time' => $session->started_at->format('H:i'),
-            'game_name' => $session->game?->name ?? 'Unknown',
-            'date' => $session->started_at,
-            'day_name' => $session->started_at->format('l'),
         ];
     }
 
@@ -415,28 +338,6 @@ class NintendoSwitchStatsController extends Controller
         return [
             'days' => $streak,
             'start_date' => $dates[$streak - 1] ?? $dates[0],
-        ];
-    }
-
-    private function getLateNightSessions(): array
-    {
-        $lateNightSessions = NintendoSwitchSession::with('game')
-            ->whereRaw('HOUR(started_at) >= 0 AND HOUR(started_at) < 6')
-            ->count();
-
-        $totalSessions = NintendoSwitchSession::count();
-
-        $topLateNightGame = NintendoSwitchSession::with('game')
-            ->selectRaw('nintendo_switch_game_id, COUNT(*) as count')
-            ->whereRaw('HOUR(started_at) >= 0 AND HOUR(started_at) < 6')
-            ->groupBy('nintendo_switch_game_id')
-            ->orderByDesc('count')
-            ->first();
-
-        return [
-            'count' => $lateNightSessions,
-            'percentage' => $totalSessions > 0 ? round(($lateNightSessions / $totalSessions) * 100, 1) : 0,
-            'top_game' => $topLateNightGame?->game?->name,
         ];
     }
 

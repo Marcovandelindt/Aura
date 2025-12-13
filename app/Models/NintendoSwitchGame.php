@@ -10,6 +10,7 @@ class NintendoSwitchGame extends Model
     protected $fillable = [
         'name',
         'image_url',
+        'price',
         'hours',
         'sessions',
         'avg_session_minutes',
@@ -19,6 +20,7 @@ class NintendoSwitchGame extends Model
     protected function casts(): array
     {
         return [
+            'price' => 'decimal:2',
             'hours' => 'decimal:1',
             'sessions' => 'integer',
             'avg_session_minutes' => 'integer',

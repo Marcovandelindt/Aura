@@ -16,6 +16,7 @@ class StoreNintendoSwitchGameRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'max:255', 'unique:nintendo_switch_games,name'],
             'image' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:2048'],
+            'price' => ['nullable', 'numeric', 'min:0', 'max:999999.99'],
         ];
     }
 }

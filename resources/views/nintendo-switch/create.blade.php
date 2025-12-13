@@ -42,6 +42,18 @@
                     <small class="form-text" style="color: #666;">Max 2MB. Formats: JPG, PNG, WebP.</small>
                 </div>
 
+                <div class="form-group" style="margin-bottom: 1.5rem;">
+                    <label for="price" class="form-label">Price (optional)</label>
+                    <div style="position: relative;">
+                        <span style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #666;">€</span>
+                        <input type="number" name="price" id="price" class="form-control @error('price') is-invalid @enderror" value="{{ old('price') }}" step="0.01" min="0" placeholder="0.00" style="padding-left: 28px;">
+                    </div>
+                    @error('price')
+                        <span class="text-danger" style="font-size: 0.875rem;">{{ $message }}</span>
+                    @enderror
+                    <small class="form-text" style="color: #666;">What did you pay for this game?</small>
+                </div>
+
                 <div style="display: flex; gap: 1rem;">
                     <button type="submit" class="btn btn-primary">
                         <i class="fas fa-plus" style="margin-right: 6px;"></i> Add Game
