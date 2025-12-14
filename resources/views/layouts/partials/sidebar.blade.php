@@ -48,6 +48,13 @@
             </li>
 
             <li class="nav-item">
+                <a href="{{ route('steam.index') }}" class="nav-link {{ request()->routeIs('steam.*') ? 'active' : '' }}">
+                    <i class="fab fa-steam nav-icon"></i>
+                    <span class="nav-text">Steam</span>
+                </a>
+            </li>
+
+            <li class="nav-item">
                 <a href="{{ route('movies.index') }}" class="nav-link {{ request()->routeIs('movies.*') ? 'active' : '' }}">
                     <i class="fas fa-film nav-icon"></i>
                     <span class="nav-text">Movies</span>

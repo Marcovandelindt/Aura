@@ -135,6 +135,43 @@
                 </div>
             </div>
         </div>
+
+        @if($stats['total_hours'] > 0 && $game->price)
+        @php
+            $costPerHour = $game->price / $stats['total_hours'];
+
+            if ($costPerHour < 0.50) {
+                $valueLabel = 'Excellent';
+                $valueColor = '#10b981';
+                $valueIcon = 'fas fa-star';
+            } elseif ($costPerHour < 2) {
+                $valueLabel = 'Good';
+                $valueColor = '#3b82f6';
+                $valueIcon = 'fas fa-thumbs-up';
+            } elseif ($costPerHour < 6) {
+                $valueLabel = 'Fair';
+                $valueColor = '#f59e0b';
+                $valueIcon = 'fas fa-meh';
+            } else {
+                $valueLabel = 'Poor';
+                $valueColor = '#ef4444';
+                $valueIcon = 'fas fa-thumbs-down';
+            }
+        @endphp
+        <div class="card">
+            <div class="card-body">
+                <div class="stat-content">
+                    <div class="stat-icon" style="background: {{ $valueColor }};">
+                        <i class="{{ $valueIcon }}"></i>
+                    </div>
+                    <div class="stat-details">
+                        <h3 class="stat-value" style="color: {{ $valueColor }};">{{ $valueLabel }}</h3>
+                        <p class="stat-label">Value ({{ number_format($costPerHour, 2, ',', '.') }}/h)</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        @endif
     </div>
 
     <!-- Session Records -->

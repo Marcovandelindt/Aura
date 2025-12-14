@@ -144,3 +144,16 @@ Route::prefix('tv')->group(function () {
     Route::delete('/watches/{watch}', [App\Http\Controllers\TvSeriesController::class, 'deleteWatch'])->name('tv.watches.destroy');
     Route::delete('/{series}', [App\Http\Controllers\TvSeriesController::class, 'destroy'])->name('tv.destroy');
 });
+
+/**
+ * Steam Routes
+ */
+Route::prefix('steam')->group(function () {
+    Route::get('/', [App\Http\Controllers\SteamController::class, 'index'])->name('steam.index');
+    Route::get('/settings', [App\Http\Controllers\SteamController::class, 'settings'])->name('steam.settings');
+    Route::get('/games/{game}', [App\Http\Controllers\SteamController::class, 'show'])->name('steam.games.show');
+    Route::get('/games/{game}/edit', [App\Http\Controllers\SteamController::class, 'edit'])->name('steam.games.edit');
+    Route::put('/games/{game}', [App\Http\Controllers\SteamController::class, 'update'])->name('steam.games.update');
+    Route::post('/sync', [App\Http\Controllers\SteamController::class, 'sync'])->name('steam.sync');
+    Route::post('/test-connection', [App\Http\Controllers\SteamController::class, 'testConnection'])->name('steam.test-connection');
+});

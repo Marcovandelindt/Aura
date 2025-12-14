@@ -7,18 +7,23 @@ use App\Models\Setting;
 class ThemeService
 {
     const DEFAULT_THEME = 'light';
-    
+
     const THEMES = [
         'light' => [
-            'name' => 'Light Mode',
+            'name' => 'Light',
             'icon' => 'fas fa-sun',
-            'description' => 'Clean and bright interface'
+            'description' => 'Clean and bright interface',
+        ],
+        'dark' => [
+            'name' => 'Dark',
+            'icon' => 'fas fa-moon',
+            'description' => 'Easy on the eyes',
         ],
         'christmas' => [
-            'name' => 'Christmas Mode',
+            'name' => 'Christmas',
             'icon' => 'fas fa-tree',
-            'description' => 'Festive holiday spirit!'
-        ]
+            'description' => 'Festive holiday spirit!',
+        ],
     ];
 
     /**
@@ -34,11 +39,12 @@ class ThemeService
      */
     public function setTheme(string $theme): bool
     {
-        if (!$this->isValidTheme($theme)) {
+        if (! $this->isValidTheme($theme)) {
             return false;
         }
 
         Setting::set('app_theme', $theme);
+
         return true;
     }
 
@@ -71,6 +77,6 @@ class ThemeService
      */
     public function getThemeClass(): string
     {
-        return 'theme-' . $this->getCurrentTheme();
+        return 'theme-'.$this->getCurrentTheme();
     }
 }

@@ -8,43 +8,44 @@
     flex: 1;
     margin-left: $sidebar-width;
     transition: margin-left 0.3s ease;
-    background-color: $light-gray;
-    
+    background-color: var(--body-bg);
+
     .content-wrapper {
         padding: $content-padding;
-        
+
         @media (max-width: $mobile) {
             padding: 1rem;
         }
     }
-    
+
     .content-header {
         margin-bottom: 2rem;
-        
+
         h1 {
             margin-bottom: 0.5rem;
+            color: var(--text-primary);
         }
-        
+
         .breadcrumb {
             display: flex;
             list-style: none;
             font-size: 0.875rem;
-            color: $dark-gray;
-            
+            color: var(--text-secondary);
+
             li {
                 &:not(:last-child) {
                     &::after {
                         content: "/";
                         margin: 0 0.5rem;
-                        color: $medium-gray;
+                        color: var(--text-muted);
                     }
                 }
-                
+
                 a {
-                    color: $dark-gray;
-                    
+                    color: var(--text-secondary);
+
                     &:hover {
-                        color: $primary-color;
+                        color: var(--primary-color);
                     }
                 }
             }
@@ -54,24 +55,26 @@
 
 // Card component
 .card {
-    background: $white;
+    background: var(--card-bg);
     border-radius: $border-radius;
-    box-shadow: $box-shadow;
+    box-shadow: var(--box-shadow);
     padding: 1.5rem;
     margin-bottom: 1.5rem;
-    
+    border: 1px solid var(--border-color);
+
     .card-header {
         margin-bottom: 1rem;
         padding-bottom: 1rem;
-        border-bottom: 1px solid $medium-gray;
-        
+        border-bottom: 1px solid var(--border-color);
+
         h2, h3 {
             margin: 0;
+            color: var(--text-primary);
         }
     }
-    
+
     .card-body {
-        // Card content styles
+        color: var(--text-primary);
     }
 }
 

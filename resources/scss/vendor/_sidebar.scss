@@ -4,12 +4,13 @@
     left: 0;
     height: 100vh;
     width: $sidebar-width;
-    background-color: $sidebar-bg;
-    box-shadow: $box-shadow;
+    background-color: var(--sidebar-bg);
+    box-shadow: var(--box-shadow);
+    border-right: 1px solid var(--border-color);
     transition: width 0.3s ease;
     z-index: 1000;
     overflow-x: hidden;
-    
+
 }
 
 .sidebar-header {
@@ -17,7 +18,7 @@
     align-items: center;
     justify-content: center;
     padding: 1.5rem;
-    border-bottom: 1px solid $medium-gray;
+    border-bottom: 1px solid var(--border-color);
 }
 
 .sidebar-brand {
@@ -25,25 +26,26 @@
     align-items: center;
     gap: 0.75rem;
     text-decoration: none;
-    color: $dark-color;
+    color: var(--text-primary);
     font-weight: 600;
     font-size: 1.25rem;
-    
+
     .brand-icon {
         display: flex;
         align-items: center;
         justify-content: center;
         width: 40px;
         height: 40px;
-        background: linear-gradient(135deg, $primary-color 0%, $secondary-color 100%);
-        color: $white;
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+        color: white;
         border-radius: $border-radius;
         font-weight: 700;
         flex-shrink: 0;
     }
-    
+
     .brand-text {
         transition: opacity 0.3s ease, visibility 0.3s ease;
+        color: var(--text-primary);
     }
 }
 
@@ -52,17 +54,17 @@
     padding: 1rem;
     height: calc(100vh - 80px);
     overflow-y: auto;
-    
+
     &::-webkit-scrollbar {
         width: 4px;
     }
-    
+
     &::-webkit-scrollbar-track {
         background: transparent;
     }
-    
+
     &::-webkit-scrollbar-thumb {
-        background: $medium-gray;
+        background: var(--border-color);
         border-radius: 2px;
     }
 }
@@ -75,7 +77,7 @@
 
 .nav-section {
     margin-top: 1.5rem;
-    
+
     &:first-child {
         margin-top: 0;
     }
@@ -87,7 +89,7 @@
     font-size: 0.75rem;
     font-weight: 600;
     text-transform: uppercase;
-    color: $dark-gray;
+    color: var(--text-muted);
     letter-spacing: 0.05em;
     transition: opacity 0.3s ease, visibility 0.3s ease;
 }
@@ -101,23 +103,23 @@
     align-items: center;
     gap: 0.75rem;
     padding: 0.75rem 1rem;
-    color: $sidebar-text;
+    color: var(--text-secondary);
     text-decoration: none;
     border-radius: $border-radius;
     transition: $transition-base;
-    
+
     &:hover {
-        background-color: $sidebar-hover-bg;
-        color: $primary-color;
+        background-color: var(--table-hover-bg, rgba(0, 0, 0, 0.05));
+        color: var(--primary-color);
     }
-    
+
     &.active {
-        background-color: rgba($primary-color, 0.1);
-        color: $primary-color;
+        background-color: rgba(99, 102, 241, 0.1);
+        color: var(--primary-color);
         font-weight: 500;
-        
+
         .nav-icon {
-            color: $primary-color;
+            color: var(--primary-color);
         }
     }
 }
@@ -126,7 +128,7 @@
     flex-shrink: 0;
     width: 20px;
     height: 20px;
-    color: $dark-gray;
+    color: var(--text-muted);
     transition: $transition-base;
 }
 
@@ -182,14 +184,14 @@
         align-items: center;
         gap: 12px;
         padding: 12px 20px;
-        color: $nav-link-color;
+        color: var(--text-secondary);
         font-size: 14px;
         font-weight: 500;
         text-decoration: none;
         border-radius: $border-radius;
         margin-bottom: 8px;
         cursor: default;
-        
+
         .nav-icon {
             font-size: 16px;
             width: 16px;
@@ -212,7 +214,7 @@
     padding: 8px 12px;
     background: none;
     border: none;
-    color: rgba($nav-link-color, 0.8);
+    color: var(--text-secondary);
     font-size: 13px;
     font-weight: 500;
     text-decoration: none;
@@ -221,27 +223,28 @@
     transition: $transition-base;
     width: 100%;
     text-align: left;
-    
+
     &:hover {
-        background: rgba($primary-color, 0.1);
-        color: $primary-color;
+        background: rgba(99, 102, 241, 0.1);
+        color: var(--primary-color);
     }
-    
+
     &.active {
-        background: $primary-color;
+        background: var(--primary-color);
         color: white;
-        
+
         &:hover {
-            background: darken($primary-color, 10%);
+            background: var(--primary-color);
+            opacity: 0.9;
         }
     }
-    
+
     i {
         font-size: 14px;
         width: 14px;
         text-align: center;
     }
-    
+
     span {
         white-space: nowrap;
         overflow: hidden;

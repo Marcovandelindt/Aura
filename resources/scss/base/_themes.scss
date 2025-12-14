@@ -5,30 +5,318 @@
     // Brand Colors
     --primary-color: #{$primary-color};
     --secondary-color: #{$secondary-color};
-    
+
     // Background Colors
     --body-bg: #f8fafc;
     --content-bg: #ffffff;
     --card-bg: #ffffff;
     --sidebar-bg: #ffffff;
-    
+
     // Text Colors
     --text-primary: #1a202c;
     --text-secondary: #718096;
     --text-muted: #a0aec0;
-    
+
     // Border Colors
     --border-color: #e2e8f0;
     --border-light: #f7fafc;
-    
+
     // Shadow
     --box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
     --box-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-    
+
     // Music Player
     --floating-player-bg: rgba(255, 255, 255, 0.85);
     --floating-progress-bg: rgba(0, 0, 0, 0.1);
     --floating-time-bg: rgba(255, 255, 255, 0.9);
+
+    // Form Controls
+    --input-bg: #ffffff;
+    --input-border: #d1d5db;
+    --input-text: #1a202c;
+    --input-placeholder: #9ca3af;
+
+    // Table
+    --table-header-bg: #f9fafb;
+    --table-border: #e5e7eb;
+    --table-hover-bg: #f3f4f6;
+
+    // Alerts
+    --alert-success-bg: #d1fae5;
+    --alert-success-text: #065f46;
+    --alert-error-bg: #fee2e2;
+    --alert-error-text: #991b1b;
+}
+
+
+// Dark Theme 🌙
+.theme-dark {
+    // Brand Colors (slightly brighter for dark mode)
+    --primary-color: #818cf8;
+    --secondary-color: #a5b4fc;
+
+    // Background Colors
+    --body-bg: #0f172a;
+    --content-bg: #1e293b;
+    --card-bg: #1e293b;
+    --sidebar-bg: #0f172a;
+
+    // Text Colors
+    --text-primary: #f1f5f9;
+    --text-secondary: #94a3b8;
+    --text-muted: #64748b;
+
+    // Border Colors
+    --border-color: #334155;
+    --border-light: #1e293b;
+
+    // Shadow
+    --box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.3), 0 1px 2px 0 rgba(0, 0, 0, 0.2);
+    --box-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.2);
+
+    // Music Player
+    --floating-player-bg: rgba(30, 41, 59, 0.95);
+    --floating-progress-bg: rgba(255, 255, 255, 0.1);
+    --floating-time-bg: rgba(15, 23, 42, 0.95);
+
+    // Form Controls
+    --input-bg: #1e293b;
+    --input-border: #475569;
+    --input-text: #f1f5f9;
+    --input-placeholder: #64748b;
+
+    // Table
+    --table-header-bg: #0f172a;
+    --table-border: #334155;
+    --table-hover-bg: #334155;
+
+    // Alerts
+    --alert-success-bg: #064e3b;
+    --alert-success-text: #6ee7b7;
+    --alert-error-bg: #7f1d1d;
+    --alert-error-text: #fca5a5;
+
+    // Sidebar specific
+    .sidebar {
+        border-right-color: var(--border-color);
+
+        .nav-link {
+            color: var(--text-secondary);
+
+            &:hover {
+                background: rgba(255, 255, 255, 0.05);
+                color: var(--text-primary);
+            }
+
+            &.active {
+                background: rgba(129, 140, 248, 0.1);
+                color: var(--primary-color);
+
+                .nav-icon {
+                    color: var(--primary-color);
+                }
+            }
+        }
+
+        .nav-section-title {
+            color: var(--text-muted);
+        }
+
+        .brand-text {
+            color: var(--text-primary);
+        }
+
+        .brand-icon {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+        }
+    }
+
+    // Cards
+    .card {
+        border-color: var(--border-color);
+    }
+
+    // Tables
+    .table {
+        color: var(--text-primary);
+
+        thead th {
+            background: var(--table-header-bg);
+            border-color: var(--table-border);
+            color: var(--text-secondary);
+        }
+
+        tbody td {
+            border-color: var(--table-border);
+        }
+
+        tbody tr:hover {
+            background: var(--table-hover-bg);
+        }
+    }
+
+    // Form controls
+    .form-control {
+        background: var(--input-bg);
+        border-color: var(--input-border);
+        color: var(--input-text);
+
+        &::placeholder {
+            color: var(--input-placeholder);
+        }
+
+        &:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(129, 140, 248, 0.2);
+        }
+    }
+
+    select.form-control {
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%2394a3b8' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+    }
+
+    // Buttons
+    .btn-secondary {
+        background: #334155;
+        border-color: #475569;
+        color: var(--text-primary);
+
+        &:hover {
+            background: #475569;
+            border-color: #64748b;
+        }
+    }
+
+    .btn-primary {
+        background: var(--primary-color);
+        border-color: var(--primary-color);
+
+        &:hover {
+            background: #6366f1;
+            border-color: #6366f1;
+        }
+    }
+
+    // Alerts
+    .alert-success {
+        background: var(--alert-success-bg);
+        color: var(--alert-success-text);
+        border-color: #065f46;
+    }
+
+    .alert-danger {
+        background: var(--alert-error-bg);
+        color: var(--alert-error-text);
+        border-color: #991b1b;
+    }
+
+    // Badges
+    .badge {
+        background: #334155;
+        color: var(--text-primary);
+    }
+
+    // Stats cards
+    .stat-content {
+        .stat-value {
+            color: var(--text-primary);
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+        }
+    }
+
+    // Breadcrumb
+    .breadcrumb {
+        a {
+            color: var(--text-secondary);
+
+            &:hover {
+                color: var(--primary-color);
+            }
+        }
+
+        li {
+            color: var(--text-muted);
+        }
+    }
+
+    // Links
+    a {
+        color: var(--primary-color);
+
+        &:hover {
+            color: var(--secondary-color);
+        }
+    }
+
+    // Pagination
+    .pagination {
+        .page-link {
+            background: var(--card-bg);
+            border-color: var(--border-color);
+            color: var(--text-secondary);
+
+            &:hover {
+                background: var(--table-hover-bg);
+                color: var(--text-primary);
+            }
+        }
+
+        .page-item.active .page-link {
+            background: var(--primary-color);
+            border-color: var(--primary-color);
+            color: white;
+        }
+
+        .page-item.disabled .page-link {
+            background: var(--body-bg);
+            color: var(--text-muted);
+        }
+    }
+
+    // Code blocks
+    code {
+        background: #0f172a;
+        color: #f472b6;
+    }
+
+    // Theme switcher in sidebar
+    .theme-switcher {
+        .theme-options {
+            background: var(--card-bg);
+            border-color: var(--border-color);
+        }
+
+        .theme-option {
+            color: var(--text-secondary);
+
+            &:hover {
+                background: var(--table-hover-bg);
+                color: var(--text-primary);
+            }
+
+            &.active {
+                background: rgba(129, 140, 248, 0.1);
+                color: var(--primary-color);
+            }
+        }
+    }
+
+    // Music floating player
+    .floating-player {
+        background: var(--floating-player-bg);
+        border-color: var(--border-color);
+
+        .floating-track-name {
+            color: var(--text-primary);
+        }
+
+        .floating-artist-name {
+            color: var(--text-secondary);
+        }
+    }
 }
 
 
@@ -84,7 +372,7 @@ body {
     background: var(--card-bg);
     border-color: var(--border-color);
     box-shadow: var(--box-shadow);
-    
+
     &:hover {
         box-shadow: var(--box-shadow-lg);
     }
@@ -93,6 +381,162 @@ body {
 .sidebar {
     background: var(--sidebar-bg);
     border-color: var(--border-color);
+}
+
+// Form controls
+.form-control {
+    background: var(--input-bg);
+    border: 1px solid var(--input-border);
+    color: var(--input-text);
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.375rem;
+    font-size: 0.875rem;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+
+    &::placeholder {
+        color: var(--input-placeholder);
+    }
+
+    &:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    }
+}
+
+select.form-control {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+    background-position: right 0.5rem center;
+    background-repeat: no-repeat;
+    background-size: 1.5em 1.5em;
+    padding-right: 2.5rem;
+}
+
+// Tables
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    color: var(--text-primary);
+
+    thead th {
+        background: var(--table-header-bg);
+        border-bottom: 1px solid var(--table-border);
+        color: var(--text-secondary);
+        font-weight: 600;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        padding: 0.75rem 1rem;
+        text-align: left;
+    }
+
+    tbody td {
+        padding: 0.75rem 1rem;
+        border-bottom: 1px solid var(--table-border);
+        vertical-align: middle;
+    }
+
+    tbody tr:hover {
+        background: var(--table-hover-bg);
+    }
+}
+
+.table-responsive {
+    overflow-x: auto;
+}
+
+// Buttons
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    border-radius: 0.375rem;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+
+    &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+}
+
+.btn-primary {
+    background: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+
+    &:hover {
+        opacity: 0.9;
+    }
+}
+
+.btn-secondary {
+    background: var(--card-bg);
+    color: var(--text-primary);
+    border-color: var(--border-color);
+
+    &:hover {
+        background: var(--table-hover-bg);
+    }
+}
+
+.btn-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+}
+
+// Alerts
+.alert {
+    padding: 1rem;
+    border-radius: 0.375rem;
+    margin-bottom: 1rem;
+    border: 1px solid transparent;
+}
+
+.alert-success {
+    background: var(--alert-success-bg);
+    color: var(--alert-success-text);
+    border-color: rgba(16, 185, 129, 0.2);
+}
+
+.alert-danger, .alert-error {
+    background: var(--alert-error-bg);
+    color: var(--alert-error-text);
+    border-color: rgba(239, 68, 68, 0.2);
+}
+
+// Form labels
+.form-label {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+}
+
+.form-text {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-top: 0.25rem;
+}
+
+// Text utilities
+.text-muted {
+    color: var(--text-muted) !important;
+}
+
+.text-secondary {
+    color: var(--text-secondary) !important;
+}
+
+.text-danger {
+    color: #ef4444 !important;
 }
 
 // Christmas Theme Specific Styling
