@@ -2,11 +2,15 @@
 
 namespace App\Models;
 
+use App\Enums\BacklogStatus;
+use App\Models\Concerns\HasBacklogStatus;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class PlayStationGame extends Model
 {
+    use HasBacklogStatus;
+
     public function sessions(): HasMany
     {
         return $this->hasMany(PlayStationSession::class);
@@ -26,6 +30,7 @@ class PlayStationGame extends Model
         'trophies',
         'completion_percentage',
         'psn_url',
+        'backlog_status',
     ];
 
     protected function casts(): array
@@ -40,6 +45,7 @@ class PlayStationGame extends Model
             'last_played_at' => 'date',
             'trophies' => 'integer',
             'completion_percentage' => 'decimal:2',
+            'backlog_status' => BacklogStatus::class,
         ];
     }
 

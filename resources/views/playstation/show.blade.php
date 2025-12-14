@@ -12,7 +12,19 @@
                     <li>{{ $game->name }}</li>
                 </ul>
             </div>
-            <div style="display: flex; gap: 0.5rem;">
+            <div style="display: flex; gap: 0.5rem; align-items: center;">
+                <form action="{{ route('backlog.update-status', ['type' => 'playstation', 'id' => $game->id]) }}" method="POST" style="display: inline;">
+                    @csrf
+                    @method('PATCH')
+                    <select name="status" class="form-control" onchange="this.form.submit()" style="width: auto;">
+                        <option value="" {{ !$game->backlog_status ? 'selected' : '' }}>+ Backlog</option>
+                        @foreach(\App\Enums\BacklogStatus::cases() as $status)
+                            <option value="{{ $status->value }}" {{ $game->backlog_status == $status ? 'selected' : '' }}>
+                                {{ $status->label() }}
+                            </option>
+                        @endforeach
+                    </select>
+                </form>
                 @if($game->sessions()->count() > 0 && !$game->exclude_from_sync)
                     <form action="{{ route('playstation.games.convert-to-manual', $game) }}" method="POST" style="display: inline;" onsubmit="return confirm('This will delete all {{ $game->sessions()->count() }} sessions and switch to manual time tracking. Are you sure?');">
                         @csrf

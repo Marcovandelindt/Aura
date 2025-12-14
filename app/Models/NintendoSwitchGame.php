@@ -2,11 +2,15 @@
 
 namespace App\Models;
 
+use App\Enums\BacklogStatus;
+use App\Models\Concerns\HasBacklogStatus;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class NintendoSwitchGame extends Model
 {
+    use HasBacklogStatus;
+
     protected $fillable = [
         'name',
         'image_url',
@@ -15,6 +19,7 @@ class NintendoSwitchGame extends Model
         'sessions',
         'avg_session_minutes',
         'last_played_at',
+        'backlog_status',
     ];
 
     protected function casts(): array
@@ -25,6 +30,7 @@ class NintendoSwitchGame extends Model
             'sessions' => 'integer',
             'avg_session_minutes' => 'integer',
             'last_played_at' => 'date',
+            'backlog_status' => BacklogStatus::class,
         ];
     }
 

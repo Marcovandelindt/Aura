@@ -2,10 +2,14 @@
 
 namespace App\Models;
 
+use App\Enums\BacklogStatus;
+use App\Models\Concerns\HasBacklogStatus;
 use Illuminate\Database\Eloquent\Model;
 
 class SteamGame extends Model
 {
+    use HasBacklogStatus;
+
     protected $fillable = [
         'steam_appid',
         'name',
@@ -14,6 +18,7 @@ class SteamGame extends Model
         'playtime_2weeks_minutes',
         'price',
         'last_played_at',
+        'backlog_status',
     ];
 
     protected function casts(): array
@@ -24,6 +29,7 @@ class SteamGame extends Model
             'playtime_2weeks_minutes' => 'integer',
             'price' => 'decimal:2',
             'last_played_at' => 'datetime',
+            'backlog_status' => BacklogStatus::class,
         ];
     }
 

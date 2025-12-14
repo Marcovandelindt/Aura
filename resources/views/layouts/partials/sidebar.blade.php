@@ -55,6 +55,13 @@
             </li>
 
             <li class="nav-item">
+                <a href="{{ route('backlog.index') }}" class="nav-link {{ request()->routeIs('backlog.*') ? 'active' : '' }}">
+                    <i class="fas fa-bookmark nav-icon"></i>
+                    <span class="nav-text">Backlog</span>
+                </a>
+            </li>
+
+            <li class="nav-item">
                 <a href="{{ route('movies.index') }}" class="nav-link {{ request()->routeIs('movies.*') ? 'active' : '' }}">
                     <i class="fas fa-film nav-icon"></i>
                     <span class="nav-text">Movies</span>

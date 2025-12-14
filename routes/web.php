@@ -157,3 +157,11 @@ Route::prefix('steam')->group(function () {
     Route::post('/sync', [App\Http\Controllers\SteamController::class, 'sync'])->name('steam.sync');
     Route::post('/test-connection', [App\Http\Controllers\SteamController::class, 'testConnection'])->name('steam.test-connection');
 });
+
+/**
+ * Backlog Routes
+ */
+Route::prefix('backlog')->group(function () {
+    Route::get('/', [App\Http\Controllers\BacklogController::class, 'index'])->name('backlog.index');
+    Route::patch('/{type}/{id}/status', [App\Http\Controllers\BacklogController::class, 'updateStatus'])->name('backlog.update-status');
+});
