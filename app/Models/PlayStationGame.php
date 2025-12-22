@@ -3,8 +3,10 @@
 namespace App\Models;
 
 use App\Enums\BacklogStatus;
+use App\Enums\PlayMode;
 use App\Models\Concerns\HasBacklogStatus;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class PlayStationGame extends Model
@@ -31,6 +33,10 @@ class PlayStationGame extends Model
         'completion_percentage',
         'psn_url',
         'backlog_status',
+        'play_mode',
+        'main_story_completed',
+        'user_rating',
+        'critic_rating',
     ];
 
     protected function casts(): array
@@ -46,6 +52,10 @@ class PlayStationGame extends Model
             'trophies' => 'integer',
             'completion_percentage' => 'decimal:2',
             'backlog_status' => BacklogStatus::class,
+            'play_mode' => PlayMode::class,
+            'main_story_completed' => 'boolean',
+            'user_rating' => 'integer',
+            'critic_rating' => 'integer',
         ];
     }
 
@@ -118,5 +128,10 @@ class PlayStationGame extends Model
         $minutes = $this->avg_session_minutes % 60;
 
         return $hours > 0 ? "{$hours}h {$minutes}m" : "{$minutes}m";
+    }
+
+    public function genres(): BelongsToMany
+    {
+        return $this->belongsToMany(Genre::class);
     }
 }

@@ -2,11 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\PlayMode;
+use App\Models\Genre;
 use App\Models\PlayStationGame;
 use App\Models\PlayStationSession;
 use App\Services\PlayStation\PlayStationScraperService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 
 class PlayStationController extends Controller
 {
@@ -217,7 +220,9 @@ class PlayStationController extends Controller
 
     public function edit(PlayStationGame $game)
     {
-        return view('playstation.edit', compact('game'));
+        $genres = Genre::orderBy('name')->get();
+
+        return view('playstation.edit', compact('game', 'genres'));
     }
 
     public function update(Request $request, PlayStationGame $game)
@@ -226,6 +231,10 @@ class PlayStationController extends Controller
             'price' => ['nullable', 'numeric', 'min:0', 'max:999999.99'],
             'manual_hours' => ['nullable', 'numeric', 'min:0'],
             'manual_minutes' => ['nullable', 'integer', 'min:0', 'max:59'],
+            'play_mode' => ['nullable', Rule::enum(PlayMode::class)],
+            'main_story_completed' => ['nullable', 'boolean'],
+            'user_rating' => ['nullable', 'integer', 'min:1', 'max:10'],
+            'critic_rating' => ['nullable', 'integer', 'min:1', 'max:100'],
         ]);
 
         // Convert hours and minutes to total minutes
@@ -244,7 +253,13 @@ class PlayStationController extends Controller
         $game->update([
             'price' => $request->price,
             'manual_minutes' => $totalMinutes,
+            'play_mode' => $request->play_mode ?: null,
+            'main_story_completed' => $request->boolean('main_story_completed'),
+            'user_rating' => $request->user_rating,
+            'critic_rating' => $request->critic_rating,
         ]);
+
+        $game->genres()->sync($request->input('genres', []));
 
         return redirect()->route('playstation.games.show', $game)
             ->with('success', 'Game updated successfully.');

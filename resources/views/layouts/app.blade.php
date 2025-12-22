@@ -5,6 +5,7 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <title>{{ config('APP.NAME', 'Aura') }}</title>
 
@@ -600,19 +601,19 @@
                     },
                     body: JSON.stringify({ theme: theme })
                 });
-                
+
                 const data = await response.json();
-                
+
                 if (data.success) {
                     // Update body class
                     document.body.className = data.themeClass;
-                    
+
                     // Update active theme button
                     document.querySelectorAll('.theme-option').forEach(btn => {
                         btn.classList.remove('active');
                     });
                     document.querySelector(`[onclick="switchTheme('${theme}')"]`).classList.add('active');
-                    
+
                     // Show success message (optional)
                     console.log(data.message);
                 } else {
@@ -623,6 +624,8 @@
             }
         }
     </script>
+
+    @stack('scripts')
 </body>
 
 </html>

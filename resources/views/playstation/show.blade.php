@@ -81,7 +81,36 @@
                                 <i class="fas fa-trophy"></i> {{ $game->completion_percentage }}% complete
                             </span>
                         @endif
+                        @if($game->user_rating)
+                            <span class="badge" style="background: #8b5cf6; color: white; padding: 4px 8px; border-radius: 4px; font-size: 11px;">
+                                <i class="fas fa-star" style="margin-right: 4px;"></i>{{ $game->user_rating }}/10
+                            </span>
+                        @endif
+                        @if($game->critic_rating)
+                            <span class="badge" style="background: {{ $game->critic_rating >= 75 ? '#10b981' : ($game->critic_rating >= 50 ? '#f59e0b' : '#ef4444') }}; color: white; padding: 4px 8px; border-radius: 4px; font-size: 11px;">
+                                <i class="fas fa-newspaper" style="margin-right: 4px;"></i>{{ $game->critic_rating }}
+                            </span>
+                        @endif
+                        @if($game->play_mode)
+                            <span class="badge" style="background: {{ $game->play_mode->color() }}; color: white; padding: 4px 8px; border-radius: 4px; font-size: 11px;">
+                                <i class="{{ $game->play_mode->icon() }}" style="margin-right: 4px;"></i>{{ $game->play_mode->label() }}
+                            </span>
+                        @endif
+                        @if($game->main_story_completed)
+                            <span class="badge" style="background: #10b981; color: white; padding: 4px 8px; border-radius: 4px; font-size: 11px;">
+                                <i class="fas fa-flag-checkered" style="margin-right: 4px;"></i>Story Completed
+                            </span>
+                        @endif
                     </div>
+                    @if($game->genres->count() > 0)
+                    <div style="display: flex; gap: 0.375rem; flex-wrap: wrap; margin-top: 0.5rem;">
+                        @foreach($game->genres as $genre)
+                            <span style="background: #f3f4f6; color: #374151; padding: 2px 8px; border-radius: 4px; font-size: 11px;">
+                                {{ $genre->name }}
+                            </span>
+                        @endforeach
+                    </div>
+                    @endif
                 </div>
             </div>
         </div>

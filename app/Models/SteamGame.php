@@ -3,8 +3,10 @@
 namespace App\Models;
 
 use App\Enums\BacklogStatus;
+use App\Enums\PlayMode;
 use App\Models\Concerns\HasBacklogStatus;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class SteamGame extends Model
 {
@@ -19,6 +21,10 @@ class SteamGame extends Model
         'price',
         'last_played_at',
         'backlog_status',
+        'play_mode',
+        'main_story_completed',
+        'user_rating',
+        'critic_rating',
     ];
 
     protected function casts(): array
@@ -30,6 +36,10 @@ class SteamGame extends Model
             'price' => 'decimal:2',
             'last_played_at' => 'datetime',
             'backlog_status' => BacklogStatus::class,
+            'play_mode' => PlayMode::class,
+            'main_story_completed' => 'boolean',
+            'user_rating' => 'integer',
+            'critic_rating' => 'integer',
         ];
     }
 
@@ -85,5 +95,10 @@ class SteamGame extends Model
     public function getSteamUrlAttribute(): string
     {
         return "https://store.steampowered.com/app/{$this->steam_appid}";
+    }
+
+    public function genres(): BelongsToMany
+    {
+        return $this->belongsToMany(Genre::class);
     }
 }

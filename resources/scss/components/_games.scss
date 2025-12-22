@@ -110,9 +110,9 @@
 }
 
 // Dark Mode
-.dark-mode {
+.theme-dark {
     .game-card {
-        background: #1f2937;
+        background: var(--card-bg);
 
         &:hover {
             box-shadow: 0 12px 24px rgba(0, 0, 0, 0.5);
@@ -120,12 +120,16 @@
     }
 
     .game-title {
-        color: #f9fafb;
+        color: var(--text-primary);
     }
 
     .game-developer,
     .game-stats,
     .game-stat {
-        color: #9ca3af;
+        color: var(--text-secondary);
+    }
+
+    .game-info {
+        color: var(--text-primary);
     }
 }

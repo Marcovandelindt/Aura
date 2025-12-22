@@ -11,11 +11,14 @@
     --content-bg: #ffffff;
     --card-bg: #ffffff;
     --sidebar-bg: #ffffff;
+    --badge-bg: #f3f4f6;
+    --badge-muted-bg: #e5e7eb;
 
     // Text Colors
     --text-primary: #1a202c;
     --text-secondary: #718096;
     --text-muted: #a0aec0;
+    --text-on-muted-bg: #374151;
 
     // Border Colors
     --border-color: #e2e8f0;
@@ -60,11 +63,14 @@
     --content-bg: #1e293b;
     --card-bg: #1e293b;
     --sidebar-bg: #0f172a;
+    --badge-bg: #334155;
+    --badge-muted-bg: #475569;
 
     // Text Colors
     --text-primary: #f1f5f9;
     --text-secondary: #94a3b8;
     --text-muted: #64748b;
+    --text-on-muted-bg: #e2e8f0;
 
     // Border Colors
     --border-color: #334155;
@@ -315,6 +321,122 @@
 
         .floating-artist-name {
             color: var(--text-secondary);
+        }
+    }
+
+    // Override inline styles for game pages
+    // Fix text colors that use hardcoded #666, #999, etc.
+    .card-body,
+    .content-wrapper {
+        // Override inline color styles
+        [style*="color: #666"],
+        [style*="color:#666"] {
+            color: var(--text-secondary) !important;
+        }
+
+        [style*="color: #999"],
+        [style*="color:#999"] {
+            color: var(--text-muted) !important;
+        }
+
+        [style*="color: #374151"],
+        [style*="color:#374151"] {
+            color: var(--text-primary) !important;
+        }
+
+        // Override inline background styles
+        [style*="background: #f3f4f6"],
+        [style*="background:#f3f4f6"] {
+            background: var(--badge-bg) !important;
+            color: var(--text-on-muted-bg) !important;
+        }
+
+        [style*="background: #eee"],
+        [style*="background:#eee"],
+        [style*="border-bottom: 1px solid #eee"] {
+            border-color: var(--border-color) !important;
+        }
+
+        // Small/muted text
+        small[style*="color"] {
+            color: var(--text-muted) !important;
+        }
+
+        // Form text and labels
+        .form-text[style*="color"] {
+            color: var(--text-muted) !important;
+        }
+
+        // Span elements with inline colors
+        span[style*="color: #666"],
+        span[style*="color:#666"] {
+            color: var(--text-secondary) !important;
+        }
+
+        // Div borders
+        div[style*="border-bottom: 1px solid #eee"],
+        div[style*="border-bottom:1px solid #eee"] {
+            border-bottom-color: var(--border-color) !important;
+        }
+
+        // Top list items
+        .top-list-item[style*="border-bottom"] {
+            border-bottom-color: var(--border-color) !important;
+        }
+
+        // Item details text
+        .item-details[style*="color"] {
+            color: var(--text-muted) !important;
+        }
+    }
+
+    // Genre badges in dark mode
+    span[style*="background: #f3f4f6"][style*="color: #374151"] {
+        background: var(--badge-bg) !important;
+        color: var(--text-on-muted-bg) !important;
+    }
+
+    // Fix game card backgrounds
+    .game-card {
+        background: var(--card-bg);
+
+        &:hover {
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.5);
+        }
+    }
+
+    .game-title {
+        color: var(--text-primary);
+    }
+
+    .game-developer,
+    .game-stats,
+    .game-stat {
+        color: var(--text-secondary);
+    }
+
+    // Fix placeholder backgrounds
+    div[style*="background: #f3f4f6"] {
+        background: var(--badge-bg) !important;
+    }
+
+    // Fix edit form genre tags
+    label[style*="background: #f3f4f6"] {
+        background: var(--badge-bg) !important;
+        color: var(--text-primary) !important;
+    }
+
+    // Stats grid item details
+    .stat-details small {
+        color: var(--text-muted) !important;
+    }
+
+    // Top list styling
+    .top-list-item {
+        border-bottom-color: var(--border-color) !important;
+
+        .item-details {
+            color: var(--text-muted) !important;
         }
     }
 }

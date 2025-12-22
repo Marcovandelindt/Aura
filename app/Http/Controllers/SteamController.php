@@ -2,9 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\PlayMode;
+use App\Models\Genre;
 use App\Models\SteamGame;
 use App\Services\Steam\SteamApiService;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class SteamController extends Controller
 {
@@ -75,18 +78,30 @@ class SteamController extends Controller
 
     public function edit(SteamGame $game)
     {
-        return view('steam.edit', compact('game'));
+        $genres = Genre::orderBy('name')->get();
+
+        return view('steam.edit', compact('game', 'genres'));
     }
 
     public function update(Request $request, SteamGame $game)
     {
         $request->validate([
             'price' => ['nullable', 'numeric', 'min:0', 'max:999999.99'],
+            'play_mode' => ['nullable', Rule::enum(PlayMode::class)],
+            'main_story_completed' => ['nullable', 'boolean'],
+            'user_rating' => ['nullable', 'integer', 'min:1', 'max:10'],
+            'critic_rating' => ['nullable', 'integer', 'min:1', 'max:100'],
         ]);
 
         $game->update([
             'price' => $request->price,
+            'play_mode' => $request->play_mode ?: null,
+            'main_story_completed' => $request->boolean('main_story_completed'),
+            'user_rating' => $request->user_rating,
+            'critic_rating' => $request->critic_rating,
         ]);
+
+        $game->genres()->sync($request->input('genres', []));
 
         return redirect()->route('steam.games.show', $game)
             ->with('success', 'Game updated successfully.');

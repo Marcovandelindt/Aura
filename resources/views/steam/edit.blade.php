@@ -56,6 +56,44 @@
                     <small class="form-text" style="color: #666;">What did you pay for this game?</small>
                 </div>
 
+                <div style="display: flex; gap: 1.5rem; margin-bottom: 1.5rem;">
+                    <div class="form-group" style="flex: 1;">
+                        <label for="user_rating" class="form-label">My Rating (1-10)</label>
+                        <input type="number" name="user_rating" id="user_rating" class="form-control @error('user_rating') is-invalid @enderror" value="{{ old('user_rating', $game->user_rating) }}" min="1" max="10" placeholder="-" style="max-width: 100px;">
+                        @error('user_rating')
+                            <span class="text-danger" style="font-size: 0.875rem;">{{ $message }}</span>
+                        @enderror
+                    </div>
+
+                    <div class="form-group" style="flex: 1;">
+                        <label for="critic_rating" class="form-label">Critic Score (1-100)</label>
+                        <input type="number" name="critic_rating" id="critic_rating" class="form-control @error('critic_rating') is-invalid @enderror" value="{{ old('critic_rating', $game->critic_rating) }}" min="1" max="100" placeholder="-" style="max-width: 100px;">
+                        @error('critic_rating')
+                            <span class="text-danger" style="font-size: 0.875rem;">{{ $message }}</span>
+                        @enderror
+                        <small class="form-text" style="color: #666;">Metacritic / OpenCritic score</small>
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 1.5rem;">
+                    <x-play-mode-selector :selected="$game->play_mode" />
+                </div>
+
+                <div class="form-group" style="margin-bottom: 1.5rem;">
+                    <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                        <input type="checkbox" name="main_story_completed" value="1" {{ old('main_story_completed', $game->main_story_completed) ? 'checked' : '' }}>
+                        <span><i class="fas fa-flag-checkered" style="margin-right: 4px; color: #10b981;"></i> Main Story Completed</span>
+                    </label>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 1.5rem;">
+                    <x-genre-selector
+                        :genres="$genres"
+                        :selected-genres="$game->genres->pluck('id')->toArray()"
+                        accent-color="#1b2838"
+                    />
+                </div>
+
                 <div style="display: flex; gap: 1rem;">
                     <button type="submit" class="btn btn-primary">
                         <i class="fas fa-save" style="margin-right: 6px;"></i> Save Changes

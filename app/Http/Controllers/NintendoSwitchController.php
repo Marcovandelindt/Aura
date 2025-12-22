@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreNintendoSwitchGameRequest;
 use App\Http\Requests\UpdateNintendoSwitchGameRequest;
+use App\Models\Genre;
 use App\Models\NintendoSwitchGame;
 use App\Models\NintendoSwitchSession;
 use Illuminate\Http\RedirectResponse;
@@ -168,7 +169,9 @@ class NintendoSwitchController extends Controller
 
     public function edit(NintendoSwitchGame $game): View
     {
-        return view('nintendo-switch.edit', compact('game'));
+        $genres = Genre::orderBy('name')->get();
+
+        return view('nintendo-switch.edit', compact('game', 'genres'));
     }
 
     public function update(UpdateNintendoSwitchGameRequest $request, NintendoSwitchGame $game): RedirectResponse
@@ -176,6 +179,10 @@ class NintendoSwitchController extends Controller
         $data = [
             'name' => $request->name,
             'price' => $request->price,
+            'play_mode' => $request->play_mode ?: null,
+            'main_story_completed' => $request->boolean('main_story_completed'),
+            'user_rating' => $request->user_rating,
+            'critic_rating' => $request->critic_rating,
         ];
 
         if ($request->hasFile('image')) {
@@ -197,6 +204,8 @@ class NintendoSwitchController extends Controller
         }
 
         $game->update($data);
+
+        $game->genres()->sync($request->input('genres', []));
 
         return redirect()->route('nintendo-switch.games.show', $game)
             ->with('success', 'Game successfully updated.');

@@ -165,3 +165,10 @@ Route::prefix('backlog')->group(function () {
     Route::get('/', [App\Http\Controllers\BacklogController::class, 'index'])->name('backlog.index');
     Route::patch('/{type}/{id}/status', [App\Http\Controllers\BacklogController::class, 'updateStatus'])->name('backlog.update-status');
 });
+
+/**
+ * Genre Routes
+ */
+Route::prefix('genres')->group(function () {
+    Route::post('/', [App\Http\Controllers\GenreController::class, 'store'])->name('genres.store');
+});

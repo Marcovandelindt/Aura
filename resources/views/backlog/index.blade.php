@@ -121,6 +121,7 @@
                                 <th width="50"></th>
                                 <th>Game</th>
                                 <th>Platform</th>
+                                <th>Rating</th>
                                 <th>Status</th>
                                 <th>Actie</th>
                             </tr>
@@ -165,6 +166,24 @@
                                         <i class="{{ $platformInfo['icon'] }}" style="margin-right: 4px;"></i>
                                         {{ $platformInfo['label'] }}
                                     </span>
+                                </td>
+                                <td>
+                                    @if($game->user_rating || $game->critic_rating)
+                                        <div style="display: flex; gap: 0.25rem; flex-wrap: wrap;">
+                                            @if($game->user_rating)
+                                                <span class="badge" style="background: #8b5cf6; color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px;">
+                                                    {{ $game->user_rating }}/10
+                                                </span>
+                                            @endif
+                                            @if($game->critic_rating)
+                                                <span class="badge" style="background: {{ $game->critic_rating >= 75 ? '#10b981' : ($game->critic_rating >= 50 ? '#f59e0b' : '#ef4444') }}; color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px;">
+                                                    {{ $game->critic_rating }}
+                                                </span>
+                                            @endif
+                                        </div>
+                                    @else
+                                        <span style="color: #999;">-</span>
+                                    @endif
                                 </td>
                                 <td>
                                     <span class="badge" style="background: {{ $game->backlog_status->color() }}; color: white; padding: 4px 8px; border-radius: 4px; font-size: 11px;">

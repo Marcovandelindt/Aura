@@ -17,7 +17,8 @@
       "WebFetch(domain:www.omdbapi.com)",
       "Bash(composer require:*)",
       "Bash(find:*)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "Bash(ls:*)"
     ],
     "deny": []
   }
