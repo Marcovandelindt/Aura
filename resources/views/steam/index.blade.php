@@ -12,6 +12,10 @@
                 </ul>
             </div>
             <div style="display: flex; gap: 0.5rem;">
+                <button type="button" class="btn btn-primary" onclick="openRecommendation()" style="background: linear-gradient(135deg, #1b2838 0%, #2a475e 100%); border: none;">
+                    <i class="fas fa-magic" style="margin-right: 8px;"></i>
+                    Aanbeveling
+                </button>
                 <form action="{{ route('steam.sync') }}" method="POST" style="display: inline;">
                     @csrf
                     <button type="submit" class="btn btn-primary">
@@ -268,4 +272,10 @@
         </div>
     </div>
 </div>
+
+<x-game-recommendation-modal
+    platform="steam"
+    platform-name="Steam"
+    accent-color="#1b2838"
+/>
 @endsection

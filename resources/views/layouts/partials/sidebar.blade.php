@@ -81,7 +81,14 @@
                     <span class="nav-text">Mood Tracker</span>
                 </a>
             </li>
-            
+
+            <li class="nav-item">
+                <a href="{{ route('health.index') }}" class="nav-link {{ request()->routeIs('health.*') ? 'active' : '' }}">
+                    <i class="fas fa-heartbeat nav-icon"></i>
+                    <span class="nav-text">Health</span>
+                </a>
+            </li>
+
             <li class="nav-section">
                 <span class="nav-section-title">Productivity</span>
             </li>
@@ -113,6 +120,13 @@
             
             <li class="nav-section">
                 <span class="nav-section-title">Settings</span>
+            </li>
+
+            <li class="nav-item">
+                <a href="{{ route('settings.general') }}" class="nav-link {{ request()->routeIs('settings.general*') ? 'active' : '' }}">
+                    <i class="fas fa-cog nav-icon"></i>
+                    <span class="nav-text">General</span>
+                </a>
             </li>
 
             <li class="nav-item">

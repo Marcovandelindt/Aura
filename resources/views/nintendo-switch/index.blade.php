@@ -12,6 +12,10 @@
                 </ul>
             </div>
             <div style="display: flex; gap: 0.5rem;">
+                <button type="button" class="btn btn-primary" onclick="openRecommendation()" style="background: linear-gradient(135deg, #e60012 0%, #ff4444 100%); border: none;">
+                    <i class="fas fa-magic" style="margin-right: 8px;"></i>
+                    Aanbeveling
+                </button>
                 <a href="{{ route('nintendo-switch.stats') }}" class="btn btn-secondary">
                     <i class="fas fa-chart-bar" style="margin-right: 8px;"></i>
                     Statistics
@@ -234,4 +238,10 @@
         </div>
     </div>
 </div>
+
+<x-game-recommendation-modal
+    platform="nintendo-switch"
+    platform-name="Nintendo Switch"
+    accent-color="#e60012"
+/>
 @endsection

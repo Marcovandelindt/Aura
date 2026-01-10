@@ -342,6 +342,7 @@ class PlayStationScraperService
         $totalSynced = 0;
         $totalSkipped = 0;
         $totalExisting = 0;
+        $totalGamesCreated = 0;
         $page = 1;
         $hasMorePages = true;
 
@@ -366,9 +367,17 @@ class PlayStationScraperService
                 $gameId = $gameMap[$gameKey] ?? null;
 
                 if (! $gameId) {
-                    $totalSkipped++;
+                    // Create the game if it doesn't exist
+                    $game = PlayStationGame::create([
+                        'name' => $sessionData['game_name'],
+                        'platform' => $sessionData['platform'],
+                    ]);
 
-                    continue;
+                    $gameId = $game->id;
+                    $gameMap[$gameKey] = $gameId;
+                    $totalGamesCreated++;
+
+                    Log::info("Created new PlayStation game: {$sessionData['game_name']} ({$sessionData['platform']})");
                 }
 
                 // Parse the session start time
@@ -423,8 +432,9 @@ class PlayStationScraperService
             'success' => true,
             'synced' => $totalSynced,
             'skipped' => $totalSkipped,
+            'games_created' => $totalGamesCreated,
             'pages' => $page - 1,
-            'message' => "Synced {$totalSynced} sessions from ".($page - 1).' pages',
+            'message' => "Synced {$totalSynced} sessions from ".($page - 1).' pages'.($totalGamesCreated > 0 ? " ({$totalGamesCreated} new games created)" : ''),
         ];
     }
 

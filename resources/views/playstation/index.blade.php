@@ -12,6 +12,10 @@
                 </ul>
             </div>
             <div style="display: flex; gap: 0.5rem;">
+                <button type="button" class="btn btn-primary" onclick="openRecommendation()" style="background: linear-gradient(135deg, #003087 0%, #0070cc 100%); border: none;">
+                    <i class="fas fa-magic" style="margin-right: 8px;"></i>
+                    Aanbeveling
+                </button>
                 <a href="{{ route('playstation.stats') }}" class="btn btn-secondary">
                     <i class="fas fa-chart-bar" style="margin-right: 8px;"></i>
                     Statistics
@@ -297,4 +301,10 @@
         </div>
     </div>
 </div>
+
+<x-game-recommendation-modal
+    platform="playstation"
+    platform-name="PlayStation"
+    accent-color="#003087"
+/>
 @endsection

@@ -67,6 +67,8 @@ Route::prefix('moods')->group(function () {
  * Settings Routes
  */
 Route::prefix('settings')->group(function () {
+    Route::get('/', [App\Http\Controllers\GeneralSettingsController::class, 'index'])->name('settings.general');
+    Route::put('/', [App\Http\Controllers\GeneralSettingsController::class, 'update'])->name('settings.general.update');
     Route::get('/moods', [App\Http\Controllers\MoodSettingsController::class, 'index'])->name('settings.moods');
     Route::post('/moods', [App\Http\Controllers\MoodSettingsController::class, 'store'])->name('settings.moods.store');
     Route::put('/moods/{mood}', [App\Http\Controllers\MoodSettingsController::class, 'update'])->name('settings.moods.update');
@@ -171,4 +173,23 @@ Route::prefix('backlog')->group(function () {
  */
 Route::prefix('genres')->group(function () {
     Route::post('/', [App\Http\Controllers\GenreController::class, 'store'])->name('genres.store');
+});
+
+/**
+ * Recommendation Routes
+ */
+Route::prefix('recommend')->group(function () {
+    Route::get('/{platform}', [App\Http\Controllers\RecommendationController::class, 'recommend'])->name('recommend.get');
+    Route::post('/{platform}/{id}/accept', [App\Http\Controllers\RecommendationController::class, 'accept'])->name('recommend.accept');
+});
+
+/**
+ * Health Routes
+ */
+Route::prefix('health')->group(function () {
+    Route::get('/', [App\Http\Controllers\HealthController::class, 'index'])->name('health.index');
+    Route::post('/', [App\Http\Controllers\HealthController::class, 'store'])->name('health.store');
+    Route::get('/stats', [App\Http\Controllers\HealthStatsController::class, 'index'])->name('health.stats');
+    Route::put('/{entry}', [App\Http\Controllers\HealthController::class, 'update'])->name('health.update');
+    Route::delete('/{entry}', [App\Http\Controllers\HealthController::class, 'destroy'])->name('health.destroy');
 });

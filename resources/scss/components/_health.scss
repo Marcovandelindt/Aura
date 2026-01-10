@@ -1,0 +1,313 @@
+// Health Section Styles
+
+// Health page layout (calendar + list side by side)
+.health-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+}
+
+// Health accent color (green gradient for wellness)
+.health-accent {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+}
+
+// Calendar view styles
+.health-calendar {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 0.25rem;
+
+    .calendar-header {
+        text-align: center;
+        font-weight: 600;
+        font-size: 0.75rem;
+        color: var(--text-secondary);
+        padding: 0.5rem;
+    }
+
+    .calendar-day {
+        aspect-ratio: 1;
+        border-radius: 8px;
+        padding: 0.25rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        position: relative;
+        cursor: pointer;
+        transition: all 0.2s ease;
+
+        &:hover {
+            border-color: var(--primary-color);
+        }
+
+        &.has-entry {
+            background: rgba(16, 185, 129, 0.1);
+            border-color: rgba(16, 185, 129, 0.3);
+        }
+
+        &.today {
+            border: 2px solid var(--primary-color);
+        }
+
+        &.other-month {
+            opacity: 0.3;
+            cursor: default;
+
+            &:hover {
+                border-color: var(--border-color);
+            }
+        }
+
+        .day-number {
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .entry-indicator {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #10b981;
+            margin-top: 0.25rem;
+        }
+
+        .goal-achieved {
+            color: #10b981;
+            font-size: 0.65rem;
+        }
+    }
+}
+
+// Health metric values in tables
+.health-metric-value {
+    font-weight: 600;
+
+    &.steps {
+        color: #10b981;
+    }
+
+    &.heart-rate {
+        color: #ef4444;
+    }
+
+    &.resting-hr {
+        color: #f59e0b;
+    }
+}
+
+// Health metric cards
+.health-metric {
+    text-align: center;
+    padding: 1.5rem;
+
+    .metric-value {
+        font-size: 2.5rem;
+        font-weight: 700;
+        line-height: 1;
+
+        &.steps {
+            color: #10b981;
+        }
+
+        &.heart-rate {
+            color: #ef4444;
+        }
+
+        &.resting-hr {
+            color: #f59e0b;
+        }
+    }
+
+    .metric-label {
+        font-size: 0.875rem;
+        color: var(--text-secondary);
+        margin-top: 0.5rem;
+    }
+
+    .metric-unit {
+        font-size: 1rem;
+        font-weight: 400;
+    }
+}
+
+// Trend chart container
+.health-chart {
+    height: 200px;
+    width: 100%;
+}
+
+// Streak badges
+.streak-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: 9999px;
+    font-weight: 600;
+
+    &.active {
+        background: linear-gradient(135deg, #f97316 0%, #f59e0b 100%);
+        color: white;
+    }
+
+    &.inactive {
+        background: var(--badge-muted-bg);
+        color: var(--text-secondary);
+    }
+
+    .streak-fire {
+        font-size: 1.25rem;
+    }
+}
+
+// Goal progress bar
+.goal-progress {
+    height: 8px;
+    background: var(--badge-muted-bg);
+    border-radius: 4px;
+    overflow: hidden;
+
+    .progress-bar {
+        height: 100%;
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        transition: width 0.3s ease;
+    }
+}
+
+// Badges
+.badge-success {
+    background: #10b981;
+    color: white;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.badge-warning {
+    background: #f59e0b;
+    color: white;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.badge-muted {
+    background: var(--badge-muted-bg);
+    color: var(--text-secondary);
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+// Dark mode support
+.theme-dark {
+    .health-calendar .calendar-day {
+        background: var(--card-bg);
+
+        &.has-entry {
+            background: rgba(16, 185, 129, 0.15);
+        }
+    }
+
+    .health-metric {
+        .metric-value {
+            &.steps {
+                color: #34d399;
+            }
+
+            &.heart-rate {
+                color: #f87171;
+            }
+
+            &.resting-hr {
+                color: #fbbf24;
+            }
+        }
+    }
+
+    .health-metric-value {
+        &.steps {
+            color: #34d399;
+        }
+
+        &.heart-rate {
+            color: #f87171;
+        }
+
+        &.resting-hr {
+            color: #fbbf24;
+        }
+    }
+}
+
+// Compact calendar variant
+.health-calendar-compact {
+    gap: 0.125rem;
+
+    .calendar-header {
+        font-size: 0.7rem;
+        padding: 0.25rem;
+    }
+
+    .calendar-day {
+        aspect-ratio: 1;
+        padding: 0.125rem;
+
+        .day-number {
+            font-size: 0.75rem;
+        }
+
+        .entry-indicator {
+            display: none;
+        }
+
+        .goal-achieved {
+            font-size: 0.5rem;
+            margin-top: 0.125rem;
+        }
+    }
+}
+
+// Responsive adjustments
+@media (max-width: 992px) {
+    .health-calendar-compact {
+        .calendar-day {
+            .day-number {
+                font-size: 0.7rem;
+            }
+        }
+    }
+}
+
+@media (max-width: 768px) {
+    .health-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .health-calendar {
+        gap: 0.125rem;
+
+        .calendar-header {
+            font-size: 0.625rem;
+            padding: 0.25rem;
+        }
+
+        .calendar-day {
+            .day-number {
+                font-size: 0.75rem;
+            }
+
+            .entry-indicator {
+                width: 4px;
+                height: 4px;
+            }
+        }
+    }
+}

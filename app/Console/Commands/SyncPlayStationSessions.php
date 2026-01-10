@@ -41,8 +41,8 @@ class SyncPlayStationSessions extends Command
 
         if ($result['success']) {
             $this->info("✓ {$result['message']}");
-            if ($result['skipped'] > 0) {
-                $this->warn("Skipped {$result['skipped']} sessions (game not found)");
+            if (($result['games_created'] ?? 0) > 0) {
+                $this->info("Created {$result['games_created']} new games");
             }
 
             return Command::SUCCESS;
