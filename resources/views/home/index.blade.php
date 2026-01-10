@@ -106,19 +106,20 @@
             </div>
             <div class="card-body">
                 <div class="activity-list">
+                    {{-- Last Played Track --}}
                     @if($lastPlayedTrack)
                         <div class="activity-item">
-                            <div class="activity-icon">
+                            <div class="activity-icon" style="background: linear-gradient(135deg, #1DB954 0%, #169c46 100%);">
                                 <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
                                     <path d="M18 3a1 1 0 00-1.196-.98l-10 2A1 1 0 006 5v9.114A4.369 4.369 0 005 14c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V7.82l8-1.6v5.894A4.37 4.37 0 0015 12c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V3z"/>
                                 </svg>
                             </div>
                             <div class="activity-content">
-                                <p>Listened to 
+                                <p>Listened to
                                     <a href="{{ route('tracks.show', ['track' => $lastPlayedTrack->spotify_track_id]) }}" class="activity-link">
                                         <strong>{{ $lastPlayedTrack->track_name }}</strong>
-                                    </a> 
-                                    by 
+                                    </a>
+                                    by
                                     @foreach($lastPlayedTrack->artist_names as $index => $artistName)
                                         <a href="{{ route('artists.show', ['artist' => urlencode($artistName)]) }}" class="activity-link">{{ $artistName }}</a>@if($index < count($lastPlayedTrack->artist_names) - 1), @endif
                                     @endforeach
@@ -126,55 +127,77 @@
                                 <span class="activity-time">{{ $lastPlayedTrack->played_at_human }}</span>
                             </div>
                         </div>
-                    @else
+                    @endif
+
+                    {{-- Last Episode Watched --}}
+                    @if($lastEpisodeWatch)
                         <div class="activity-item">
-                            <div class="activity-icon">
+                            <div class="activity-icon" style="background: linear-gradient(135deg, #e50914 0%, #b20710 100%);">
                                 <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
-                                    <path d="M18 3a1 1 0 00-1.196-.98l-10 2A1 1 0 006 5v9.114A4.369 4.369 0 005 14c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V7.82l8-1.6v5.894A4.37 4.37 0 0015 12c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V3z"/>
+                                    <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm3 2h6v4H7V5zm8 8v2h1v-2h-1zm-2-2H7v4h6v-4zm2 0h1V9h-1v2zm1-4V5h-1v2h1zM5 5v2H4V5h1zm0 4H4v2h1V9zm-1 4h1v2H4v-2z" clip-rule="evenodd"/>
                                 </svg>
                             </div>
                             <div class="activity-content">
-                                <p>No music activity yet</p>
-                                <span class="activity-time">Connect Spotify to track music</span>
+                                <p>Watched <a href="{{ route('tv.show', $lastEpisodeWatch->episode->season->series) }}" class="activity-link"><strong>{{ $lastEpisodeWatch->episode->season->series->name }}</strong></a>
+                                    - S{{ str_pad($lastEpisodeWatch->episode->season->season_number, 2, '0', STR_PAD_LEFT) }}E{{ str_pad($lastEpisodeWatch->episode->episode_number, 2, '0', STR_PAD_LEFT) }}
+                                </p>
+                                <span class="activity-time">{{ $lastEpisodeWatch->watched_at->isToday() ? 'Today' : $lastEpisodeWatch->watched_at->diffForHumans() }}</span>
                             </div>
                         </div>
                     @endif
-                    
-                    <div class="activity-item">
-                        <div class="activity-icon">
-                            <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
-                                <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd"/>
-                            </svg>
+
+                    {{-- Last Game Session --}}
+                    @if($lastGameSession)
+                        <div class="activity-item">
+                            <div class="activity-icon" style="background: linear-gradient(135deg, #006FCD 0%, #00439C 100%);">
+                                <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                                    <path d="M10 2a8 8 0 100 16 8 8 0 000-16zM6.5 9a1.5 1.5 0 100-3 1.5 1.5 0 000 3zm7 0a1.5 1.5 0 100-3 1.5 1.5 0 000 3zm-7 4a1.5 1.5 0 100-3 1.5 1.5 0 000 3zm7 0a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"/>
+                                </svg>
+                            </div>
+                            <div class="activity-content">
+                                <p>Played <a href="{{ route('playstation.index') }}" class="activity-link"><strong>{{ $lastGameSession->game->name }}</strong></a>
+                                    @if($lastGameSession->duration_minutes)
+                                        for {{ $lastGameSession->formatted_duration }}
+                                    @endif
+                                </p>
+                                <span class="activity-time">{{ $lastGameSession->started_at->diffForHumans() }}</span>
+                            </div>
                         </div>
-                        <div class="activity-content">
-                            <p>Watched <strong>The Last of Us</strong> - Episode 3</p>
-                            <span class="activity-time">Last night</span>
+                    @endif
+
+                    {{-- Last Health Entry --}}
+                    @if($lastHealthEntry)
+                        <div class="activity-item">
+                            <div class="activity-icon" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+                                <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd"/>
+                                </svg>
+                            </div>
+                            <div class="activity-content">
+                                <p>Walked <a href="{{ route('health.index') }}" class="activity-link"><strong>{{ $lastHealthEntry->formatted_steps }} steps</strong></a>
+                                    @if($lastHealthEntry->meetsStepGoal())
+                                        <span style="color: #10b981; margin-left: 4px;">Goal reached!</span>
+                                    @endif
+                                </p>
+                                <span class="activity-time">{{ $lastHealthEntry->date->diffForHumans() }}</span>
+                            </div>
                         </div>
-                    </div>
-                    
-                    <div class="activity-item">
-                        <div class="activity-icon">
-                            <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
-                                <path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd"/>
-                            </svg>
+                    @endif
+
+                    {{-- Empty state if no activities --}}
+                    @if(!$lastPlayedTrack && !$lastEpisodeWatch && !$lastGameSession && !$lastHealthEntry)
+                        <div class="activity-item">
+                            <div class="activity-icon">
+                                <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                                </svg>
+                            </div>
+                            <div class="activity-content">
+                                <p>No recent activity yet</p>
+                                <span class="activity-time">Start tracking to see your activity here</span>
+                            </div>
                         </div>
-                        <div class="activity-content">
-                            <p>Mood logged: <strong>Energetic</strong> 🚀</p>
-                            <span class="activity-time">This morning</span>
-                        </div>
-                    </div>
-                    
-                    <div class="activity-item">
-                        <div class="activity-icon">
-                            <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
-                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-                            </svg>
-                        </div>
-                        <div class="activity-content">
-                            <p>Completed task: <strong>Morning workout</strong></p>
-                            <span class="activity-time">6:30 AM</span>
-                        </div>
-                    </div>
+                    @endif
                 </div>
             </div>
         </div>
