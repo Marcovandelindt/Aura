@@ -174,4 +174,15 @@ class TMDBTVService
             return json_decode(json_encode($result), true);
         });
     }
+
+    public function clearCache(int $tmdbId): void
+    {
+        // Clear series details cache
+        Cache::forget("tmdb_tv_details_{$tmdbId}");
+
+        // Clear all season caches for this series (assume max 50 seasons)
+        for ($i = 0; $i <= 50; $i++) {
+            Cache::forget("tmdb_tv_season_{$tmdbId}_{$i}");
+        }
+    }
 }

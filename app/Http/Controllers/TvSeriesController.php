@@ -201,4 +201,38 @@ class TvSeriesController extends Controller
             ], 500);
         }
     }
+
+    public function refresh(TvSeries $series): JsonResponse
+    {
+        try {
+            // Clear cache for this series
+            $this->tvService->clearCache($series->tmdb_id);
+
+            // Re-fetch series data from TMDB
+            $updatedSeries = $this->tvService->createFromTMDB($series->tmdb_id);
+
+            // Refresh all seasons (this will add new episodes while keeping existing watch data)
+            for ($seasonNumber = 1; $seasonNumber <= $updatedSeries->number_of_seasons; $seasonNumber++) {
+                $this->tvService->createSeasonFromTMDB($updatedSeries, $seasonNumber);
+            }
+
+            // Update progress for all seasons
+            $updatedSeries->load('seasons');
+            foreach ($updatedSeries->seasons as $season) {
+                $season->updateProgress();
+            }
+            $updatedSeries->updateProgress();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'TV series refreshed successfully',
+                'series' => $updatedSeries->fresh(['seasons.episodes']),
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to refresh TV series: '.$e->getMessage(),
+            ], 500);
+        }
+    }
 }

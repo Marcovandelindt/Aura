@@ -143,6 +143,7 @@ Route::prefix('tv')->group(function () {
     Route::post('/store', [App\Http\Controllers\TvSeriesController::class, 'store'])->name('tv.store');
     Route::post('/episodes/{episode}/watch', [App\Http\Controllers\TvSeriesController::class, 'addEpisodeWatch'])->name('tv.episodes.watch');
     Route::post('/{series}/bulk-watch', [App\Http\Controllers\TvSeriesController::class, 'bulkWatch'])->name('tv.bulk-watch');
+    Route::post('/{series}/refresh', [App\Http\Controllers\TvSeriesController::class, 'refresh'])->name('tv.refresh');
     Route::delete('/watches/{watch}', [App\Http\Controllers\TvSeriesController::class, 'deleteWatch'])->name('tv.watches.destroy');
     Route::delete('/{series}', [App\Http\Controllers\TvSeriesController::class, 'destroy'])->name('tv.destroy');
 });

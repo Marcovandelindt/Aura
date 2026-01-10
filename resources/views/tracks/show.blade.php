@@ -217,9 +217,9 @@
                                 <tr>
                                     <td>
                                         <div>
-                                            <strong>{{ $playedTrack->played_at->format('M j, Y') }}</strong>
+                                            <strong>{{ $playedTrack->played_at->setTimezone('Europe/Amsterdam')->format('M j, Y') }}</strong>
                                             <br>
-                                            <span style="color: #666; font-size: 0.875rem;">{{ $playedTrack->played_at->format('g:i A') }}</span>
+                                            <span style="color: #666; font-size: 0.875rem;">{{ $playedTrack->played_at->setTimezone('Europe/Amsterdam')->format('g:i A') }}</span>
                                         </div>
                                     </td>
                                     <td>

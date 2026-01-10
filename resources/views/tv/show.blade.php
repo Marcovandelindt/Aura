@@ -17,6 +17,10 @@
                     <i class="fas fa-check-double"></i>
                     Mark All Watched
                 </button>
+                <button onclick="refreshSeries()" class="btn btn-secondary" id="refreshBtn">
+                    <i class="fas fa-sync-alt"></i>
+                    Refresh
+                </button>
                 <button onclick="deleteSeries()" class="btn btn-danger">
                     <i class="fas fa-trash"></i>
                     Delete
@@ -506,6 +510,45 @@ function deleteSeries() {
     .catch(error => {
         console.error('Error:', error);
         showNotification('Failed to delete series', 'error');
+    });
+}
+
+function refreshSeries() {
+    const btn = document.getElementById('refreshBtn');
+    const icon = btn.querySelector('i');
+
+    // Disable button and show loading state
+    btn.disabled = true;
+    icon.classList.add('fa-spin');
+
+    const notification = showNotification('Refreshing series data from TMDB...', 'info');
+
+    fetch('{{ route('tv.refresh', $series->id) }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        notification.remove();
+        btn.disabled = false;
+        icon.classList.remove('fa-spin');
+
+        if (data.success) {
+            showNotification('Series refreshed successfully! New episodes may have been added.');
+            setTimeout(() => location.reload(), 1000);
+        } else {
+            showNotification(data.message, 'error');
+        }
+    })
+    .catch(error => {
+        notification.remove();
+        btn.disabled = false;
+        icon.classList.remove('fa-spin');
+        console.error('Error:', error);
+        showNotification('Failed to refresh series', 'error');
     });
 }
 
