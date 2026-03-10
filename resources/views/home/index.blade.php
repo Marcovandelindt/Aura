@@ -83,15 +83,15 @@
         <div class="card">
             <div class="card-body">
                 <div class="stat-content">
-                    <div class="stat-icon" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                    <div class="stat-icon" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
                         </svg>
                     </div>
                     <div class="stat-details">
-                        <h3 class="stat-value">7/12</h3>
-                        <p class="stat-label">Tasks Completed Today</p>
-                        <span class="stat-change">58% completion rate</span>
+                        <h3 class="stat-value">{{ $expenseStats['formatted_total'] }}</h3>
+                        <p class="stat-label">Uitgaven deze week</p>
+                        <span class="stat-change {{ $expenseStats['change_class'] }}">{{ $expenseStats['change_text'] }}</span>
                     </div>
                 </div>
             </div>
@@ -184,8 +184,31 @@
                         </div>
                     @endif
 
+                    {{-- Last Expense --}}
+                    @if($lastExpense)
+                        <div class="activity-item">
+                            <div class="activity-icon" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">
+                                <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                                    <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z"/>
+                                    <path fill-rule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z" clip-rule="evenodd"/>
+                                </svg>
+                            </div>
+                            <div class="activity-content">
+                                <p>Uitgave <a href="{{ route('expenses.index') }}" class="activity-link"><strong>{{ $lastExpense->formatted_amount }}</strong></a>
+                                    @if($lastExpense->description)
+                                        - {{ $lastExpense->description }}
+                                    @endif
+                                    <span class="expense-category-badge-small" style="background-color: {{ $lastExpense->category->color }}20; color: {{ $lastExpense->category->color }}; border: 1px solid {{ $lastExpense->category->color }}40;">
+                                        {{ $lastExpense->category->name }}
+                                    </span>
+                                </p>
+                                <span class="activity-time">{{ $lastExpense->date->diffForHumans() }}</span>
+                            </div>
+                        </div>
+                    @endif
+
                     {{-- Empty state if no activities --}}
-                    @if(!$lastPlayedTrack && !$lastEpisodeWatch && !$lastGameSession && !$lastHealthEntry)
+                    @if(!$lastPlayedTrack && !$lastEpisodeWatch && !$lastGameSession && !$lastHealthEntry && !$lastExpense)
                         <div class="activity-item">
                             <div class="activity-icon">
                                 <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">

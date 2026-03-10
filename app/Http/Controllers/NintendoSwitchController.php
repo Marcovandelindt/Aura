@@ -138,7 +138,6 @@ class NintendoSwitchController extends Controller
             ->groupBy('year', 'month')
             ->orderByDesc('year')
             ->orderByDesc('month')
-            ->limit(12)
             ->get();
 
         return view('nintendo-switch.show', compact('game', 'sessions', 'stats', 'longestSession', 'shortestSession', 'monthlyStats'));

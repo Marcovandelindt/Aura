@@ -239,3 +239,15 @@
     animation: spotify-pulse 2s ease-in-out infinite;
     transform-origin: center;
 }
+
+// Expense category badge (small version for activity list)
+.expense-category-badge-small {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.125rem 0.5rem;
+    border-radius: 9999px;
+    font-size: 0.625rem;
+    font-weight: 500;
+    margin-left: 0.5rem;
+}

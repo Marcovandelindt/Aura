@@ -364,7 +364,7 @@
                 <h3><i class="fas fa-history" style="margin-right: 8px;"></i> Monthly History</h3>
             </div>
             <div class="card-body">
-                <div class="table-responsive">
+                <div class="table-responsive" style="max-height: 1000px; overflow-y: auto;">
                     <table class="table">
                         <thead>
                             <tr>

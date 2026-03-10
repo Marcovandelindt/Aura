@@ -18,7 +18,10 @@
       "Bash(composer require:*)",
       "Bash(find:*)",
       "Bash(cat:*)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Bash(wc:*)",
+      "Bash(grep:*)",
+      "Bash(php -l:*)"
     ],
     "deny": []
   }

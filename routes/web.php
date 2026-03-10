@@ -194,3 +194,21 @@ Route::prefix('health')->group(function () {
     Route::put('/{entry}', [App\Http\Controllers\HealthController::class, 'update'])->name('health.update');
     Route::delete('/{entry}', [App\Http\Controllers\HealthController::class, 'destroy'])->name('health.destroy');
 });
+
+/**
+ * Expenses Routes
+ */
+Route::prefix('expenses')->group(function () {
+    Route::get('/', [App\Http\Controllers\ExpensesController::class, 'index'])->name('expenses.index');
+    Route::post('/', [App\Http\Controllers\ExpensesController::class, 'store'])->name('expenses.store');
+    Route::get('/stats', [App\Http\Controllers\ExpenseStatsController::class, 'index'])->name('expenses.stats');
+    Route::put('/{expense}', [App\Http\Controllers\ExpensesController::class, 'update'])->name('expenses.update');
+    Route::delete('/{expense}', [App\Http\Controllers\ExpensesController::class, 'destroy'])->name('expenses.destroy');
+
+    Route::prefix('categories')->group(function () {
+        Route::get('/', [App\Http\Controllers\ExpenseCategoriesController::class, 'index'])->name('expenses.categories.index');
+        Route::post('/', [App\Http\Controllers\ExpenseCategoriesController::class, 'store'])->name('expenses.categories.store');
+        Route::put('/{category}', [App\Http\Controllers\ExpenseCategoriesController::class, 'update'])->name('expenses.categories.update');
+        Route::delete('/{category}', [App\Http\Controllers\ExpenseCategoriesController::class, 'destroy'])->name('expenses.categories.destroy');
+    });
+});

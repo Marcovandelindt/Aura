@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\EpisodeWatch;
+use App\Models\Expense;
 use App\Models\HealthEntry;
 use App\Models\PlayedTrack;
 use App\Models\PlayStationSession;
@@ -29,19 +30,25 @@ class HomeController extends Controller
         // Get Songs This Week statistics
         $songsThisWeek = $this->getSongsThisWeekStats();
 
+        // Get expense statistics
+        $expenseStats = $this->getExpenseStats();
+
         // Get recent activity data
         $lastPlayedTrack = $this->getLastPlayedTrack();
         $lastEpisodeWatch = $this->getLastEpisodeWatch();
         $lastGameSession = $this->getLastGameSession();
         $lastHealthEntry = $this->getLastHealthEntry();
+        $lastExpense = $this->getLastExpense();
 
         return view('home.index', compact(
             'spotifyConnected',
             'songsThisWeek',
+            'expenseStats',
             'lastPlayedTrack',
             'lastEpisodeWatch',
             'lastGameSession',
-            'lastHealthEntry'
+            'lastHealthEntry',
+            'lastExpense'
         ));
     }
 
@@ -126,6 +133,38 @@ class HomeController extends Controller
     {
         return HealthEntry::whereNotNull('steps')
             ->orderByDesc('date')
+            ->first();
+    }
+
+    /**
+     * Get expense statistics for this week
+     */
+    private function getExpenseStats(): array
+    {
+        $thisWeek = Expense::thisWeek()->sum('amount');
+
+        $startOfLastWeek = Carbon::now()->subWeek()->startOfWeek();
+        $endOfLastWeek = Carbon::now()->subWeek()->endOfWeek();
+        $lastWeek = Expense::whereBetween('date', [$startOfLastWeek, $endOfLastWeek])->sum('amount');
+
+        $change = $lastWeek > 0 ? (($thisWeek - $lastWeek) / $lastWeek) * 100 : 0;
+
+        return [
+            'total' => $thisWeek,
+            'formatted_total' => '€'.number_format($thisWeek, 2, ',', '.'),
+            'change_text' => ($change >= 0 ? '+' : '').round($change).'% vs vorige week',
+            'change_class' => $change > 10 ? 'negative' : ($change < -10 ? 'positive' : 'neutral'),
+        ];
+    }
+
+    /**
+     * Get the last expense
+     */
+    private function getLastExpense(): ?Expense
+    {
+        return Expense::with('category')
+            ->orderByDesc('date')
+            ->orderByDesc('created_at')
             ->first();
     }
 }

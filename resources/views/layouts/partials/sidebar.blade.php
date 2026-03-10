@@ -89,6 +89,13 @@
                 </a>
             </li>
 
+            <li class="nav-item">
+                <a href="{{ route('expenses.index') }}" class="nav-link {{ request()->routeIs('expenses.*') ? 'active' : '' }}">
+                    <i class="fas fa-wallet nav-icon"></i>
+                    <span class="nav-text">Uitgaven</span>
+                </a>
+            </li>
+
             <li class="nav-section">
                 <span class="nav-section-title">Productivity</span>
             </li>

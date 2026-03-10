@@ -405,7 +405,6 @@ class HealthStatsController extends Controller
             ->groupBy('year', 'month')
             ->orderByDesc('year')
             ->orderByDesc('month')
-            ->limit(12)
             ->get()
             ->map(fn ($row) => [
                 'year' => $row->year,

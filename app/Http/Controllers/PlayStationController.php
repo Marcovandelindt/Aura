@@ -181,7 +181,6 @@ class PlayStationController extends Controller
             ->groupBy('year', 'month')
             ->orderByDesc('year')
             ->orderByDesc('month')
-            ->limit(12)
             ->get();
 
         return view('playstation.show', compact('game', 'sessions', 'stats', 'longestSession', 'shortestSession', 'monthlyStats'));

@@ -37,6 +37,8 @@ class PlayStationStatsController extends Controller
             'yearly_comparison' => $this->getYearlyComparison(),
             'avg_session_by_day' => $this->getAvgSessionByDay(),
             'daily_playtime' => $this->getDailyPlaytime($dateRange['start'], $dateRange['end']),
+            'weekly_top_games' => $this->getWeeklyTopGames(),
+            'weekly_sessions' => $this->getWeeklySessions(),
             // Money & Value stats
             'money_stats' => $this->getMoneyStats(),
             'best_value_games' => $this->getBestValueGames(),
@@ -141,6 +143,91 @@ class PlayStationStatsController extends Controller
                 ];
             })
             ->sortByDesc('date')
+            ->values()
+            ->toArray();
+    }
+
+    private function getWeeklyTopGames(int $limit = 5): array
+    {
+        return PlayStationSession::with('game')
+            ->orderByDesc('started_at')
+            ->get()
+            ->groupBy(fn ($session) => $session->started_at->isoFormat('GGGG-[W]WW'))
+            ->map(function ($sessions, $weekLabel) use ($limit) {
+                $startOfWeek = Carbon::now()->setISODate(
+                    (int) substr($weekLabel, 0, 4),
+                    (int) substr($weekLabel, 6)
+                )->startOfWeek();
+
+                $topGames = $sessions->groupBy('play_station_game_id')
+                    ->map(function ($gameSessions) {
+                        $game = $gameSessions->first()->game;
+                        $minutes = $gameSessions->sum('duration_minutes');
+
+                        return [
+                            'name' => $game?->name ?? 'Unknown',
+                            'image_url' => $game?->image_url,
+                            'platform' => $game?->platform,
+                            'minutes' => $minutes,
+                            'hours' => round($minutes / 60, 1),
+                            'sessions' => $gameSessions->count(),
+                        ];
+                    })
+                    ->sortByDesc('minutes')
+                    ->take($limit)
+                    ->values()
+                    ->toArray();
+
+                $totalMinutes = $sessions->sum('duration_minutes');
+
+                return [
+                    'week_label' => $weekLabel,
+                    'week_start' => $startOfWeek->format('d M'),
+                    'week_end' => $startOfWeek->copy()->endOfWeek()->format('d M Y'),
+                    'total_hours' => round($totalMinutes / 60, 1),
+                    'total_sessions' => $sessions->count(),
+                    'games' => $topGames,
+                ];
+            })
+            ->values()
+            ->toArray();
+    }
+
+    private function getWeeklySessions(): array
+    {
+        return PlayStationSession::with('game')
+            ->orderByDesc('started_at')
+            ->get()
+            ->groupBy(fn ($session) => $session->started_at->isoFormat('GGGG-[W]WW'))
+            ->map(function ($sessions, $weekLabel) {
+                $startOfWeek = Carbon::now()->setISODate(
+                    (int) substr($weekLabel, 0, 4),
+                    (int) substr($weekLabel, 6)
+                )->startOfWeek();
+
+                $sessionList = $sessions->sortByDesc('started_at')
+                    ->map(fn ($session) => [
+                        'game_name' => $session->game?->name ?? 'Unknown',
+                        'image_url' => $session->game?->image_url,
+                        'platform' => $session->game?->platform,
+                        'started_at' => $session->started_at,
+                        'duration_minutes' => $session->duration_minutes,
+                        'hours' => round($session->duration_minutes / 60, 1),
+                    ])
+                    ->values()
+                    ->toArray();
+
+                $totalMinutes = $sessions->sum('duration_minutes');
+
+                return [
+                    'week_label' => $weekLabel,
+                    'week_start' => $startOfWeek->format('d M'),
+                    'week_end' => $startOfWeek->copy()->endOfWeek()->format('d M Y'),
+                    'total_hours' => round($totalMinutes / 60, 1),
+                    'total_sessions' => $sessions->count(),
+                    'sessions' => $sessionList,
+                ];
+            })
             ->values()
             ->toArray();
     }
@@ -268,7 +355,6 @@ class PlayStationStatsController extends Controller
             ->groupBy('year', 'month')
             ->orderByDesc('year')
             ->orderByDesc('month')
-            ->limit(12)
             ->get()
             ->map(fn ($row) => [
                 'year' => $row->year,

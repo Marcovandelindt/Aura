@@ -135,6 +135,111 @@
         }
     </script>
 
+    <!-- Weekly Top 5 Games -->
+    <div class="card" style="margin-bottom: 2rem;">
+        <div class="card-header">
+            <h3><i class="fas fa-trophy" style="margin-right: 8px;"></i> Weekly Top 5</h3>
+            <p style="margin: 0; font-size: 0.875rem; color: #6b7280;">Most played games per week</p>
+        </div>
+        <div class="card-body">
+            @if(count($stats['weekly_top_games']) > 0)
+                <div class="top-list" style="max-height: 600px; overflow-y: auto;">
+                    @foreach($stats['weekly_top_games'] as $week)
+                        <div style="margin-bottom: 1.5rem;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; padding-bottom: 0.5rem; border-bottom: 2px solid #e5e7eb;">
+                                <div>
+                                    <div style="font-weight: 600; font-size: 1rem;">{{ $week['week_start'] }} - {{ $week['week_end'] }}</div>
+                                    <div style="font-size: 0.75rem; color: #999;">{{ $week['total_sessions'] }} {{ $week['total_sessions'] === 1 ? 'session' : 'sessions' }}</div>
+                                </div>
+                                <div style="font-weight: 700; color: #667eea; font-size: 1.1rem;">{{ $week['total_hours'] }}h</div>
+                            </div>
+                            <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                                @foreach($week['games'] as $index => $game)
+                                    <div style="display: flex; align-items: center; gap: 0.75rem;">
+                                        <div style="width: 24px; height: 24px; border-radius: 50%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 700; flex-shrink: 0;">
+                                            {{ $index + 1 }}
+                                        </div>
+                                        @if($game['image_url'])
+                                            <img src="{{ $game['image_url'] }}" alt="{{ $game['name'] }}" style="width: 36px; height: 36px; border-radius: 4px; object-fit: cover; flex-shrink: 0;">
+                                        @else
+                                            <div style="width: 36px; height: 36px; background: #e5e7eb; border-radius: 4px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                                <i class="fas fa-gamepad" style="color: #999; font-size: 0.75rem;"></i>
+                                            </div>
+                                        @endif
+                                        <div style="flex: 1; min-width: 0;">
+                                            <div style="font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ $game['name'] }}</div>
+                                            <div style="font-size: 0.75rem; color: #666;">{{ $game['platform'] }} &bull; {{ $game['sessions'] }} {{ $game['sessions'] === 1 ? 'session' : 'sessions' }}</div>
+                                        </div>
+                                        <div style="font-weight: 600; color: #667eea; flex-shrink: 0;">
+                                            @if($game['hours'] >= 1)
+                                                {{ $game['hours'] }}h
+                                            @else
+                                                {{ $game['minutes'] }}m
+                                            @endif
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            @else
+                <p class="no-data">No weekly data available yet.</p>
+            @endif
+        </div>
+    </div>
+
+    <!-- Weekly Sessions -->
+    <div class="card" style="margin-bottom: 2rem;">
+        <div class="card-header">
+            <h3><i class="fas fa-list" style="margin-right: 8px;"></i> Weekly Sessions</h3>
+            <p style="margin: 0; font-size: 0.875rem; color: #6b7280;">All gaming sessions per week</p>
+        </div>
+        <div class="card-body">
+            @if(count($stats['weekly_sessions']) > 0)
+                <div class="top-list" style="max-height: 600px; overflow-y: auto;">
+                    @foreach($stats['weekly_sessions'] as $week)
+                        <div style="margin-bottom: 1.5rem;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; padding-bottom: 0.5rem; border-bottom: 2px solid #e5e7eb;">
+                                <div>
+                                    <div style="font-weight: 600; font-size: 1rem;">{{ $week['week_start'] }} - {{ $week['week_end'] }}</div>
+                                    <div style="font-size: 0.75rem; color: #999;">{{ $week['total_sessions'] }} {{ $week['total_sessions'] === 1 ? 'session' : 'sessions' }}</div>
+                                </div>
+                                <div style="font-weight: 700; color: #667eea; font-size: 1.1rem;">{{ $week['total_hours'] }}h</div>
+                            </div>
+                            <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                                @foreach($week['sessions'] as $session)
+                                    <div style="display: flex; align-items: center; gap: 0.75rem;">
+                                        @if($session['image_url'])
+                                            <img src="{{ $session['image_url'] }}" alt="{{ $session['game_name'] }}" style="width: 36px; height: 36px; border-radius: 4px; object-fit: cover; flex-shrink: 0;">
+                                        @else
+                                            <div style="width: 36px; height: 36px; background: #e5e7eb; border-radius: 4px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                                <i class="fas fa-gamepad" style="color: #999; font-size: 0.75rem;"></i>
+                                            </div>
+                                        @endif
+                                        <div style="flex: 1; min-width: 0;">
+                                            <div style="font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ $session['game_name'] }}</div>
+                                            <div style="font-size: 0.75rem; color: #666;">{{ $session['platform'] }} &bull; {{ $session['started_at']->format('D d M, H:i') }}</div>
+                                        </div>
+                                        <div style="font-weight: 600; color: #667eea; flex-shrink: 0;">
+                                            @if($session['hours'] >= 1)
+                                                {{ $session['hours'] }}h
+                                            @else
+                                                {{ $session['duration_minutes'] }}m
+                                            @endif
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            @else
+                <p class="no-data">No session data available yet.</p>
+            @endif
+        </div>
+    </div>
+
     <!-- Overview Statistics -->
     <div class="stats-grid">
         <div class="card">
@@ -540,11 +645,10 @@
         <div class="card">
             <div class="card-header">
                 <h3><i class="fas fa-chart-line" style="margin-right: 8px;"></i> Monthly Activity</h3>
-                <p style="margin: 0; font-size: 0.875rem; color: #6b7280;">Last 12 months</p>
             </div>
             <div class="card-body">
                 @if(count($stats['monthly_stats']) > 0)
-                    <div class="top-list" style="max-height: 300px; overflow-y: auto;">
+                    <div class="top-list" style="max-height: 1000px; overflow-y: auto;">
                         @foreach($stats['monthly_stats'] as $month)
                             <div class="top-list-item" style="padding: 0.5rem 0; border-bottom: 1px solid #eee;">
                                 <div class="item-info">

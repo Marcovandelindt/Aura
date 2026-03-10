@@ -410,11 +410,10 @@
         <div class="card">
             <div class="card-header">
                 <h3><i class="fas fa-chart-line" style="margin-right: 8px;"></i> Monthly Activity</h3>
-                <p style="margin: 0; font-size: 0.875rem; color: #6b7280;">Last 12 months</p>
             </div>
             <div class="card-body">
                 @if(count($stats['monthly_stats']) > 0)
-                    <div class="top-list" style="max-height: 300px; overflow-y: auto;">
+                    <div class="top-list" style="max-height: 1000px; overflow-y: auto;">
                         @foreach($stats['monthly_stats'] as $month)
                             <div class="top-list-item" style="padding: 0.5rem 0; border-bottom: 1px solid #eee;">
                                 <div class="item-info">

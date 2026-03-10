@@ -300,7 +300,7 @@
             <h3><i class="fas fa-chart-bar" style="margin-right: 8px;"></i> Monthly Activity</h3>
         </div>
         <div class="card-body">
-            <div class="top-list">
+            <div class="top-list" style="max-height: 1000px; overflow-y: auto;">
                 @foreach($monthlyStats as $month)
                     <div class="top-list-item" style="padding: 0.5rem 0; border-bottom: 1px solid #eee;">
                         <div class="item-info">
