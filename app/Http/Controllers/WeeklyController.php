@@ -86,7 +86,7 @@ class WeeklyController extends Controller
     private function getGamingData(Carbon $start, Carbon $end): array
     {
         $ps = PlayStationSession::whereBetween('started_at', [$start, $end])->with('game')->get();
-        $ns = NintendoSwitchSession::whereBetween('date', [$start->toDateString(), $end->toDateString()])->with('game')->get();
+        $ns = NintendoSwitchSession::whereBetween('started_at', [$start, $end])->with('game')->get();
 
         $psMinutes = $ps->sum('duration_minutes');
         $nsMinutes = $ns->sum('duration_minutes');

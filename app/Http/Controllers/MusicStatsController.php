@@ -203,7 +203,7 @@ class MusicStatsController extends Controller
     private function getTopListeningTimes(): array
     {
         // Get all played tracks with hour information, converted to Europe/Amsterdam timezone
-        $tracks = PlayedTrack::selectRaw("HOUR(CONVERT_TZ(played_at, 'UTC', 'Europe/Amsterdam')) as hour, COUNT(*) as play_count")
+        $tracks = PlayedTrack::selectRaw("HOUR(DATE_ADD(played_at, INTERVAL 1 HOUR)) as hour, COUNT(*) as play_count")
             ->groupBy('hour')
             ->orderBy('play_count', 'desc')
             ->limit(3)
@@ -212,7 +212,7 @@ class MusicStatsController extends Controller
         $timeStats = [];
 
         foreach ($tracks as $track) {
-            $hour = $track->hour;
+            $hour = (int) ($track->hour ?? 0);
             $timeLabel = $this->getTimeLabel($hour);
             $timeRange = $this->getTimeRange($hour);
 
