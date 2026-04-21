@@ -19,6 +19,7 @@ Route::get('/strava/auth', [StravaAuthController::class, 'redirect'])->name('str
 Route::get('/callback/strava', [StravaAuthController::class, 'callback'])->name('strava.callback');
 Route::prefix('strava')->group(function () {
     Route::get('/', [App\Http\Controllers\Strava\StravaController::class, 'index'])->name('strava.index');
+    Route::get('/{activity}', [App\Http\Controllers\Strava\StravaController::class, 'show'])->name('strava.show');
 });
 
 // Spotify Playback Control Routes (AJAX)

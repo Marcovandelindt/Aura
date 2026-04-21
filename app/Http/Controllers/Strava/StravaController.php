@@ -28,4 +28,9 @@ class StravaController extends Controller
 
         return view('strava.index', compact('isConnected', 'activities', 'stats'));
     }
+
+    public function show(Activity $activity): View
+    {
+        return view('strava.show', compact('activity'));
+    }
 }

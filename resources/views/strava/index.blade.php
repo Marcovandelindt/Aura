@@ -83,13 +83,13 @@
                     </thead>
                     <tbody>
                         @foreach($activities as $activity)
-                            <tr>
+                            <tr style="cursor: pointer;" onclick="window.location='{{ route('strava.show', $activity) }}'">
                                 <td>{{ $activity->start_date_local->format('d M Y') }}</td>
                                 <td>{{ $activity->name }}</td>
                                 <td>{{ $activity->sport_type }}</td>
                                 <td>{{ $activity->distance_in_km }} km</td>
                                 <td>{{ $activity->moving_time_pretty }}</td>
-                                <td>{{ $activity->total_elevation_gain }} m</td>
+                                <td>{{ round($activity->total_elevation_gain) }} m</td>
                                 <td>
                                     @if($activity->average_speed)
                                         {{ round($activity->average_speed * 3.6, 1) }} km/h
