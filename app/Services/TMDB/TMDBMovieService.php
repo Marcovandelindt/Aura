@@ -21,7 +21,7 @@ class TMDBMovieService
 
         return Cache::remember($cacheKey, config('tmdb.cache_duration'), function () use ($query, $page) {
             $response = $this->searchRepository->searchMovies($query, [
-                'language' => config('tmdb.language'),
+                'language' => 'en-US',
                 'page' => $page,
             ]);
 

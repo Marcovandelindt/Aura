@@ -15,6 +15,7 @@ class TvSeries extends Model
     protected $fillable = [
         'tmdb_id',
         'name',
+        'name_en',
         'original_name',
         'overview',
         'poster_path',

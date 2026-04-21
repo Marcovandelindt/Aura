@@ -9,6 +9,8 @@ use Chiiya\Tmdb\Repositories\SearchRepository;
 use Chiiya\Tmdb\Repositories\TvEpisodeRepository;
 use Chiiya\Tmdb\Repositories\TvSeasonRepository;
 use Chiiya\Tmdb\Repositories\TvShowRepository;
+use Illuminate\Http\Client\PendingRequest;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -18,7 +20,18 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        $this->app->singleton(ClientInterface::class, TmdbClient::class);
+        $this->app->singleton(ClientInterface::class, function () {
+            return new class extends TmdbClient {
+                protected function createClient(): PendingRequest
+                {
+                    return Http::acceptJson()
+                        ->withoutVerifying()
+                        ->retry(2)
+                        ->baseUrl('https://api.themoviedb.org/3/')
+                        ->withToken(config('tmdb.token'));
+                }
+            };
+        });
 
         $this->app->singleton(MovieRepository::class, function ($app) {
             return new MovieRepository($app->make(ClientInterface::class));

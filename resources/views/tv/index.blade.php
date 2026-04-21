@@ -58,7 +58,7 @@
 
         <div class="games-grid" id="seriesGrid">
             @foreach($series as $show)
-                <a href="{{ route('tv.show', $show->id) }}" class="game-card tv-card series-item" data-series-name="{{ strtolower($show->name) }}">
+                <a href="{{ route('tv.show', $show->id) }}" class="game-card tv-card series-item" data-series-name="{{ strtolower($show->name) }}" data-series-original="{{ strtolower($show->original_name ?? '') }}" data-series-name-en="{{ strtolower($show->name_en ?? '') }}">
                     @if($show->poster_url)
                         <div class="game-cover movie-poster">
                             <img src="{{ $show->poster_url }}" alt="{{ $show->name }}">
@@ -267,8 +267,10 @@ function filterSeries() {
 
     seriesItems.forEach(item => {
         const seriesName = item.getAttribute('data-series-name');
+        const originalName = item.getAttribute('data-series-original');
+        const nameEn = item.getAttribute('data-series-name-en');
 
-        if (seriesName.includes(searchTerm)) {
+        if (seriesName.includes(searchTerm) || originalName.includes(searchTerm) || nameEn.includes(searchTerm)) {
             item.style.display = '';
             visibleCount++;
         } else {

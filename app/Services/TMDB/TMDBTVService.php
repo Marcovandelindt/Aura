@@ -25,7 +25,7 @@ class TMDBTVService
 
         return Cache::remember($cacheKey, config('tmdb.cache_duration'), function () use ($query, $page) {
             $response = $this->searchRepository->searchTv($query, [
-                'language' => config('tmdb.language'),
+                'language' => 'en-US',
                 'page' => $page,
             ]);
 
@@ -58,6 +58,19 @@ class TMDBTVService
         });
     }
 
+    public function getEnglishName(int $tmdbId): ?string
+    {
+        $cacheKey = "tmdb_tv_details_en_{$tmdbId}";
+
+        return Cache::remember($cacheKey, config('tmdb.cache_duration'), function () use ($tmdbId) {
+            $result = $this->tvShowRepository->getTvShow($tmdbId, [
+                'language' => 'en-US',
+            ]);
+
+            return json_decode(json_encode($result), true)['name'] ?? null;
+        });
+    }
+
     public function getSeasonDetails(int $seriesTmdbId, int $seasonNumber): array
     {
         $cacheKey = "tmdb_tv_season_{$seriesTmdbId}_{$seasonNumber}";
@@ -74,11 +87,13 @@ class TMDBTVService
     public function createFromTMDB(int $tmdbId): TvSeries
     {
         $details = $this->getDetails($tmdbId);
+        $nameEn = $this->getEnglishName($tmdbId);
 
         $series = TvSeries::updateOrCreate(
             ['tmdb_id' => $tmdbId],
             [
                 'name' => $details['name'],
+                'name_en' => $nameEn !== $details['name'] ? $nameEn : null,
                 'original_name' => $details['original_name'] ?? null,
                 'overview' => $details['overview'] ?? null,
                 'poster_path' => $details['poster_path'] ?? null,
