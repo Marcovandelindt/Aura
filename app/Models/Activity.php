@@ -41,6 +41,11 @@ class Activity extends Model
         ];
     }
 
+    public function getCleanTimezoneAttribute(): string
+    {
+        return preg_replace('/^\(.*?\)\s*/', '', $this->timezone ?? 'UTC');
+    }
+
     public function getDistanceInKmAttribute(): float
     {
         return round($this->distance / 1000, 2);

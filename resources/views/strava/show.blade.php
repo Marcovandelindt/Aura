@@ -32,11 +32,19 @@
                         str_contains(strtolower($activity->sport_type), 'ride') => 'bicycle',
                         default => 'dumbbell'
                     } }}"></i>
-                    {{ $activity->sport_type }} &mdash; {{ $activity->start_date_local->format('d M Y, H:i') }}
+                    {{ $activity->sport_type }} &mdash; {{ $activity->start_date_local->format('d M Y') }}
                 </h3>
             </div>
             <div class="card-body">
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                    <div>
+                        <div style="color: var(--text-muted); font-size: 0.8rem; margin-bottom: 0.25rem;">Start</div>
+                        <div style="font-size: 1.5rem; font-weight: 700;">{{ $activity->start_date_local->format('H:i') }}</div>
+                    </div>
+                    <div>
+                        <div style="color: var(--text-muted); font-size: 0.8rem; margin-bottom: 0.25rem;">End</div>
+                        <div style="font-size: 1.5rem; font-weight: 700;">{{ $activity->start_date_local->addSeconds($activity->elapsed_time)->format('H:i') }}</div>
+                    </div>
                     <div>
                         <div style="color: var(--text-muted); font-size: 0.8rem; margin-bottom: 0.25rem;">Distance</div>
                         <div style="font-size: 1.5rem; font-weight: 700;">{{ $activity->distance_in_km }} km</div>
@@ -112,6 +120,39 @@
                     </div>
                 @endif
             </div>
+        </div>
+    </div>
+
+    <!-- Spotify Tracks -->
+    <div class="card">
+        <div class="card-header">
+            <h3><i class="fab fa-spotify"></i> Listened During Activity</h3>
+        </div>
+        <div class="card-body">
+            @if($tracks->isEmpty())
+                <p style="text-align: center; color: var(--text-muted); padding: 1rem 0;">
+                    No Spotify tracks found between {{ $activity->start_date_local->format('H:i') }} and {{ $activity->start_date_local->addSeconds($activity->elapsed_time)->format('H:i') }}.
+                </p>
+            @else
+                <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                    @foreach($tracks as $track)
+                        <a href="{{ route('tracks.show', $track->spotify_track_id) }}" style="display: flex; align-items: center; gap: 1rem; text-decoration: none; color: inherit;">
+                            @if($track->album_image_url)
+                                <img src="{{ $track->album_image_url }}" alt="{{ $track->album_name }}" style="width: 48px; height: 48px; border-radius: 0.25rem; flex-shrink: 0;">
+                            @endif
+                            <div style="flex: 1; min-width: 0;">
+                                <div style="font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ $track->track_name }}</div>
+                                <div style="color: var(--text-muted); font-size: 0.875rem;">{{ $track->artists_string }}</div>
+                            </div>
+                            <div style="font-size: 0.8rem; flex-shrink: 0;">{{ $track->played_at->setTimezone($activity->clean_timezone)->format('H:i') }}</div>
+                            <div style="font-size: 0.8rem; flex-shrink: 0;">{{ $track->formatted_duration }}</div>
+                        </a>
+                    @endforeach
+                </div>
+                <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border-color); color: var(--text-muted); font-size: 0.875rem;">
+                    {{ $tracks->count() }} {{ Str::plural('track', $tracks->count()) }} &mdash; {{ round($tracks->sum('duration_ms') / 60000) }} min
+                </div>
+            @endif
         </div>
     </div>
 </div>
