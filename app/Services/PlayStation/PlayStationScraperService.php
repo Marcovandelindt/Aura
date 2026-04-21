@@ -32,7 +32,7 @@ class PlayStationScraperService
     {
         $url = self::BASE_URL."/profile/{$username}/playtimes";
 
-        $response = Http::withHeaders([
+        $response = Http::withoutVerifying()->withHeaders([
             'Cookie' => '_my_app_session='.$this->sessionCookie,
         ])->get($url);
 
@@ -72,7 +72,7 @@ class PlayStationScraperService
     {
         $url = self::BASE_URL."/profile/{$username}";
 
-        $response = Http::get($url);
+        $response = Http::withoutVerifying()->get($url);
 
         if (! $response->successful()) {
             return [
@@ -445,7 +445,7 @@ class PlayStationScraperService
     {
         $url = self::BASE_URL."/profile/{$username}/playtimes?page={$page}";
 
-        $response = Http::withHeaders([
+        $response = Http::withoutVerifying()->withHeaders([
             'Cookie' => '_my_app_session='.$this->sessionCookie,
         ])->get($url);
 
