@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Spotify\SpotifyAuthController;
+use App\Http\Controllers\Strava\StravaAuthController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [App\Http\Controllers\HomeController::class, 'index'])->name('home.index');
@@ -10,6 +11,15 @@ Route::get('/', [App\Http\Controllers\HomeController::class, 'index'])->name('ho
  */
 Route::get('/spotify/auth', [SpotifyAuthController::class, 'redirect'])->name('spotify.auth');
 Route::get('/callback/spotify', [SpotifyAuthController::class, 'callback'])->name('spotify.callback');
+
+/**
+ * Strava Routes
+ */
+Route::get('/strava/auth', [StravaAuthController::class, 'redirect'])->name('strava.auth');
+Route::get('/callback/strava', [StravaAuthController::class, 'callback'])->name('strava.callback');
+Route::prefix('strava')->group(function () {
+    Route::get('/', [App\Http\Controllers\Strava\StravaController::class, 'index'])->name('strava.index');
+});
 
 // Spotify Playback Control Routes (AJAX)
 Route::middleware(['spotify.connected'])->prefix('spotify')->group(function () {
