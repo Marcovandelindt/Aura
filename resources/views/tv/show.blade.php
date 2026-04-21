@@ -273,6 +273,18 @@
 <script>
 // Restore season states on page load
 document.addEventListener('DOMContentLoaded', function() {
+    ['watchedAt', 'watchedYear'].forEach(id => {
+        document.getElementById(id)?.addEventListener('keydown', e => {
+            if (e.key === 'Enter') submitWatch();
+        });
+    });
+
+    ['bulkWatchedAt', 'bulkWatchedYear'].forEach(id => {
+        document.getElementById(id)?.addEventListener('keydown', e => {
+            if (e.key === 'Enter') submitBulkWatch();
+        });
+    });
+
     const openSeasons = JSON.parse(localStorage.getItem('openSeasons_{{ $series->id }}') || '[]');
     openSeasons.forEach(seasonId => {
         const content = document.getElementById(`season-${seasonId}`);

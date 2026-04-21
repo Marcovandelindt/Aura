@@ -32,7 +32,9 @@ class TvSeriesController extends Controller
                 $show->total_hours = round($totalMinutes / 60, 1);
 
                 return $show;
-            });
+            })
+            ->sortByDesc('total_watches')
+            ->values();
 
         return view('tv.index', compact('series'));
     }
