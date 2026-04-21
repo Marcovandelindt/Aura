@@ -94,6 +94,33 @@
                     </div>
                 </div>
 
+                @if($activity->weather_temp !== null)
+                    <div style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color);">
+                        <div style="color: var(--text-muted); font-size: 0.8rem; margin-bottom: 0.75rem;">Weather</div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                <i class="fas fa-{{ \App\Services\Strava\WeatherService::conditionIcon($activity->weather_condition_code ?? 0) }}" style="font-size: 1.25rem; color: #f59e0b; width: 20px;"></i>
+                                <div>
+                                    <div style="font-weight: 600;">{{ $activity->weather_condition }}</div>
+                                    <div style="color: var(--text-muted); font-size: 0.8rem;">Condition</div>
+                                </div>
+                            </div>
+                            <div>
+                                <div style="font-weight: 600;">{{ $activity->weather_temp }}°C <span style="color: var(--text-muted); font-size: 0.8rem;">(feels {{ $activity->weather_feels_like }}°C)</span></div>
+                                <div style="color: var(--text-muted); font-size: 0.8rem;">Temperature</div>
+                            </div>
+                            <div>
+                                <div style="font-weight: 600;">{{ $activity->weather_wind_speed }} km/h</div>
+                                <div style="color: var(--text-muted); font-size: 0.8rem;">Wind speed</div>
+                            </div>
+                            <div>
+                                <div style="font-weight: 600;">{{ $activity->weather_precipitation }} mm</div>
+                                <div style="color: var(--text-muted); font-size: 0.8rem;">Precipitation</div>
+                            </div>
+                        </div>
+                    </div>
+                @endif
+
                 @if($activity->description)
                     <div style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color);">
                         <div style="color: var(--text-muted); font-size: 0.8rem; margin-bottom: 0.5rem;">Description</div>

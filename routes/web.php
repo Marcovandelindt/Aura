@@ -5,6 +5,7 @@ use App\Http\Controllers\Strava\StravaAuthController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [App\Http\Controllers\HomeController::class, 'index'])->name('home.index');
+Route::get('/weekly', [App\Http\Controllers\WeeklyController::class, 'index'])->name('weekly.index');
 
 /**
  * Spotify Routes

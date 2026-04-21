@@ -25,6 +25,12 @@ class Activity extends Model
         'calories',
         'description',
         'map_polyline',
+        'weather_temp',
+        'weather_feels_like',
+        'weather_precipitation',
+        'weather_wind_speed',
+        'weather_condition',
+        'weather_condition_code',
     ];
 
     protected function casts(): array

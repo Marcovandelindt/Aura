@@ -106,6 +106,13 @@
             <li class="nav-section">
                 <span class="nav-section-title">Productivity</span>
             </li>
+
+            <li class="nav-item">
+                <a href="{{ route('weekly.index') }}" class="nav-link {{ request()->routeIs('weekly.*') ? 'active' : '' }}">
+                    <i class="fas fa-calendar-week nav-icon"></i>
+                    <span class="nav-text">Weekly</span>
+                </a>
+            </li>
             
             <li class="nav-item">
                 <a href="#" class="nav-link">
