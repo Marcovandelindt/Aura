@@ -12,6 +12,14 @@
                 </ul>
             </div>
             <div style="display: flex; gap: 1rem;">
+                <a href="{{ route('strava.heatmap') }}" class="btn btn-secondary">
+                    <i class="fas fa-map"></i>
+                    Heatmap
+                </a>
+                <a href="{{ route('strava.stats') }}" class="btn btn-secondary">
+                    <i class="fas fa-chart-bar"></i>
+                    Statistics
+                </a>
                 @if(!$isConnected)
                     <a href="{{ route('strava.auth') }}" class="btn btn-primary">
                         <i class="fas fa-link"></i>
@@ -57,6 +65,29 @@
             <div class="stat-label">Total Elevation</div>
         </div>
     </div>
+
+    <!-- Filter -->
+    @if($types->isNotEmpty())
+    <div class="card" style="margin-bottom: 1.5rem;">
+        <div class="card-body">
+            <form method="GET" action="{{ route('strava.index') }}" style="display: flex; gap: 1rem; align-items: flex-end;">
+                <div>
+                    <label style="display: block; font-size: 0.875rem; color: var(--text-muted); margin-bottom: 0.25rem;">Type</label>
+                    <select name="type" class="form-control">
+                        <option value="">All types</option>
+                        @foreach($types as $type)
+                            <option value="{{ $type }}" {{ request('type') === $type ? 'selected' : '' }}>{{ $type }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary"><i class="fas fa-filter"></i> Filter</button>
+                @if(request('type'))
+                    <a href="{{ route('strava.index') }}" class="btn btn-secondary">Clear</a>
+                @endif
+            </form>
+        </div>
+    </div>
+    @endif
 
     <!-- Activities Table -->
     <div class="card">

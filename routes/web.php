@@ -19,6 +19,8 @@ Route::get('/strava/auth', [StravaAuthController::class, 'redirect'])->name('str
 Route::get('/callback/strava', [StravaAuthController::class, 'callback'])->name('strava.callback');
 Route::prefix('strava')->group(function () {
     Route::get('/', [App\Http\Controllers\Strava\StravaController::class, 'index'])->name('strava.index');
+    Route::get('/stats', [App\Http\Controllers\Strava\StravaStatsController::class, 'index'])->name('strava.stats');
+    Route::get('/map/heatmap', [App\Http\Controllers\Strava\StravaController::class, 'heatmap'])->name('strava.heatmap');
     Route::get('/{activity}', [App\Http\Controllers\Strava\StravaController::class, 'show'])->name('strava.show');
 });
 

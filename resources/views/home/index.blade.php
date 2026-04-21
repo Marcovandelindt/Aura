@@ -207,8 +207,29 @@
                         </div>
                     @endif
 
+                    {{-- Last Strava Activity --}}
+                    @if($lastStravaActivity)
+                        <div class="activity-item">
+                            <div class="activity-icon" style="background: linear-gradient(135deg, #fc4c02 0%, #e63e00 100%);">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M15.387 17.944l-2.089-4.116h-3.065L15.387 24l5.15-10.172h-3.066m-7.008-5.599l2.836 5.598h4.172L10.463 0l-7 13.828h4.169"/>
+                                </svg>
+                            </div>
+                            <div class="activity-content">
+                                <p>
+                                    {{ $lastStravaActivity->sport_type }}:
+                                    <a href="{{ route('strava.show', $lastStravaActivity) }}" class="activity-link">
+                                        <strong>{{ $lastStravaActivity->name }}</strong>
+                                    </a>
+                                    &mdash; {{ $lastStravaActivity->distance_in_km }} km
+                                </p>
+                                <span class="activity-time">{{ $lastStravaActivity->start_date->diffForHumans() }}</span>
+                            </div>
+                        </div>
+                    @endif
+
                     {{-- Empty state if no activities --}}
-                    @if(!$lastPlayedTrack && !$lastEpisodeWatch && !$lastGameSession && !$lastHealthEntry && !$lastExpense)
+                    @if(!$lastPlayedTrack && !$lastEpisodeWatch && !$lastGameSession && !$lastHealthEntry && !$lastExpense && !$lastStravaActivity)
                         <div class="activity-item">
                             <div class="activity-icon">
                                 <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">

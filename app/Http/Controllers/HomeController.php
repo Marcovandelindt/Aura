@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Activity;
 use App\Models\EpisodeWatch;
 use App\Models\Expense;
 use App\Models\HealthEntry;
@@ -39,6 +40,7 @@ class HomeController extends Controller
         $lastGameSession = $this->getLastGameSession();
         $lastHealthEntry = $this->getLastHealthEntry();
         $lastExpense = $this->getLastExpense();
+        $lastStravaActivity = $this->getLastStravaActivity();
 
         return view('home.index', compact(
             'spotifyConnected',
@@ -48,7 +50,8 @@ class HomeController extends Controller
             'lastEpisodeWatch',
             'lastGameSession',
             'lastHealthEntry',
-            'lastExpense'
+            'lastExpense',
+            'lastStravaActivity'
         ));
     }
 
@@ -155,6 +158,11 @@ class HomeController extends Controller
             'change_text' => ($change >= 0 ? '+' : '').round($change).'% vs vorige week',
             'change_class' => $change > 10 ? 'negative' : ($change < -10 ? 'positive' : 'neutral'),
         ];
+    }
+
+    private function getLastStravaActivity(): ?Activity
+    {
+        return Activity::orderByDesc('start_date')->first();
     }
 
     /**
