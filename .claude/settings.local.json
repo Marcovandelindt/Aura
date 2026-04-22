@@ -21,7 +21,9 @@
       "Bash(ls:*)",
       "Bash(wc:*)",
       "Bash(grep:*)",
-      "Bash(php -l:*)"
+      "Bash(php -l:*)",
+      "Bash(mv \"app/Enums/Enums/JobApplicationStatus.php\" \"app/Enums/JobApplicationStatus.php\")",
+      "Bash(rmdir \"app/Enums/Enums\")"
     ],
     "deny": []
   }

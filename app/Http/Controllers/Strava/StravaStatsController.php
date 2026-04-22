@@ -20,6 +20,10 @@ class StravaStatsController extends Controller
         $calendarData = $this->getCalendarData();
         $yearComparison = $this->getYearComparison();
         $monthlyData = $this->getMonthlyDistance();
+        $paceZones = $this->getPaceZones();
+        $paceProgression = $this->getPaceProgression();
+        $timeOfDay = $this->getTimeOfDayDistribution();
+        $bestPerformances = $this->getBestPerformancesByDistance();
 
         return view('strava.stats', compact(
             'records',
@@ -30,6 +34,10 @@ class StravaStatsController extends Controller
             'calendarData',
             'yearComparison',
             'monthlyData',
+            'paceZones',
+            'paceProgression',
+            'timeOfDay',
+            'bestPerformances',
         ));
     }
 
@@ -116,8 +124,7 @@ class StravaStatsController extends Controller
             return ['current' => 0, 'longest' => 0, 'total_active_days' => 0];
         }
 
-        $isConsecutive = fn (string $a, string $b): bool =>
-            Carbon::parse($a)->addDay()->format('Y-m-d') === $b;
+        $isConsecutive = fn (string $a, string $b): bool => Carbon::parse($a)->addDay()->format('Y-m-d') === $b;
 
         // Longest streak
         $longestStreak = 1;
@@ -208,5 +215,137 @@ class StravaStatsController extends Controller
             'labels' => $rows->map(fn ($r) => Carbon::parse($r->month.'-01')->format('M Y'))->toArray(),
             'km' => $rows->map(fn ($r) => round($r->total_km, 1))->toArray(),
         ];
+    }
+
+    private function getPaceZones(): array
+    {
+        $activities = Activity::query()
+            ->whereIn('sport_type', ['Run', 'TrailRun', 'Walk'])
+            ->where('distance', '>', 500)
+            ->where('average_speed', '>', 0)
+            ->get(['average_speed', 'moving_time']);
+
+        if ($activities->isEmpty()) {
+            return ['labels' => [], 'counts' => [], 'hours' => []];
+        }
+
+        $zones = [
+            ['label' => 'Easy (>8 min/km)', 'min_speed' => 0, 'max_speed' => 2.083, 'count' => 0, 'time' => 0],
+            ['label' => 'Moderate (6–8 min/km)', 'min_speed' => 2.083, 'max_speed' => 2.778, 'count' => 0, 'time' => 0],
+            ['label' => 'Tempo (5–6 min/km)', 'min_speed' => 2.778, 'max_speed' => 3.333, 'count' => 0, 'time' => 0],
+            ['label' => 'Fast (<5 min/km)', 'min_speed' => 3.333, 'max_speed' => PHP_FLOAT_MAX, 'count' => 0, 'time' => 0],
+        ];
+
+        foreach ($activities as $activity) {
+            foreach ($zones as &$zone) {
+                if ($activity->average_speed >= $zone['min_speed'] && $activity->average_speed < $zone['max_speed']) {
+                    $zone['count']++;
+                    $zone['time'] += $activity->moving_time;
+                    break;
+                }
+            }
+            unset($zone);
+        }
+
+        return [
+            'labels' => array_column($zones, 'label'),
+            'counts' => array_column($zones, 'count'),
+            'hours' => array_map(fn ($z) => round($z['time'] / 3600, 1), $zones),
+        ];
+    }
+
+    private function getPaceProgression(): array
+    {
+        $rows = Activity::query()
+            ->whereIn('sport_type', ['Run', 'TrailRun'])
+            ->where('distance', '>', 1000)
+            ->where('average_speed', '>', 0)
+            ->where('start_date_local', '>=', now()->subMonths(11)->startOfMonth())
+            ->select(
+                DB::raw('DATE_FORMAT(start_date_local, "%Y-%m") as month'),
+                DB::raw('AVG(average_speed) as avg_speed'),
+            )
+            ->groupBy('month')
+            ->orderBy('month')
+            ->get();
+
+        return [
+            'labels' => $rows->map(fn ($r) => Carbon::parse($r->month.'-01')->format('M Y'))->toArray(),
+            'paces_decimal' => $rows->map(fn ($r) => round(1000 / $r->avg_speed / 60, 4))->toArray(),
+            'pace_labels' => $rows->map(function ($r) {
+                $secPerKm = 1000 / $r->avg_speed;
+                $min = intdiv((int) $secPerKm, 60);
+                $sec = str_pad((int) round($secPerKm % 60), 2, '0', STR_PAD_LEFT);
+
+                return "{$min}:{$sec}";
+            })->toArray(),
+        ];
+    }
+
+    private function getTimeOfDayDistribution(): array
+    {
+        $rows = Activity::query()
+            ->selectRaw('HOUR(start_date_local) as hour, COUNT(*) as count')
+            ->groupBy('hour')
+            ->orderBy('hour')
+            ->pluck('count', 'hour');
+
+        $slots = [
+            'Night (0–6h)' => 0,
+            'Morning (6–12h)' => 0,
+            'Afternoon (12–18h)' => 0,
+            'Evening (18–24h)' => 0,
+        ];
+
+        foreach ($rows as $hour => $count) {
+            if ($hour < 6) {
+                $slots['Night (0–6h)'] += $count;
+            } elseif ($hour < 12) {
+                $slots['Morning (6–12h)'] += $count;
+            } elseif ($hour < 18) {
+                $slots['Afternoon (12–18h)'] += $count;
+            } else {
+                $slots['Evening (18–24h)'] += $count;
+            }
+        }
+
+        return [
+            'labels' => array_keys($slots),
+            'counts' => array_values($slots),
+        ];
+    }
+
+    private function getBestPerformancesByDistance(): array
+    {
+        $distances = [
+            ['label' => '5 km', 'min' => 4500, 'max' => 5500],
+            ['label' => '10 km', 'min' => 9000, 'max' => 11000],
+            ['label' => 'Half Marathon', 'min' => 19500, 'max' => 22500],
+            ['label' => 'Marathon', 'min' => 40000, 'max' => 44000],
+        ];
+
+        $results = [];
+        foreach ($distances as $dist) {
+            $activity = Activity::query()
+                ->whereIn('sport_type', ['Run', 'TrailRun'])
+                ->whereBetween('distance', [$dist['min'], $dist['max']])
+                ->orderByDesc('average_speed')
+                ->first();
+
+            if ($activity) {
+                $secPerKm = 1000 / $activity->average_speed;
+                $min = intdiv((int) $secPerKm, 60);
+                $sec = str_pad((int) round($secPerKm % 60), 2, '0', STR_PAD_LEFT);
+
+                $results[] = [
+                    'label' => $dist['label'],
+                    'activity' => $activity,
+                    'pace' => "{$min}:{$sec} /km",
+                    'distance_km' => round($activity->distance / 1000, 2),
+                ];
+            }
+        }
+
+        return $results;
     }
 }

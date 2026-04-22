@@ -21,7 +21,8 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->singleton(ClientInterface::class, function () {
-            return new class extends TmdbClient {
+            return new class extends TmdbClient
+            {
                 protected function createClient(): PendingRequest
                 {
                     return Http::acceptJson()
@@ -59,6 +60,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        if ($this->app->isLocal()) {
+            Http::globalOptions(['verify' => false]);
+        }
+
         view()->composer('layouts.app', \App\View\Composers\SpotifyComposer::class);
         view()->composer('*', \App\View\Composers\ThemeComposer::class);
     }

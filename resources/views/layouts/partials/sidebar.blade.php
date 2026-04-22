@@ -108,6 +108,13 @@
             </li>
 
             <li class="nav-item">
+                <a href="{{ route('jobs.index') }}" class="nav-link {{ request()->routeIs('jobs.*') ? 'active' : '' }}">
+                    <i class="fas fa-briefcase nav-icon"></i>
+                    <span class="nav-text">Job Applications</span>
+                </a>
+            </li>
+
+            <li class="nav-item">
                 <a href="{{ route('weekly.index') }}" class="nav-link {{ request()->routeIs('weekly.*') ? 'active' : '' }}">
                     <i class="fas fa-calendar-week nav-icon"></i>
                     <span class="nav-text">Weekly</span>

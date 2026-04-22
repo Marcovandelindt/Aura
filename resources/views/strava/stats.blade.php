@@ -181,6 +181,29 @@
         </div>
     </div>
 
+    <!-- Best Performances by Distance -->
+    @if(count($bestPerformances) > 0)
+    <div class="card" style="margin-bottom: 1.5rem;">
+        <div class="card-header"><h3><i class="fas fa-stopwatch"></i> Best Performances by Distance</h3></div>
+        <div class="card-body">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.5rem;">
+                @foreach($bestPerformances as $perf)
+                    <a href="{{ route('strava.show', $perf['activity']) }}" style="text-decoration: none; color: inherit;">
+                        <div style="padding: 1rem; border: 1px solid var(--border-color); border-radius: 0.5rem;">
+                            <div style="color: var(--text-muted); font-size: 0.8rem; margin-bottom: 0.25rem;"><i class="fas fa-running"></i> {{ $perf['label'] }}</div>
+                            <div style="font-size: 1.5rem; font-weight: 700;">{{ $perf['pace'] }}</div>
+                            <div style="color: var(--text-muted); font-size: 0.8rem; margin-top: 0.25rem;">
+                                {{ $perf['distance_km'] }} km &mdash; {{ $perf['activity']->name }}
+                            </div>
+                            <div style="color: var(--text-muted); font-size: 0.75rem;">{{ $perf['activity']->start_date_local->format('d M Y') }}</div>
+                        </div>
+                    </a>
+                @endforeach
+            </div>
+        </div>
+    </div>
+    @endif
+
     <!-- Year Comparison -->
     @if(count($yearComparison) > 1)
     <div class="card" style="margin-bottom: 1.5rem;">
@@ -248,6 +271,40 @@
             </div>
         </div>
     </div>
+
+    @if(count($paceZones['labels']) > 0)
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
+        <div class="card">
+            <div class="card-header"><h3><i class="fas fa-tachometer-alt"></i> Pace Zones (Run / Walk)</h3></div>
+            <div class="card-body">
+                <canvas id="paceZonesChart" height="120"></canvas>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header"><h3><i class="fas fa-clock"></i> Time of Day</h3></div>
+            <div class="card-body" style="display: flex; align-items: center; justify-content: center;">
+                <canvas id="timeOfDayChart" height="180"></canvas>
+            </div>
+        </div>
+    </div>
+    @else
+    <div class="card" style="margin-bottom: 1.5rem;">
+        <div class="card-header"><h3><i class="fas fa-clock"></i> Time of Day</h3></div>
+        <div class="card-body" style="display: flex; align-items: center; justify-content: center;">
+            <canvas id="timeOfDayChart" height="100"></canvas>
+        </div>
+    </div>
+    @endif
+
+    @if(count($paceProgression['labels']) > 1)
+    <div class="card" style="margin-bottom: 1.5rem;">
+        <div class="card-header"><h3><i class="fas fa-chart-line"></i> Pace Progression — Running (last 12 months)</h3></div>
+        <div class="card-body">
+            <canvas id="paceProgressionChart" height="80"></canvas>
+        </div>
+    </div>
+    @endif
 
 </div>
 @endsection
@@ -345,5 +402,100 @@
             scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
         }
     });
+
+    @if(count($paceZones['labels']) > 0)
+    const paceZoneColors = ['#60a5fa', '#34d399', '#fbbf24', '#fc4c02'];
+    new Chart(document.getElementById('paceZonesChart'), {
+        type: 'bar',
+        data: {
+            labels: @json($paceZones['labels']),
+            datasets: [{
+                label: 'Hours',
+                data: @json($paceZones['hours']),
+                backgroundColor: paceZoneColors,
+                borderRadius: 4,
+            }]
+        },
+        options: {
+            indexAxis: 'y',
+            responsive: true,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: (ctx) => {
+                            const counts = @json($paceZones['counts']);
+                            return ` ${ctx.raw}h — ${counts[ctx.dataIndex]} activities`;
+                        }
+                    }
+                }
+            },
+            scales: { x: { beginAtZero: true, ticks: { callback: v => v + 'h' } } }
+        }
+    });
+    @endif
+
+    const timeOfDayColors = ['#6366f1', '#fc4c02', '#fbbf24', '#f97316'];
+    new Chart(document.getElementById('timeOfDayChart'), {
+        type: 'doughnut',
+        data: {
+            labels: @json($timeOfDay['labels']),
+            datasets: [{ data: @json($timeOfDay['counts']), backgroundColor: timeOfDayColors, borderWidth: 2 }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { position: 'bottom' },
+                tooltip: {
+                    callbacks: {
+                        label: ctx => ` ${ctx.label}: ${ctx.raw} activities`
+                    }
+                }
+            }
+        }
+    });
+
+    @if(count($paceProgression['labels']) > 1)
+    const paceLabels = @json($paceProgression['pace_labels']);
+    new Chart(document.getElementById('paceProgressionChart'), {
+        type: 'line',
+        data: {
+            labels: @json($paceProgression['labels']),
+            datasets: [{
+                label: 'Avg pace',
+                data: @json($paceProgression['paces_decimal']),
+                borderColor: stravaOrange,
+                backgroundColor: 'rgba(252,76,2,0.1)',
+                borderWidth: 2,
+                pointRadius: 4,
+                fill: true,
+                tension: 0.3,
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: ctx => ` ${paceLabels[ctx.dataIndex]} /km`
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    reverse: true,
+                    ticks: {
+                        callback: (val) => {
+                            const min = Math.floor(val);
+                            const sec = String(Math.round((val - min) * 60)).padStart(2, '0');
+                            return `${min}:${sec}`;
+                        }
+                    }
+                }
+            }
+        }
+    });
+    @endif
 </script>
 @endpush

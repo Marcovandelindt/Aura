@@ -210,6 +210,11 @@ Route::prefix('health')->group(function () {
 });
 
 /**
+ * Job Applications Routes
+ */
+Route::resource('jobs', App\Http\Controllers\JobApplicationController::class)->except(['show']);
+
+/**
  * Expenses Routes
  */
 Route::prefix('expenses')->group(function () {
