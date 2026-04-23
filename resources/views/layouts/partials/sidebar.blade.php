@@ -76,6 +76,13 @@
             </li>
             
             <li class="nav-item">
+                <a href="{{ route('journal.index') }}" class="nav-link {{ request()->routeIs('journal.*') ? 'active' : '' }}">
+                    <i class="fas fa-book nav-icon"></i>
+                    <span class="nav-text">Journal</span>
+                </a>
+            </li>
+
+            <li class="nav-item">
                 <a href="#" class="nav-link">
                     <i class="fas fa-heart nav-icon"></i>
                     <span class="nav-text">Mood Tracker</span>

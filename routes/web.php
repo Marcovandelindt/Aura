@@ -231,3 +231,23 @@ Route::prefix('expenses')->group(function () {
         Route::delete('/{category}', [App\Http\Controllers\ExpenseCategoriesController::class, 'destroy'])->name('expenses.categories.destroy');
     });
 });
+
+/**
+ * Journal Routes
+ */
+Route::prefix('journal')->group(function () {
+    Route::get('/', [App\Http\Controllers\JournalController::class, 'index'])->name('journal.index');
+    Route::get('/stats', [App\Http\Controllers\JournalStatsController::class, 'index'])->name('journal.stats');
+    Route::get('/create', [App\Http\Controllers\JournalController::class, 'create'])->name('journal.create');
+    Route::post('/', [App\Http\Controllers\JournalController::class, 'store'])->name('journal.store');
+    Route::get('/{journalEntry}', [App\Http\Controllers\JournalController::class, 'show'])->name('journal.show');
+    Route::get('/{journalEntry}/edit', [App\Http\Controllers\JournalController::class, 'edit'])->name('journal.edit');
+    Route::put('/{journalEntry}', [App\Http\Controllers\JournalController::class, 'update'])->name('journal.update');
+    Route::delete('/{journalEntry}', [App\Http\Controllers\JournalController::class, 'destroy'])->name('journal.destroy');
+});
+
+Route::prefix('journal-tags')->group(function () {
+    Route::post('/', [App\Http\Controllers\JournalTagController::class, 'store'])->name('journal.tags.store');
+    Route::put('/{journalTag}', [App\Http\Controllers\JournalTagController::class, 'update'])->name('journal.tags.update');
+    Route::delete('/{journalTag}', [App\Http\Controllers\JournalTagController::class, 'destroy'])->name('journal.tags.destroy');
+});
