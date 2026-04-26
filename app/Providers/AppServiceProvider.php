@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Services\Lastfm\LastfmService;
 use Chiiya\LaravelTmdb\TmdbClient;
 use Chiiya\Tmdb\Http\ClientInterface;
 use Chiiya\Tmdb\Repositories\MovieRepository;
@@ -10,6 +11,7 @@ use Chiiya\Tmdb\Repositories\TvEpisodeRepository;
 use Chiiya\Tmdb\Repositories\TvSeasonRepository;
 use Chiiya\Tmdb\Repositories\TvShowRepository;
 use Illuminate\Http\Client\PendingRequest;
+use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\ServiceProvider;
 
@@ -53,6 +55,8 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(SearchRepository::class, function ($app) {
             return new SearchRepository($app->make(ClientInterface::class));
         });
+
+        $this->app->singleton(LastfmService::class, fn () => LastfmService::make());
     }
 
     /**
@@ -63,6 +67,8 @@ class AppServiceProvider extends ServiceProvider
         if ($this->app->isLocal()) {
             Http::globalOptions(['verify' => false]);
         }
+
+        Paginator::defaultView('vendor.pagination.custom');
 
         view()->composer('layouts.app', \App\View\Composers\SpotifyComposer::class);
         view()->composer('*', \App\View\Composers\ThemeComposer::class);

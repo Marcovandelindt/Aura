@@ -34,6 +34,20 @@
             </li>
 
             <li class="nav-item">
+                <a href="{{ route('music.all-time') }}" class="nav-link {{ request()->routeIs('music.all-time') ? 'active' : '' }}">
+                    <i class="fas fa-crown nav-icon"></i>
+                    <span class="nav-text">All-Time Favorieten</span>
+                </a>
+            </li>
+
+            <li class="nav-item">
+                <a href="{{ route('lastfm.index') }}" class="nav-link {{ request()->routeIs('lastfm.*') ? 'active' : '' }}">
+                    <i class="fas fa-record-vinyl nav-icon"></i>
+                    <span class="nav-text">Last.fm</span>
+                </a>
+            </li>
+
+            <li class="nav-item">
                 <a href="{{ route('playstation.index') }}" class="nav-link {{ request()->routeIs('playstation.*') ? 'active' : '' }}">
                     <i class="fas fa-gamepad nav-icon"></i>
                     <span class="nav-text">PlayStation</span>

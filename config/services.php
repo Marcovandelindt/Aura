@@ -40,4 +40,9 @@ return [
         'steam_id' => env('STEAM_ID'),
     ],
 
+    'lastfm' => [
+        'api_key' => env('LASTFM_API_KEY'),
+        'username' => env('LASTFM_USERNAME'),
+    ],
+
 ];

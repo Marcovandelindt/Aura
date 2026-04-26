@@ -39,10 +39,21 @@ Route::middleware(['spotify.connected'])->group(function () {
     Route::get('/music', [App\Http\Controllers\MusicController::class, 'index'])->name('music.index');
     Route::get('/music/stats', [App\Http\Controllers\MusicStatsController::class, 'index'])->name('music.stats');
     Route::get('/music/top', [App\Http\Controllers\MusicController::class, 'topTracks'])->name('music.top');
+    Route::get('/music/all-time', [App\Http\Controllers\MusicAllTimeController::class, 'index'])->name('music.all-time');
     Route::post('/music/sync', [App\Http\Controllers\MusicController::class, 'syncTracks'])->name('music.sync');
     Route::get('/tracks/{track}', [App\Http\Controllers\TrackController::class, 'show'])->name('tracks.show');
     Route::get('/artists/{artist}', [App\Http\Controllers\ArtistController::class, 'show'])->name('artists.show');
     Route::get('/albums/{album}', [App\Http\Controllers\AlbumController::class, 'show'])->name('albums.show');
+});
+
+/**
+ * Last.fm Routes
+ */
+Route::prefix('lastfm')->group(function () {
+    Route::get('/', [App\Http\Controllers\LastfmController::class, 'index'])->name('lastfm.index');
+    Route::post('/import', [App\Http\Controllers\LastfmController::class, 'startImport'])->name('lastfm.import');
+    Route::get('/import/status', [App\Http\Controllers\LastfmController::class, 'importStatus'])->name('lastfm.import.status');
+    Route::post('/clear', [App\Http\Controllers\LastfmController::class, 'clearImport'])->name('lastfm.clear');
 });
 
 /**
