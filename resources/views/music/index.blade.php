@@ -13,7 +13,7 @@
                 @if($stats['data_since'])
                     <div class="data-since-badge">
                         <i class="fab fa-spotify spotify-icon"></i>
-                        Data since {{ $stats['data_since']->setTimezone('Europe/Amsterdam')->format('M j, Y H:i') }}
+                        Spotify since {{ $stats['data_since']->setTimezone('Europe/Amsterdam')->format('M j, Y H:i') }}
                     </div>
                 @endif
             </div>
@@ -140,6 +140,9 @@
                     <div class="stat-details">
                         <h3 class="stat-value">{{ number_format($stats['total_tracks']) }}</h3>
                         <p class="stat-label">Total Plays</p>
+                        @if(($stats['lastfm_total'] ?? 0) > 0)
+                            <span class="stat-change">incl. {{ number_format($stats['lastfm_total']) }} Last.fm</span>
+                        @endif
                     </div>
                 </div>
             </div>
@@ -235,18 +238,34 @@
                                     @endif
                                 </td>
                                 <td>
-                                    <a href="{{ route('tracks.show', ['track' => $track->spotify_track_id]) }}" 
-                                       style="color: inherit; text-decoration: none; display: block;">
-                                        <strong style="color: #333; transition: color 0.2s;">{{ $track->track_name }}</strong>
-                                    </a>
-                                    @if($track->preview_url)
-                                        <a href="{{ $track->preview_url }}" target="_blank" 
-                                           style="margin-left: 8px; color: #1DB954;">
-                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                                                <path d="M8 5v14l11-7z"/>
-                                            </svg>
-                                        </a>
-                                    @endif
+                                    <div style="display: flex; align-items: center; gap: 0.4rem;">
+                                        @if($track->source === 'lastfm')
+                                            <i class="fab fa-lastfm" style="color: #e8183f; font-size: 0.75rem; flex-shrink: 0;" title="Last.fm"></i>
+                                        @else
+                                            <i class="fab fa-spotify" style="color: #1DB954; font-size: 0.75rem; flex-shrink: 0;" title="Spotify"></i>
+                                        @endif
+                                        @if($track->source === 'spotify' && $track->spotify_track_id)
+                                            <a href="{{ route('tracks.show', ['track' => $track->spotify_track_id]) }}"
+                                               style="color: inherit; text-decoration: none;">
+                                                <strong style="color: #333; transition: color 0.2s;">{{ $track->track_name }}</strong>
+                                            </a>
+                                        @elseif($track->source === 'lastfm')
+                                            <a href="{{ route('tracks.lastfm', ['artist' => urlencode($track->artist_names[0] ?? ''), 'track' => urlencode($track->track_name)]) }}"
+                                               style="color: inherit; text-decoration: none;">
+                                                <strong style="color: #333; transition: color 0.2s;">{{ $track->track_name }}</strong>
+                                            </a>
+                                        @else
+                                            <strong style="color: #333;">{{ $track->track_name }}</strong>
+                                        @endif
+                                        @if($track->preview_url)
+                                            <a href="{{ $track->preview_url }}" target="_blank"
+                                               style="color: #1DB954;">
+                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                                                    <path d="M8 5v14l11-7z"/>
+                                                </svg>
+                                            </a>
+                                        @endif
+                                    </div>
                                     <x-mood-pills :moods="$track->moods ?? []" :compact="true" />
                                 </td>
                                 <td>
@@ -263,19 +282,34 @@
                                        onmouseover="this.style.color='#1DB954'" 
                                        onmouseout="this.style.color='#666'">{{ $track->album_name }}</a>
                                 </td>
-                                <td>{{ $track->formatted_duration }}</td>
+                                <td>
+                                    @if($track->source === 'lastfm' && !$track->duration_ms)
+                                        <span class="fetch-duration-wrap"
+                                              data-track="{{ $track->track_name }}"
+                                              data-artist="{{ $track->artist_names[0] ?? '' }}">
+                                            <span class="duration-text">--:--</span>
+                                            <button class="fetch-duration-btn" onclick="fetchDuration(this.parentElement)" title="Duratie ophalen">
+                                                <i class="fas fa-search"></i>
+                                            </button>
+                                        </span>
+                                    @else
+                                        {{ $track->formatted_duration }}
+                                    @endif
+                                </td>
                                 <td>
                                     <span title="{{ $track->played_at->setTimezone('Europe/Amsterdam')->format('Y-m-d H:i:s') }}">
                                         {{ $track->played_at->setTimezone('Europe/Amsterdam')->format('M j, H:i') }}
                                     </span>
                                 </td>
                                 <td>
-                                    <button class="mood-trigger{{ !empty($track->moods) ? ' has-moods' : '' }}" 
-                                            data-track-id="{{ $track->spotify_track_id }}"
-                                            onclick="openMoodPopup('{{ $track->spotify_track_id }}', '{{ addslashes($track->track_name) }}', '{{ addslashes(implode(', ', $track->artist_names)) }}')"
-                                            title="{{ !empty($track->moods) ? 'Manage moods' : 'Add mood to track' }}">
-                                        <i class="fas fa-{{ !empty($track->moods) ? 'tags' : 'plus' }}"></i>
-                                    </button>
+                                    @if($track->source === 'spotify' && $track->spotify_track_id)
+                                        <button class="mood-trigger{{ !empty($track->moods) ? ' has-moods' : '' }}"
+                                                data-track-id="{{ $track->spotify_track_id }}"
+                                                onclick="openMoodPopup('{{ $track->spotify_track_id }}', '{{ addslashes($track->track_name) }}', '{{ addslashes(implode(', ', $track->artist_names)) }}')"
+                                                title="{{ !empty($track->moods) ? 'Manage moods' : 'Add mood to track' }}">
+                                            <i class="fas fa-{{ !empty($track->moods) ? 'tags' : 'plus' }}"></i>
+                                        </button>
+                                    @endif
                                 </td>
                             </tr>
                             @endforeach
@@ -292,4 +326,67 @@
         </div>
     </div>
 </div>
+
+<style>
+.fetch-duration-wrap {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+.fetch-duration-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 2px 4px;
+    color: #9ca3af;
+    font-size: 0.65rem;
+    opacity: 0.6;
+    transition: opacity 0.15s, color 0.15s;
+}
+.fetch-duration-btn:hover {
+    opacity: 1;
+    color: #e8183f;
+}
+.fetch-duration-btn:disabled {
+    cursor: default;
+    opacity: 0.3;
+}
+</style>
+
+<script>
+function fetchDuration(wrap) {
+    const btn = wrap.querySelector('.fetch-duration-btn');
+    const text = wrap.querySelector('.duration-text');
+    const track = wrap.dataset.track;
+    const artist = wrap.dataset.artist;
+
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+
+    fetch('{{ route('lastfm.enrich-track') }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+        },
+        body: JSON.stringify({ track_name: track, artist_name: artist })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            text.textContent = data.formatted;
+            btn.remove();
+        } else {
+            text.textContent = '--:--';
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-times" style="color:#ef4444"></i>';
+            btn.title = data.message;
+        }
+    })
+    .catch(() => {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-times" style="color:#ef4444"></i>';
+    });
+}
+</script>
 @endsection

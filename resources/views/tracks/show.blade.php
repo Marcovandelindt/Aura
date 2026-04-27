@@ -138,7 +138,11 @@
                     <div class="stat-details">
                         <h3 class="stat-value">{{ $stats['total_plays'] }}</h3>
                         <p class="stat-label">Total Plays</p>
-                        <span class="stat-change">All time</span>
+                        @if(($stats['lastfm_plays'] ?? 0) > 0)
+                            <span class="stat-change">{{ $stats['spotify_plays'] }} Spotify · {{ $stats['lastfm_plays'] }} Last.fm</span>
+                        @else
+                            <span class="stat-change">All time</span>
+                        @endif
                     </div>
                 </div>
             </div>
@@ -223,7 +227,11 @@
                                         </div>
                                     </td>
                                     <td>
-                                        @if($playedTrack->contexts)
+                                        @if(($playedTrack->source ?? 'spotify') === 'lastfm')
+                                            <span style="display: flex; align-items: center; gap: 0.4rem; color: #666;">
+                                                <i class="fab fa-lastfm" style="color: #e8183f;"></i> Last.fm
+                                            </span>
+                                        @elseif($playedTrack->contexts)
                                             <div style="display: flex; align-items: center; gap: 0.5rem;">
                                                 @if($playedTrack->contexts['type'] === 'playlist')
                                                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
@@ -246,7 +254,9 @@
                                                 @endif
                                             </div>
                                         @else
-                                            <span style="color: #999;">-</span>
+                                            <span style="display: flex; align-items: center; gap: 0.4rem; color: #666;">
+                                                <i class="fab fa-spotify" style="color: #1DB954;"></i> Spotify
+                                            </span>
                                         @endif
                                     </td>
                                     <td style="color: #666;">{{ $playedTrack->played_at->diffForHumans() }}</td>

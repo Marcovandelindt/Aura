@@ -77,6 +77,25 @@ class LastfmService
         ];
     }
 
+    /**
+     * Get track info including duration (in ms).
+     */
+    public function getTrackInfo(string $track, string $artist): ?int
+    {
+        try {
+            $response = $this->get('track.getinfo', [
+                'track' => $track,
+                'artist' => $artist,
+            ]);
+
+            $duration = (int) ($response['track']['duration'] ?? 0);
+
+            return $duration > 0 ? $duration : null;
+        } catch (\Throwable) {
+            return null;
+        }
+    }
+
     private function get(string $method, array $params = []): array
     {
         $response = Http::get(self::BASE_URL, array_merge($params, [

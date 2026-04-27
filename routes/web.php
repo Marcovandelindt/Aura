@@ -41,6 +41,7 @@ Route::middleware(['spotify.connected'])->group(function () {
     Route::get('/music/top', [App\Http\Controllers\MusicController::class, 'topTracks'])->name('music.top');
     Route::get('/music/all-time', [App\Http\Controllers\MusicAllTimeController::class, 'index'])->name('music.all-time');
     Route::post('/music/sync', [App\Http\Controllers\MusicController::class, 'syncTracks'])->name('music.sync');
+    Route::get('/tracks/lastfm/{artist}/{track}', [App\Http\Controllers\LastfmTrackController::class, 'show'])->name('tracks.lastfm');
     Route::get('/tracks/{track}', [App\Http\Controllers\TrackController::class, 'show'])->name('tracks.show');
     Route::get('/artists/{artist}', [App\Http\Controllers\ArtistController::class, 'show'])->name('artists.show');
     Route::get('/albums/{album}', [App\Http\Controllers\AlbumController::class, 'show'])->name('albums.show');
@@ -54,6 +55,16 @@ Route::prefix('lastfm')->group(function () {
     Route::post('/import', [App\Http\Controllers\LastfmController::class, 'startImport'])->name('lastfm.import');
     Route::get('/import/status', [App\Http\Controllers\LastfmController::class, 'importStatus'])->name('lastfm.import.status');
     Route::post('/clear', [App\Http\Controllers\LastfmController::class, 'clearImport'])->name('lastfm.clear');
+    Route::post('/enrich', [App\Http\Controllers\LastfmController::class, 'startEnrichment'])->name('lastfm.enrich');
+    Route::get('/enrich/status', [App\Http\Controllers\LastfmController::class, 'enrichmentStatus'])->name('lastfm.enrich.status');
+    Route::post('/enrich-track', [App\Http\Controllers\LastfmController::class, 'enrichTrack'])->name('lastfm.enrich-track');
+    Route::post('/set-duration', [App\Http\Controllers\LastfmController::class, 'setDuration'])->name('lastfm.set-duration');
+    Route::get('/missing-duration', [App\Http\Controllers\LastfmController::class, 'missingDuration'])->name('lastfm.missing-duration');
+    Route::post('/deduplicate', [App\Http\Controllers\LastfmController::class, 'deduplicateAll'])->name('lastfm.deduplicate');
+    Route::get('/corrections', [App\Http\Controllers\LastfmController::class, 'corrections'])->name('lastfm.corrections');
+    Route::post('/corrections', [App\Http\Controllers\LastfmController::class, 'saveCorrection'])->name('lastfm.corrections.save');
+    Route::delete('/corrections/{id}', [App\Http\Controllers\LastfmController::class, 'deleteCorrection'])->name('lastfm.corrections.delete');
+    Route::get('/corrections/search', [App\Http\Controllers\LastfmController::class, 'searchTracksForCorrection'])->name('lastfm.corrections.search');
 });
 
 /**

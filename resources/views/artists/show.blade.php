@@ -179,10 +179,17 @@
                                         @endif
                                     </td>
                                     <td>
-                                        <a href="{{ route('tracks.show', ['track' => $track->spotify_track_id]) }}" 
-                                           style="color: inherit; text-decoration: none; display: block;">
-                                            <strong style="color: #333; transition: color 0.2s;">{{ $track->track_name }}</strong>
-                                        </a>
+                                        @if($track->spotify_track_id)
+                                            <a href="{{ route('tracks.show', ['track' => $track->spotify_track_id]) }}"
+                                               style="color: inherit; text-decoration: none; display: block;">
+                                                <strong style="color: #333; transition: color 0.2s;">{{ $track->track_name }}</strong>
+                                            </a>
+                                        @else
+                                            <a href="{{ route('tracks.lastfm', ['artist' => urlencode($artistName), 'track' => urlencode($track->track_name)]) }}"
+                                               style="color: inherit; text-decoration: none; display: block;">
+                                                <strong style="color: #333; transition: color 0.2s;">{{ $track->track_name }}</strong>
+                                            </a>
+                                        @endif
                                         <x-mood-pills :moods="$track->moods ?? []" :compact="true" />
                                     </td>
                                     <td>{{ $track->album_name }}</td>
@@ -193,12 +200,14 @@
                                     </td>
                                     <td style="color: #666;">{{ $track->last_played ? \Carbon\Carbon::parse($track->last_played)->setTimezone('Europe/Amsterdam')->format('M j, H:i') : 'N/A' }}</td>
                                     <td>
-                                        <button class="mood-trigger{{ !empty($track->moods) ? ' has-moods' : '' }}" 
-                                                data-track-id="{{ $track->spotify_track_id }}"
-                                                onclick="openMoodPopup('{{ $track->spotify_track_id }}', '{{ addslashes($track->track_name) }}', '{{ addslashes($artistName) }}')"
-                                                title="{{ !empty($track->moods) ? 'Manage moods' : 'Add mood to track' }}">
-                                            <i class="fas fa-{{ !empty($track->moods) ? 'tags' : 'plus' }}"></i>
-                                        </button>
+                                        @if($track->spotify_track_id)
+                                            <button class="mood-trigger{{ !empty($track->moods) ? ' has-moods' : '' }}"
+                                                    data-track-id="{{ $track->spotify_track_id }}"
+                                                    onclick="openMoodPopup('{{ $track->spotify_track_id }}', '{{ addslashes($track->track_name) }}', '{{ addslashes($artistName) }}')"
+                                                    title="{{ !empty($track->moods) ? 'Manage moods' : 'Add mood to track' }}">
+                                                <i class="fas fa-{{ !empty($track->moods) ? 'tags' : 'plus' }}"></i>
+                                            </button>
+                                        @endif
                                     </td>
                                 </tr>
                                 @endforeach
@@ -248,11 +257,19 @@
                                 </div>
                                 <div class="activity-content">
                                     <p>
-                                        <a href="{{ route('tracks.show', ['track' => $play->spotify_track_id]) }}" 
-                                           style="color: inherit; text-decoration: none;">
-                                            <strong>{{ $play->track_name }}</strong>
-                                        </a>
+                                        @if($play->source === 'spotify' && $play->spotify_track_id)
+                                            <a href="{{ route('tracks.show', ['track' => $play->spotify_track_id]) }}" style="color: inherit; text-decoration: none;">
+                                                <strong>{{ $play->track_name }}</strong>
+                                            </a>
+                                        @else
+                                            <a href="{{ route('tracks.lastfm', ['artist' => urlencode($artistName), 'track' => urlencode($play->track_name)]) }}" style="color: inherit; text-decoration: none;">
+                                                <strong>{{ $play->track_name }}</strong>
+                                            </a>
+                                        @endif
                                         from <em>{{ $play->album_name }}</em>
+                                        <i class="fab fa-{{ $play->source === 'lastfm' ? 'lastfm' : 'spotify' }}"
+                                           style="font-size: 0.7rem; color: {{ $play->source === 'lastfm' ? '#e8183f' : '#1DB954' }}; margin-left: 0.25rem;"
+                                           title="{{ ucfirst($play->source) }}"></i>
                                     </p>
                                     <span class="activity-time">{{ $play->played_at->setTimezone('Europe/Amsterdam')->format('M j, H:i') }} - {{ $play->played_at->diffForHumans() }}</span>
                                 </div>

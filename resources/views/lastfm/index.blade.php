@@ -65,6 +65,46 @@
                 </div>
             </div>
         </div>
+
+        @if($totalImported > 0)
+        <div class="card">
+            <div class="card-body">
+                <div class="stat-content">
+                    <div class="stat-icon" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                        <i class="fas fa-music"></i>
+                    </div>
+                    <div class="stat-details">
+                        <h3 class="stat-value">{{ number_format($totalUniqueTracks) }}</h3>
+                        <p class="stat-label">Unieke tracks</p>
+                        <span class="stat-change">Unieke track + artiest combinaties</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-body">
+                <div class="stat-content">
+                    <div class="stat-icon" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="stat-details">
+                        <h3 class="stat-value">{{ number_format($totalEnriched) }}</h3>
+                        <p class="stat-label">Tracks met duratie</p>
+                        <span class="stat-change">
+                            @if($totalUniqueUnenriched > 0)
+                                <a href="{{ route('lastfm.missing-duration') }}" style="color: inherit;">
+                                    {{ number_format($totalUniqueUnenriched) }} nog te verwerken →
+                                </a>
+                            @else
+                                Alles verrijkt
+                            @endif
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        @endif
     </div>
 
     <!-- Configuration check -->
@@ -111,6 +151,14 @@ LASTFM_USERNAME=jouw_gebruikersnaam</pre>
                 </form>
 
                 @if($totalImported > 0)
+                    <form method="POST" action="{{ route('lastfm.deduplicate') }}"
+                          onsubmit="return confirm('Duplicaten verwijderen? Hierbij wordt per unieke (track, artiest, tijdstip) combinatie één rij bewaard.')">
+                        @csrf
+                        <button type="submit" class="btn btn-secondary" @if($importStatus['running'] ?? false) disabled @endif>
+                            <i class="fas fa-broom"></i> Opschonen
+                        </button>
+                    </form>
+
                     <form method="POST" action="{{ route('lastfm.clear') }}"
                           onsubmit="return confirm('Weet je zeker dat je alle {{ number_format($totalImported) }} geïmporteerde scrobbles wilt verwijderen? Dit is niet terug te draaien.')">
                         @csrf
@@ -126,6 +174,72 @@ LASTFM_USERNAME=jouw_gebruikersnaam</pre>
                 Bij ~100.000 scrobbles duurt dit ongeveer 5–10 minuten.
                 Duplicaten worden automatisch overgeslagen.
             </p>
+        </div>
+    </div>
+
+    <!-- Enrichment controls -->
+    @if($totalImported > 0)
+    <div class="card" style="margin-bottom: 1.5rem;">
+        <div class="card-header">
+            <h3><i class="fas fa-magic" style="margin-right: 0.5rem;"></i>Duratie verrijken</h3>
+        </div>
+        <div class="card-body">
+            <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+                <form method="POST" action="{{ route('lastfm.enrich') }}">
+                    @csrf
+                    <button
+                        type="submit"
+                        class="btn btn-primary"
+                        @if(!$isConfigured || ($enrichStatus['running'] ?? false) || $totalUniqueUnenriched === 0) disabled @endif
+                    >
+                        <i class="fas fa-play"></i>
+                        @if($enrichStatus['running'] ?? false)
+                            Bezig...
+                        @elseif($totalUniqueUnenriched === 0)
+                            Alles verrijkt
+                        @else
+                            Volgende batch ophalen (80 tracks)
+                        @endif
+                    </button>
+                </form>
+
+                @if($totalUniqueUnenriched > 0)
+                    <a href="{{ route('lastfm.missing-duration') }}" style="font-size: 0.875rem; color: #6b7280;">
+                        {{ number_format($totalUniqueUnenriched) }} tracks nog zonder duratie →
+                    </a>
+                @endif
+
+                <a href="{{ route('lastfm.corrections') }}" style="font-size: 0.875rem; color: #6b7280; display: block; margin-top: 0.25rem;">
+                    Artiest correcties beheren →
+                </a>
+            </div>
+
+            <p style="margin-top: 0.75rem; font-size: 0.875rem; color: #6b7280;">
+                Verwerkt 80 unieke tracks per keer (~40 seconden). Klik de knop wanneer je wilt om gestaag het archief te verrijken.
+            </p>
+        </div>
+    </div>
+    @endif
+
+    <!-- Enrichment live progress -->
+    <div class="card" id="enrich-progress-card" style="{{ ($enrichStatus['running'] ?? false) ? '' : 'display: none;' }}" style="margin-bottom: 1.5rem;">
+        <div class="card-header">
+            <h3><i class="fas fa-spinner fa-spin" style="margin-right: 0.5rem;"></i>Verrijking voortgang</h3>
+        </div>
+        <div class="card-body">
+            <div style="margin-bottom: 1rem;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.375rem; font-size: 0.875rem;">
+                    <span>Track <span id="enrich-current">—</span> van <span id="enrich-total">—</span></span>
+                    <span id="enrich-pct">—%</span>
+                </div>
+                <div style="height: 8px; background: var(--border-color, #e5e7eb); border-radius: 4px; overflow: hidden;">
+                    <div id="enrich-bar" style="height: 100%; background: linear-gradient(90deg, #4facfe, #00f2fe); border-radius: 4px; width: 0%; transition: width 0.5s;"></div>
+                </div>
+            </div>
+            <div style="font-size: 0.875rem;">
+                <span><strong id="enrich-count">0</strong> unieke tracks verwerkt</span>
+            </div>
+            <div id="enrich-error" style="display: none; margin-top: 0.75rem; color: #ef4444; font-size: 0.875rem;"></div>
         </div>
     </div>
 
@@ -192,6 +306,52 @@ LASTFM_USERNAME=jouw_gebruikersnaam</pre>
 
     @if($importStatus['running'] ?? false)
         pollImportStatus();
+    @endif
+
+    function pollEnrichStatus() {
+        fetch('{{ route('lastfm.enrich.status') }}')
+            .then(r => r.json())
+            .then(data => {
+                const card = document.getElementById('enrich-progress-card');
+
+                if (data.running || data.enriched > 0) {
+                    card.style.display = '';
+                }
+
+                document.getElementById('enrich-current').textContent = (data.enriched ?? 0).toLocaleString();
+                document.getElementById('enrich-total').textContent = data.total > 0 ? data.total.toLocaleString() : '—';
+                document.getElementById('enrich-count').textContent = (data.enriched ?? 0).toLocaleString();
+
+                if (data.total > 0) {
+                    const pct = Math.round((data.enriched / data.total) * 100);
+                    document.getElementById('enrich-bar').style.width = pct + '%';
+                    document.getElementById('enrich-pct').textContent = pct + '%';
+                }
+
+                if (data.error) {
+                    const el = document.getElementById('enrich-error');
+                    el.style.display = '';
+                    el.textContent = 'Fout: ' + data.error;
+                }
+
+                if (data.running) {
+                    setTimeout(pollEnrichStatus, 2000);
+                } else if (!data.running && data.enriched > 0) {
+                    const remaining = data.remaining ?? 0;
+                    document.getElementById('enrich-count').textContent = data.enriched.toLocaleString();
+                    if (remaining > 0) {
+                        document.getElementById('enrich-error').style.display = '';
+                        document.getElementById('enrich-error').style.color = '#6b7280';
+                        document.getElementById('enrich-error').textContent = 'Batch klaar — ' + remaining.toLocaleString() + ' tracks resterend. Klik opnieuw om door te gaan.';
+                    } else {
+                        setTimeout(() => window.location.reload(), 1000);
+                    }
+                }
+            });
+    }
+
+    @if($enrichStatus['running'] ?? false)
+        pollEnrichStatus();
     @endif
 </script>
 @endsection

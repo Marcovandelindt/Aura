@@ -23,7 +23,10 @@
       "Bash(grep:*)",
       "Bash(php -l:*)",
       "Bash(mv \"app/Enums/Enums/JobApplicationStatus.php\" \"app/Enums/JobApplicationStatus.php\")",
-      "Bash(rmdir \"app/Enums/Enums\")"
+      "Bash(rmdir \"app/Enums/Enums\")",
+      "WebFetch(domain:www.last.fm)",
+      "WebFetch(domain:musicbrainz.org)",
+      "WebFetch(domain:ws.audioscrobbler.com)"
     ],
     "deny": []
   }
