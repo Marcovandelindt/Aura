@@ -15,6 +15,9 @@
                 <a href="{{ route('scambaiter.settings') }}" class="btn btn-secondary">
                     <i class="fas fa-cog"></i> Character Profile
                 </a>
+                <a href="{{ route('scambaiter.profile-generator') }}" class="btn btn-secondary">
+                    <i class="fas fa-id-card"></i> Generate Character Profile
+                </a>
                 <a href="{{ route('scambaiter.create') }}" class="btn btn-primary">
                     <i class="fas fa-plus"></i> New Conversation
                 </a>

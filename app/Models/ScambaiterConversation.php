@@ -17,6 +17,7 @@ class ScambaiterConversation extends Model
         'personality_traits',
         'personal_details',
         'writing_style',
+        'backstory',
         'is_locked',
     ];
 

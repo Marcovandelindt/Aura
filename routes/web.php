@@ -273,6 +273,7 @@ Route::prefix('journal')->group(function () {
  */
 Route::prefix('scambaiter')->group(function () {
     Route::get('/', [App\Http\Controllers\ScambaiterController::class, 'index'])->name('scambaiter.index');
+    Route::get('/profile-generator', [App\Http\Controllers\ScambaiterController::class, 'profileGenerator'])->name('scambaiter.profile-generator');
     Route::get('/settings', [App\Http\Controllers\ScambaiterSettingsController::class, 'edit'])->name('scambaiter.settings');
     Route::put('/settings', [App\Http\Controllers\ScambaiterSettingsController::class, 'update'])->name('scambaiter.settings.update');
     Route::get('/create', [App\Http\Controllers\ScambaiterConversationController::class, 'create'])->name('scambaiter.create');
@@ -282,7 +283,6 @@ Route::prefix('scambaiter')->group(function () {
     Route::put('/{conversation}', [App\Http\Controllers\ScambaiterConversationController::class, 'update'])->name('scambaiter.update');
     Route::delete('/{conversation}', [App\Http\Controllers\ScambaiterConversationController::class, 'destroy'])->name('scambaiter.destroy');
     Route::get('/{conversation}/export', [App\Http\Controllers\ScambaiterController::class, 'export'])->name('scambaiter.export');
-    Route::get('/{conversation}/export-profile', [App\Http\Controllers\ScambaiterController::class, 'exportProfile'])->name('scambaiter.export-profile');
     Route::post('/{conversation}/emails', [App\Http\Controllers\ScambaiterEmailController::class, 'store'])->name('scambaiter.emails.store');
     Route::delete('/{conversation}/emails/{email}', [App\Http\Controllers\ScambaiterEmailController::class, 'destroy'])->name('scambaiter.emails.destroy');
 });

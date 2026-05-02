@@ -242,9 +242,16 @@
                     @endif
 
                     @if($conversation->writing_style)
-                        <div>
+                        <div style="margin-bottom: 1rem;">
                             <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: #888; margin-bottom: 0.25rem;">Writing Style</div>
                             <p style="font-size: 0.85rem; margin: 0; white-space: pre-wrap;">{{ $conversation->writing_style }}</p>
+                        </div>
+                    @endif
+
+                    @if($conversation->backstory)
+                        <div>
+                            <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: #888; margin-bottom: 0.25rem;">Backstory</div>
+                            <p style="font-size: 0.85rem; margin: 0; white-space: pre-wrap;">{{ $conversation->backstory }}</p>
                         </div>
                     @endif
                 </div>
@@ -257,9 +264,6 @@
                     <p style="font-size: 0.8rem; color: #888; margin-bottom: 1rem;">
                         Generates a ready-made prompt with the full character profile and email thread for pasting into Claude or any other AI.
                     </p>
-                    <a href="{{ route('scambaiter.export-profile', $conversation) }}" class="btn btn-secondary" style="width: 100%; margin-bottom: 0.75rem;">
-                        <i class="fas fa-id-card"></i> Generate Character Profile
-                    </a>
                     <a href="{{ route('scambaiter.export', $conversation) }}" class="btn btn-primary" style="width: 100%;">
                         <i class="fas fa-file-export"></i> Download Export
                     </a>

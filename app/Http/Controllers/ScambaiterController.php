@@ -38,18 +38,18 @@ class ScambaiterController extends Controller
         ]);
     }
 
-    public function exportProfile(ScambaiterConversation $conversation): Response
+    public function profileGenerator(): Response
     {
         $profile = ScambaiterProfile::getInstance();
-        $output = $this->buildProfileExport($profile, $conversation);
+        $output = $this->buildProfileExport($profile);
 
         return response($output, 200, [
             'Content-Type' => 'text/plain',
-            'Content-Disposition' => 'attachment; filename="'.str($conversation->title)->slug().'-profile-generator.txt"',
+            'Content-Disposition' => 'attachment; filename="character-profile-generator.txt"',
         ]);
     }
 
-    private function buildProfileExport(ScambaiterProfile $profile, ScambaiterConversation $conversation): string
+    private function buildProfileExport(ScambaiterProfile $profile): string
     {
         $characterName = $profile->full_name ?: 'Marcus';
         $lines = [];
@@ -57,58 +57,33 @@ class ScambaiterController extends Controller
         $lines[] = '# CHARACTER PROFILE GENERATOR';
         $lines[] = '';
         $lines[] = '## INSTRUCTIONS';
-        $lines[] = "Below you will find the raw inputs for a fictional scambaiter character named {$characterName}. Your task is to turn these inputs into a rich, detailed, and internally consistent character profile. The profile should read like a genuine person — with habits, speech patterns, backstory, quirks, and a believable voice. It will be used to write emails in character.";
+        $lines[] = "I am a scambaiter and I need you to create a complete fictional character profile for my character named {$characterName}. Below are the fixed biographical details. Based on these, invent everything else — an occupation, personality traits, intelligence level, writing quirks, recurring details like pets or hobbies, speech patterns, backstory, and anything else that makes this feel like a real, believable person. The profile will be used to write emails in character to scammers, so make it entertaining and consistent.";
         $lines[] = '';
-        $lines[] = 'Write the profile as a structured document with sections for: background, personality, speech & writing style, recurring details, and any other relevant sections you see fit. Be specific and creative — invent plausible details that are consistent with the inputs below.';
+        $lines[] = 'Present the result as a structured profile I can copy and reuse. At the end, also output a summary of the key traits in the following machine-readable format so I can paste them into my app:';
         $lines[] = '';
-
-        $lines[] = '## HOW TO READ THE INPUTS';
-        $lines[] = '';
-        $lines[] = 'The inputs below use the following formats:';
-        $lines[] = '';
-        $lines[] = '- Simple fields (Name, Age, etc.) are plain values.';
-        $lines[] = '- "Personality traits" is a comma-separated list — treat each as a distinct trait to weave into the character.';
-        $lines[] = '- "Intelligence level" uses a fixed scale: Very Dim / Dim / Average / Sharp / Surprisingly Sharp.';
-        $lines[] = '- "Personal details" is free text describing recurring people, pets, hobbies, or running jokes to include.';
-        $lines[] = '- "Writing style quirks" is free text describing how the character writes emails — their tone, mistakes, formality, etc.';
-        $lines[] = '- "Additional facts" is free text with any other biographical details.';
+        $lines[] = 'Occupation: ...';
+        $lines[] = 'Intelligence level: [Very Dim / Dim / Average / Sharp / Surprisingly Sharp]';
+        $lines[] = 'Personality traits: [comma-separated list]';
+        $lines[] = 'Personal details: [free text]';
+        $lines[] = 'Writing style: [free text]';
         $lines[] = '';
 
-        $lines[] = '## CHARACTER INPUTS';
+        $lines[] = '## FIXED DETAILS';
         $lines[] = '';
-
         if ($profile->full_name) {
-            $lines[] = "Name: {$profile->full_name}";
+            $lines[] = "Name:        {$profile->full_name}";
         }
         if ($profile->age) {
-            $lines[] = "Age: {$profile->age}";
+            $lines[] = "Age:         {$profile->age}";
         }
         if ($profile->date_of_birth) {
-            $lines[] = "Date of Birth: {$profile->date_of_birth->format('d F Y')}";
+            $lines[] = "Born:        {$profile->date_of_birth->format('d F Y')}";
         }
         if ($profile->nationality) {
             $lines[] = "Nationality: {$profile->nationality}";
         }
         if ($profile->location) {
-            $lines[] = "Location: {$profile->location}";
-        }
-        if ($conversation->occupation) {
-            $lines[] = "Occupation: {$conversation->occupation}";
-        }
-        $lines[] = "Intelligence level: {$conversation->intelligence_level->label()}";
-
-        if (! empty($conversation->personality_traits)) {
-            $lines[] = 'Personality traits: '.implode(', ', $conversation->personality_traits);
-        }
-        if ($conversation->writing_style) {
-            $lines[] = '';
-            $lines[] = 'Writing style quirks:';
-            $lines[] = $conversation->writing_style;
-        }
-        if ($conversation->personal_details) {
-            $lines[] = '';
-            $lines[] = 'Personal details:';
-            $lines[] = $conversation->personal_details;
+            $lines[] = "Location:    {$profile->location}";
         }
         if ($profile->additional_facts) {
             $lines[] = '';
@@ -132,6 +107,21 @@ class ScambaiterController extends Controller
         $lines[] = '';
         $lines[] = '## INSTRUCTIONS';
         $lines[] = "You are helping write the next reply from {$characterName} in an ongoing scambaiter email exchange. Read the character profile and the full email thread below, then write {$characterName}'s next reply in character — matching their writing style, personality, and ongoing storylines exactly. Do not break character. Do not add commentary outside the email itself.";
+        $lines[] = '';
+        $lines[] = 'TONE AND COMEDIC STYLE:';
+        $lines[] = 'The goal is to write in the style of James Veitch, the comedian known for his scambaiter emails. Study these principles carefully:';
+        $lines[] = '- The character is never obviously sarcastic. The humour comes entirely from sincerity. He genuinely appears to want to help and cooperate, which makes him impossible to deal with.';
+        $lines[] = '- He takes things extremely literally, in ways that are inconvenient for the scammer. If the scammer says "send your details", he spends three paragraphs clarifying which details, and whether a photocopy of his fishing licence counts.';
+        $lines[] = '- He creates elaborate, seemingly genuine obstacles. Not excuses, but real-sounding logistical problems that derail everything ("I would send my bank details but I am not sure which account Britta used for international transfers, I will need to ask Patrik, he calls on Sundays").';
+        $lines[] = '- He proposes alternative solutions with full enthusiasm. These alternatives are always impractical, slightly beside the point, and stated as though they are obviously the right answer.';
+        $lines[] = '- He gets disproportionately excited about irrelevant details in the scammer\'s email, and completely ignores the important parts.';
+        $lines[] = '- He asks clusters of very specific questions, most of which are completely beside the point. He always seems like he is about to cooperate fully, but never quite gets there.';
+        $lines[] = '- The sarcasm is never stated. It is structural. The reader sees it, the scammer does not.';
+        $lines[] = '';
+        $lines[] = 'IMPORTANT STYLE RULES:';
+        $lines[] = '- Do NOT use em dashes (—) or hyphens used as dashes. This character is a real person, not an AI, and real people do not write like that. Use commas, full stops, ellipses, or new sentences instead.';
+        $lines[] = '- Do NOT describe people, animals, or objects as comma-separated lists of attributes (e.g. "Svensson, my cat, 14 years old and orange"). Write them naturally as a human would, woven into a sentence (e.g. "my cat Svensson, she is 14 years old and orange").';
+        $lines[] = '- Do NOT use corporate or formal email phrases such as "please advise", "as per my previous", "please find attached", "going forward", or "I look forward to your prompt response". This character is a retired old man writing personal emails, not an office worker.';
         $lines[] = '';
 
         $lines[] = '## GLOBAL CHARACTER PROFILE';
@@ -175,6 +165,11 @@ class ScambaiterController extends Controller
             $lines[] = '';
             $lines[] = 'Writing style:';
             $lines[] = $conversation->writing_style;
+        }
+        if ($conversation->backstory) {
+            $lines[] = '';
+            $lines[] = '## BACKSTORY';
+            $lines[] = $conversation->backstory;
         }
         $lines[] = '';
 

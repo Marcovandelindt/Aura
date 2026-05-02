@@ -33,6 +33,7 @@ class ScambaiterConversationController extends Controller
             'personality_traits' => array_values($traits) ?: null,
             'personal_details' => $request->personal_details,
             'writing_style' => $request->writing_style,
+            'backstory' => $request->backstory,
         ]);
 
         return redirect()->route('scambaiter.show', $conversation)
@@ -61,6 +62,7 @@ class ScambaiterConversationController extends Controller
             'personality_traits' => array_values($traits) ?: null,
             'personal_details' => $request->personal_details,
             'writing_style' => $request->writing_style,
+            'backstory' => $request->backstory,
         ]);
 
         return redirect()->route('scambaiter.show', $conversation)

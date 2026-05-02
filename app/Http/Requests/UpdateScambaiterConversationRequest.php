@@ -24,6 +24,7 @@ class UpdateScambaiterConversationRequest extends FormRequest
             'personality_traits' => ['nullable', 'string'],
             'personal_details' => ['nullable', 'string'],
             'writing_style' => ['nullable', 'string'],
+            'backstory' => ['nullable', 'string'],
         ];
     }
 }
