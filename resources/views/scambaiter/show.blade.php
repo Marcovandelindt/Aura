@@ -21,6 +21,9 @@
                 </ul>
             </div>
             <div style="display: flex; gap: 0.75rem; align-items: center;">
+                <a href="{{ route('scambaiter.edit', $conversation) }}" class="btn btn-secondary">
+                    <i class="fas fa-pen"></i> Edit
+                </a>
                 <a href="{{ route('scambaiter.export', $conversation) }}" class="btn btn-secondary">
                     <i class="fas fa-file-export"></i> Export for AI
                 </a>

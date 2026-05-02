@@ -278,6 +278,8 @@ Route::prefix('scambaiter')->group(function () {
     Route::get('/create', [App\Http\Controllers\ScambaiterConversationController::class, 'create'])->name('scambaiter.create');
     Route::post('/', [App\Http\Controllers\ScambaiterConversationController::class, 'store'])->name('scambaiter.store');
     Route::get('/{conversation}', [App\Http\Controllers\ScambaiterController::class, 'show'])->name('scambaiter.show');
+    Route::get('/{conversation}/edit', [App\Http\Controllers\ScambaiterConversationController::class, 'edit'])->name('scambaiter.edit');
+    Route::put('/{conversation}', [App\Http\Controllers\ScambaiterConversationController::class, 'update'])->name('scambaiter.update');
     Route::delete('/{conversation}', [App\Http\Controllers\ScambaiterConversationController::class, 'destroy'])->name('scambaiter.destroy');
     Route::get('/{conversation}/export', [App\Http\Controllers\ScambaiterController::class, 'export'])->name('scambaiter.export');
     Route::post('/{conversation}/emails', [App\Http\Controllers\ScambaiterEmailController::class, 'store'])->name('scambaiter.emails.store');
