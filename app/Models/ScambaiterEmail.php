@@ -13,12 +13,14 @@ class ScambaiterEmail extends Model
         'sender',
         'subject',
         'body',
+        'sent_at',
     ];
 
     protected function casts(): array
     {
         return [
             'sender' => EmailSender::class,
+            'sent_at' => 'datetime',
         ];
     }
 

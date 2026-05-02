@@ -19,6 +19,7 @@ class StoreScambaiterEmailRequest extends FormRequest
             'sender' => ['required', new Enum(EmailSender::class)],
             'subject' => ['nullable', 'string', 'max:255'],
             'body' => ['required', 'string'],
+            'sent_at' => ['nullable', 'date'],
         ];
     }
 }

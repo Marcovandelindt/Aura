@@ -78,7 +78,7 @@
                                             @endif
                                         </div>
                                         <div style="display: flex; align-items: center; gap: 0.75rem; flex-shrink: 0;">
-                                            <span style="font-size: 0.75rem; color: #888;">{{ $email->created_at->format('M j, Y H:i') }}</span>
+                                            <span style="font-size: 0.75rem; color: #888;">{{ ($email->sent_at ?? $email->created_at)->format('M j, Y H:i') }}</span>
                                             <i class="fas fa-chevron-up scambaiter-chevron" style="font-size: 0.75rem; color: #aaa; transition: transform 0.2s;"></i>
                                             <form method="POST" action="{{ route('scambaiter.emails.destroy', [$conversation, $email]) }}" onsubmit="return confirm('Remove this email?')" onclick="event.stopPropagation()">
                                                 @csrf
@@ -168,6 +168,13 @@
                                 <input type="text" name="subject" value="{{ old('subject', $conversation->subject) }}" class="form-control" placeholder="Re: Urgent Business Proposal">
                                 @error('subject')<p style="color: #ef4444; font-size: 0.8rem; margin-top: 0.25rem;">{{ $message }}</p>@enderror
                             </div>
+                        </div>
+
+                        <div class="form-group" style="margin-bottom: 1.25rem;">
+                            <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Date <span style="color: #888; font-weight: 400;">(optional)</span></label>
+                            <input type="datetime-local" name="sent_at" value="{{ old('sent_at') }}" class="form-control">
+                            <p style="font-size: 0.75rem; color: #888; margin-top: 0.25rem;">Leave blank to use the current date and time.</p>
+                            @error('sent_at')<p style="color: #ef4444; font-size: 0.8rem; margin-top: 0.25rem;">{{ $message }}</p>@enderror
                         </div>
 
                         <div class="form-group" style="margin-bottom: 1.25rem;">
