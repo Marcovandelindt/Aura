@@ -157,6 +157,17 @@
             </li>
             
             <li class="nav-section">
+                <span class="nav-section-title">Tools</span>
+            </li>
+
+            <li class="nav-item">
+                <a href="{{ route('scambaiter.index') }}" class="nav-link {{ request()->routeIs('scambaiter.*') ? 'active' : '' }}">
+                    <i class="fas fa-user-secret nav-icon"></i>
+                    <span class="nav-text">Scambaiter</span>
+                </a>
+            </li>
+
+            <li class="nav-section">
                 <span class="nav-section-title">Development</span>
             </li>
             

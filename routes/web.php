@@ -268,6 +268,22 @@ Route::prefix('journal')->group(function () {
     Route::delete('/{journalEntry}', [App\Http\Controllers\JournalController::class, 'destroy'])->name('journal.destroy');
 });
 
+/**
+ * Scambaiter Routes
+ */
+Route::prefix('scambaiter')->group(function () {
+    Route::get('/', [App\Http\Controllers\ScambaiterController::class, 'index'])->name('scambaiter.index');
+    Route::get('/settings', [App\Http\Controllers\ScambaiterSettingsController::class, 'edit'])->name('scambaiter.settings');
+    Route::put('/settings', [App\Http\Controllers\ScambaiterSettingsController::class, 'update'])->name('scambaiter.settings.update');
+    Route::get('/create', [App\Http\Controllers\ScambaiterConversationController::class, 'create'])->name('scambaiter.create');
+    Route::post('/', [App\Http\Controllers\ScambaiterConversationController::class, 'store'])->name('scambaiter.store');
+    Route::get('/{conversation}', [App\Http\Controllers\ScambaiterController::class, 'show'])->name('scambaiter.show');
+    Route::delete('/{conversation}', [App\Http\Controllers\ScambaiterConversationController::class, 'destroy'])->name('scambaiter.destroy');
+    Route::get('/{conversation}/export', [App\Http\Controllers\ScambaiterController::class, 'export'])->name('scambaiter.export');
+    Route::post('/{conversation}/emails', [App\Http\Controllers\ScambaiterEmailController::class, 'store'])->name('scambaiter.emails.store');
+    Route::delete('/{conversation}/emails/{email}', [App\Http\Controllers\ScambaiterEmailController::class, 'destroy'])->name('scambaiter.emails.destroy');
+});
+
 Route::prefix('journal-tags')->group(function () {
     Route::post('/', [App\Http\Controllers\JournalTagController::class, 'store'])->name('journal.tags.store');
     Route::put('/{journalTag}', [App\Http\Controllers\JournalTagController::class, 'update'])->name('journal.tags.update');

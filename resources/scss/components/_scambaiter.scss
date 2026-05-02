@@ -1,0 +1,136 @@
+.scambaiter-card {
+    transition: border-color 0.2s, box-shadow 0.2s;
+    cursor: pointer;
+
+    &:hover {
+        border-color: var(--primary-color);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+}
+
+.scambaiter-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.2rem 0.6rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    white-space: nowrap;
+
+    &-intelligence {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: #fff;
+    }
+
+    &-locked {
+        background: rgba(16, 185, 129, 0.15);
+        color: #059669;
+    }
+
+    &-trait {
+        background: var(--card-bg, #f8fafc);
+        border: 1px solid var(--border-color, #e2e8f0);
+        color: var(--text-secondary, #64748b);
+    }
+}
+
+.scambaiter-thread {
+    display: flex;
+    flex-direction: column;
+}
+
+.scambaiter-email {
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid var(--border-color, #e2e8f0);
+
+    &:last-child {
+        border-bottom: none;
+    }
+
+    &-scammer {
+        background: rgba(239, 68, 68, 0.04);
+        border-left: 3px solid #ef4444;
+    }
+
+    &-marcus {
+        background: rgba(99, 102, 241, 0.04);
+        border-left: 3px solid var(--primary-color, #6366f1);
+    }
+}
+
+.scambaiter-email-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.75rem;
+    gap: 1rem;
+}
+
+.scambaiter-email-body {
+    font-size: 0.9rem;
+    line-height: 1.7;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.scambaiter-sender-badge {
+    display: inline-block;
+    padding: 0.15rem 0.6rem;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+
+    &.scambaiter-sender-scammer {
+        background: rgba(239, 68, 68, 0.15);
+        color: #dc2626;
+    }
+
+    &.scambaiter-sender-marcus {
+        background: rgba(99, 102, 241, 0.15);
+        color: var(--primary-color, #6366f1);
+    }
+}
+
+.scambaiter-sender-option {
+    cursor: pointer;
+
+    input[type="radio"] {
+        display: none;
+    }
+
+    input[type="radio"]:checked + .scambaiter-sender-label {
+        border-color: currentColor;
+        opacity: 1;
+    }
+}
+
+.scambaiter-sender-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.4rem 0.9rem;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    border: 2px solid transparent;
+    opacity: 0.6;
+    transition: opacity 0.15s, border-color 0.15s;
+    cursor: pointer;
+
+    &:hover {
+        opacity: 0.85;
+    }
+
+    &-scammer {
+        background: rgba(239, 68, 68, 0.1);
+        color: #dc2626;
+    }
+
+    &-marcus {
+        background: rgba(99, 102, 241, 0.1);
+        color: var(--primary-color, #6366f1);
+    }
+}
