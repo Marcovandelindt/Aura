@@ -2,8 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\LastfmScrobble;
-use App\Models\PlayedTrack;
+use App\Models\Artist;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 
@@ -12,108 +11,94 @@ class ArtistController extends Controller
     public function show(string $artistName)
     {
         $artistName = urldecode($artistName);
-        $firstSpotifyPlay = PlayedTrack::min('played_at');
 
-        $spotifyCount = PlayedTrack::whereJsonContains('artist_names', $artistName)->count();
+        $artist = Artist::whereRaw('LOWER(name) = ?', [mb_strtolower($artistName)])->first();
 
-        $lastfmQuery = LastfmScrobble::where('artist_name', $artistName);
-        if ($firstSpotifyPlay) {
-            $lastfmQuery->where('played_at', '<', $firstSpotifyPlay);
-        }
-        $lastfmCount = $lastfmQuery->count();
-
-        if ($spotifyCount === 0 && $lastfmCount === 0) {
+        if (! $artist) {
             abort(404, 'Artist not found');
         }
 
-        // Combined unique tracks (merged by track_name)
-        $spotifyTracksQuery = DB::table('played_tracks')
-            ->whereJsonContains('artist_names', $artistName)
-            ->select('track_name', 'album_name', 'album_image_url', 'spotify_track_id')
-            ->selectRaw('COUNT(*) as play_count')
-            ->selectRaw('MAX(played_at) as last_played')
-            ->groupBy('track_name', 'album_name', 'album_image_url', 'spotify_track_id');
-
-        $lastfmTracksQuery = DB::table('lastfm_scrobbles')
-            ->where('artist_name', $artistName)
-            ->select('track_name', 'album_name', 'album_image_url', DB::raw('NULL as spotify_track_id'))
-            ->selectRaw('COUNT(*) as play_count')
-            ->selectRaw('MAX(played_at) as last_played')
-            ->groupBy('track_name', 'album_name', 'album_image_url');
-
-        if ($firstSpotifyPlay) {
-            $lastfmTracksQuery->where('played_at', '<', $firstSpotifyPlay);
-        }
-
-        $uniqueTracks = DB::query()
-            ->fromSub($spotifyTracksQuery->union($lastfmTracksQuery), 'combined')
-            ->select('track_name')
-            ->selectRaw('MAX(album_name) as album_name')
-            ->selectRaw('MAX(album_image_url) as album_image_url')
-            ->selectRaw('MAX(spotify_track_id) as spotify_track_id')
-            ->selectRaw('SUM(play_count) as play_count')
-            ->selectRaw('MAX(last_played) as last_played')
-            ->groupBy('track_name')
+        // Top tracks (with play counts) aliased to match view expectations
+        $uniqueTracks = DB::table('tracks')
+            ->join('track_artists', 'track_artists.track_id', '=', 'tracks.id')
+            ->leftJoin('albums', 'albums.id', '=', 'tracks.album_id')
+            ->leftJoin('plays', 'plays.track_id', '=', 'tracks.id')
+            ->where('track_artists.artist_id', $artist->id)
+            ->select(
+                'tracks.id',
+                'tracks.title as track_name',
+                'tracks.spotify_track_id',
+                'albums.name as album_name',
+                'albums.image_url as album_image_url',
+            )
+            ->selectRaw('COUNT(plays.id) as play_count')
+            ->selectRaw('MAX(plays.played_at) as last_played')
+            ->groupBy('tracks.id', 'tracks.title', 'tracks.spotify_track_id', 'albums.name', 'albums.image_url')
             ->orderByDesc('play_count')
             ->paginate(20);
 
-        // Load moods for tracks that have a spotify_track_id
-        $trackIds = $uniqueTracks->pluck('spotify_track_id')->filter()->toArray();
-        $trackMoods = PlayedTrack::getMoodsForTracks($trackIds);
         foreach ($uniqueTracks as $track) {
-            $track->moods = $trackMoods[$track->spotify_track_id] ?? [];
+            $track->moods = [];
         }
 
-        // Combined play timeline
-        $spotifyPlaysQuery = DB::table('played_tracks')
-            ->whereJsonContains('artist_names', $artistName)
-            ->select('track_name', 'album_name', 'album_image_url', 'played_at', 'spotify_track_id', DB::raw("'spotify' as source"));
-
-        $lastfmPlaysQuery = DB::table('lastfm_scrobbles')
-            ->where('artist_name', $artistName)
-            ->select('track_name', 'album_name', 'album_image_url', 'played_at', DB::raw('NULL as spotify_track_id'), DB::raw("'lastfm' as source"));
-
-        if ($firstSpotifyPlay) {
-            $lastfmPlaysQuery->where('played_at', '<', $firstSpotifyPlay);
-        }
-
-        $allPlays = DB::query()
-            ->fromSub($spotifyPlaysQuery->union($lastfmPlaysQuery), 'plays')
-            ->orderByDesc('played_at')
+        // All plays for this artist (for the recent plays sidebar)
+        $allPlays = DB::table('plays')
+            ->join('tracks', 'tracks.id', '=', 'plays.track_id')
+            ->join('track_artists', 'track_artists.track_id', '=', 'tracks.id')
+            ->leftJoin('albums', 'albums.id', '=', 'tracks.album_id')
+            ->where('track_artists.artist_id', $artist->id)
+            ->select(
+                'plays.played_at',
+                'plays.source',
+                'tracks.title as track_name',
+                'tracks.spotify_track_id',
+                'albums.name as album_name',
+                'albums.image_url as album_image_url',
+            )
+            ->orderByDesc('plays.played_at')
             ->paginate(30, ['*'], 'plays_page');
 
         foreach ($allPlays as $play) {
             $play->played_at = Carbon::parse($play->played_at);
         }
 
-        // Stats (combined)
-        $spotifyFirst = PlayedTrack::whereJsonContains('artist_names', $artistName)->min('played_at');
-        $lastfmFirst = (clone $lastfmQuery)->min('played_at');
-        $spotifyLast = PlayedTrack::whereJsonContains('artist_names', $artistName)->max('played_at');
+        // Stats
+        $statsRow = DB::table('plays')
+            ->join('track_artists', 'track_artists.track_id', '=', 'plays.track_id')
+            ->join('tracks', 'tracks.id', '=', 'plays.track_id')
+            ->where('track_artists.artist_id', $artist->id)
+            ->selectRaw('COUNT(plays.id) as total_plays')
+            ->selectRaw('SUM(tracks.duration_ms) as total_duration_ms')
+            ->selectRaw('MIN(plays.played_at) as first_played')
+            ->selectRaw('MAX(plays.played_at) as last_played')
+            ->first();
 
-        $firstPlayed = $spotifyFirst && $lastfmFirst
-            ? (Carbon::parse($lastfmFirst)->lt(Carbon::parse($spotifyFirst)) ? Carbon::parse($lastfmFirst) : Carbon::parse($spotifyFirst))
-            : Carbon::parse($spotifyFirst ?? $lastfmFirst);
+        $weekPlays = DB::table('plays')
+            ->join('track_artists', 'track_artists.track_id', '=', 'plays.track_id')
+            ->where('track_artists.artist_id', $artist->id)
+            ->whereBetween('plays.played_at', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()])
+            ->count();
 
-        $lastPlayed = $spotifyLast ? Carbon::parse($spotifyLast) : null;
-
-        $spotifyDuration = PlayedTrack::whereJsonContains('artist_names', $artistName)->sum('duration_ms');
-        $lastfmDuration = (clone $lastfmQuery)->sum('duration_ms');
+        $monthPlays = DB::table('plays')
+            ->join('track_artists', 'track_artists.track_id', '=', 'plays.track_id')
+            ->where('track_artists.artist_id', $artist->id)
+            ->whereMonth('plays.played_at', Carbon::now()->month)
+            ->whereYear('plays.played_at', Carbon::now()->year)
+            ->count();
 
         $stats = [
-            'total_plays' => $spotifyCount + $lastfmCount,
-            'spotify_plays' => $spotifyCount,
-            'lastfm_plays' => $lastfmCount,
+            'total_plays' => $statsRow->total_plays ?? 0,
             'unique_tracks' => $uniqueTracks->total(),
-            'first_played' => $firstPlayed,
-            'last_played' => $lastPlayed,
-            'plays_today' => PlayedTrack::whereJsonContains('artist_names', $artistName)->whereDate('played_at', Carbon::today())->count(),
-            'plays_this_week' => PlayedTrack::whereJsonContains('artist_names', $artistName)->whereBetween('played_at', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()])->count(),
-            'plays_this_month' => PlayedTrack::whereJsonContains('artist_names', $artistName)->whereMonth('played_at', Carbon::now()->month)->whereYear('played_at', Carbon::now()->year)->count(),
-            'total_duration_ms' => $spotifyDuration + $lastfmDuration,
+            'first_played' => $statsRow->first_played ? Carbon::parse($statsRow->first_played) : null,
+            'last_played' => $statsRow->last_played ? Carbon::parse($statsRow->last_played) : null,
+            'total_duration_ms' => $statsRow->total_duration_ms ?? 0,
+            'plays_this_week' => $weekPlays,
+            'plays_this_month' => $monthPlays,
+            'spotify_plays' => 0,
+            'lastfm_plays' => 0,
+            'plays_today' => 0,
         ];
 
-        // Top track (by combined play count)
         $topTrack = $uniqueTracks->first();
 
         return view('artists.show', compact('artistName', 'uniqueTracks', 'allPlays', 'stats', 'topTrack'));

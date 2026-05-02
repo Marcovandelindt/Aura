@@ -6,35 +6,23 @@ use App\Models\Activity;
 use App\Models\EpisodeWatch;
 use App\Models\Expense;
 use App\Models\HealthEntry;
-use App\Models\PlayedTrack;
+use App\Models\Play;
 use App\Models\PlayStationSession;
 use App\Services\Spotify\SpotifyService;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class HomeController extends Controller
 {
-    protected SpotifyService $spotifyService;
+    public function __construct(protected SpotifyService $spotifyService) {}
 
-    public function __construct(SpotifyService $spotifyService)
-    {
-        $this->spotifyService = $spotifyService;
-    }
-
-    /**
-     * Index action
-     */
     public function index(): View
     {
         $spotifyConnected = $this->spotifyService->isConnected();
 
-        // Get Songs This Week statistics
         $songsThisWeek = $this->getSongsThisWeekStats();
-
-        // Get expense statistics
         $expenseStats = $this->getExpenseStats();
-
-        // Get recent activity data
         $lastPlayedTrack = $this->getLastPlayedTrack();
         $lastEpisodeWatch = $this->getLastEpisodeWatch();
         $lastGameSession = $this->getLastGameSession();
@@ -55,9 +43,6 @@ class HomeController extends Controller
         ));
     }
 
-    /**
-     * Get statistics for songs played this week
-     */
     private function getSongsThisWeekStats(): array
     {
         $startOfThisWeek = Carbon::now()->startOfWeek();
@@ -65,19 +50,9 @@ class HomeController extends Controller
         $startOfLastWeek = Carbon::now()->subWeek()->startOfWeek();
         $endOfLastWeek = Carbon::now()->subWeek()->endOfWeek();
 
-        // Count songs this week
-        $thisWeekCount = PlayedTrack::whereBetween('played_at', [
-            $startOfThisWeek,
-            $endOfThisWeek,
-        ])->count();
+        $thisWeekCount = Play::whereBetween('played_at', [$startOfThisWeek, $endOfThisWeek])->count();
+        $lastWeekCount = Play::whereBetween('played_at', [$startOfLastWeek, $endOfLastWeek])->count();
 
-        // Count songs last week for comparison
-        $lastWeekCount = PlayedTrack::whereBetween('played_at', [
-            $startOfLastWeek,
-            $endOfLastWeek,
-        ])->count();
-
-        // Calculate difference
         $difference = $thisWeekCount - $lastWeekCount;
         $changeText = '';
         $changeClass = '';
@@ -101,17 +76,38 @@ class HomeController extends Controller
         ];
     }
 
-    /**
-     * Get the last played track for recent activity
-     */
-    private function getLastPlayedTrack(): ?PlayedTrack
+    private function getLastPlayedTrack(): ?object
     {
-        return PlayedTrack::orderBy('played_at', 'desc')->first();
+        $row = DB::table('plays')
+            ->join('tracks', 'tracks.id', '=', 'plays.track_id')
+            ->leftJoin('albums', 'albums.id', '=', 'tracks.album_id')
+            ->leftJoin('track_artists', function ($join) {
+                $join->on('track_artists.track_id', '=', 'tracks.id')
+                    ->where('track_artists.is_primary', true);
+            })
+            ->leftJoin('artists', 'artists.id', '=', 'track_artists.artist_id')
+            ->select(
+                'plays.played_at',
+                'tracks.title as track_name',
+                'tracks.spotify_track_id',
+                'albums.name as album_name',
+                'albums.image_url as album_image_url',
+                DB::raw("JSON_ARRAY(COALESCE(artists.name, '')) as artist_names"),
+            )
+            ->orderByDesc('plays.played_at')
+            ->first();
+
+        if (! $row) {
+            return null;
+        }
+
+        $row->played_at = Carbon::parse($row->played_at);
+        $row->played_at_human = $row->played_at->diffForHumans();
+        $row->artist_names = json_decode($row->artist_names, true) ?? [];
+
+        return $row;
     }
 
-    /**
-     * Get the last watched episode with series info
-     */
     private function getLastEpisodeWatch(): ?EpisodeWatch
     {
         return EpisodeWatch::with(['episode.season.series'])
@@ -119,9 +115,6 @@ class HomeController extends Controller
             ->first();
     }
 
-    /**
-     * Get the last game session
-     */
     private function getLastGameSession(): ?PlayStationSession
     {
         return PlayStationSession::with('game')
@@ -129,9 +122,6 @@ class HomeController extends Controller
             ->first();
     }
 
-    /**
-     * Get the last health entry with steps
-     */
     private function getLastHealthEntry(): ?HealthEntry
     {
         return HealthEntry::whereNotNull('steps')
@@ -139,9 +129,6 @@ class HomeController extends Controller
             ->first();
     }
 
-    /**
-     * Get expense statistics for this week
-     */
     private function getExpenseStats(): array
     {
         $thisWeek = Expense::thisWeek()->sum('amount');
@@ -165,9 +152,6 @@ class HomeController extends Controller
         return Activity::orderByDesc('start_date')->first();
     }
 
-    /**
-     * Get the last expense
-     */
     private function getLastExpense(): ?Expense
     {
         return Expense::with('category')

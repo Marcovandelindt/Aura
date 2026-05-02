@@ -4,9 +4,10 @@ namespace App\Http\Controllers\Strava;
 
 use App\Http\Controllers\Controller;
 use App\Models\Activity;
-use App\Models\PlayedTrack;
 use App\Services\Strava\StravaAuthService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class StravaController extends Controller
@@ -49,9 +50,34 @@ class StravaController extends Controller
     {
         $endDate = $activity->start_date->addSeconds($activity->elapsed_time);
 
-        $tracks = PlayedTrack::whereBetween('played_at', [$activity->start_date, $endDate])
-            ->orderByDesc('played_at')
-            ->get();
+        $tracks = DB::table('plays')
+            ->join('tracks', 'tracks.id', '=', 'plays.track_id')
+            ->leftJoin('albums', 'albums.id', '=', 'tracks.album_id')
+            ->leftJoin('track_artists', function ($join) {
+                $join->on('track_artists.track_id', '=', 'tracks.id')
+                    ->where('track_artists.is_primary', true);
+            })
+            ->leftJoin('artists', 'artists.id', '=', 'track_artists.artist_id')
+            ->whereBetween('plays.played_at', [$activity->start_date, $endDate])
+            ->select(
+                'plays.played_at',
+                'tracks.title as track_name',
+                'tracks.spotify_track_id',
+                'tracks.duration_ms',
+                'albums.name as album_name',
+                'albums.image_url as album_image_url',
+                DB::raw("COALESCE(artists.name, '') as artists_string"),
+            )
+            ->orderByDesc('plays.played_at')
+            ->get()
+            ->map(function ($track) {
+                $track->played_at = Carbon::parse($track->played_at);
+                $track->formatted_duration = $track->duration_ms
+                    ? sprintf('%d:%02d', floor($track->duration_ms / 60000), floor(($track->duration_ms % 60000) / 1000))
+                    : '--:--';
+
+                return $track;
+            });
 
         return view('strava.show', compact('activity', 'tracks', 'endDate'));
     }

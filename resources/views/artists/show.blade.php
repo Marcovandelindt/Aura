@@ -194,7 +194,7 @@
                                     </td>
                                     <td>{{ $track->album_name }}</td>
                                     <td>
-                                        <span style="background: linear-gradient(135deg, #1DB954 0%, #1ed760 100%); color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 500;">
+                                        <span style="background: linear-gradient(135deg, #1DB954 0%, #1ed760 100%); color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 500; white-space: nowrap;">
                                             {{ $track->play_count }} plays
                                         </span>
                                     </td>

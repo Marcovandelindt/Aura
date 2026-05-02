@@ -4,8 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Jobs\EnrichLastfmTracksJob;
 use App\Jobs\ImportLastfmScrobblesJob;
-use App\Models\LastfmScrobble;
 use App\Models\LastfmTrackCorrection;
+use App\Models\Play;
+use App\Models\Track;
 use App\Services\Lastfm\LastfmService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -23,10 +24,16 @@ class LastfmController extends Controller
         $isConfigured = $this->lastfm->isConfigured();
         $importStatus = Cache::get('lastfm_import_status');
         $enrichStatus = Cache::get('lastfm_enrich_status');
-        $totalImported = LastfmScrobble::count();
-        $totalEnriched = LastfmScrobble::whereNotNull('enriched_at')->whereNotNull('duration_ms')->distinct()->count(DB::raw('CONCAT(track_name, "|||", artist_name)'));
-        $totalUniqueUnenriched = (int) (DB::selectOne('SELECT COUNT(*) as count FROM (SELECT DISTINCT track_name, artist_name FROM lastfm_scrobbles WHERE enriched_at IS NULL) as t')?->count ?? 0);
-        $totalUniqueTracks = LastfmScrobble::distinct()->count(DB::raw('CONCAT(track_name, "|||", artist_name)'));
+
+        $totalImported = Play::where('source', 'lastfm')->count();
+        $totalUniqueTracks = Track::whereHas('plays', fn ($q) => $q->where('source', 'lastfm'))->count();
+        $totalEnriched = Track::whereHas('plays', fn ($q) => $q->where('source', 'lastfm'))
+            ->whereNotNull('duration_ms')
+            ->where('duration_ms', '>', 0)
+            ->count();
+        $totalUniqueUnenriched = Track::whereHas('plays', fn ($q) => $q->where('source', 'lastfm'))
+            ->whereNull('duration_ms')
+            ->count();
 
         $totalLastfm = null;
         if ($isConfigured) {
@@ -69,7 +76,7 @@ class LastfmController extends Controller
 
     public function clearImport(): RedirectResponse
     {
-        LastfmScrobble::truncate();
+        Play::where('source', 'lastfm')->delete();
         Cache::forget('lastfm_import_status');
 
         return back()->with('success', 'Alle Last.fm scrobbles zijn verwijderd.');
@@ -102,18 +109,44 @@ class LastfmController extends Controller
 
     public function missingDuration(): View
     {
-        $tracks = DB::table('lastfm_scrobbles')
-            ->whereNull('duration_ms')
-            ->select('track_name', 'artist_name')
-            ->selectRaw('COUNT(*) as scrobble_count')
-            ->selectRaw('MAX(album_image_url) as album_image_url')
-            ->selectRaw('MAX(album_name) as album_name')
-            ->selectRaw('MAX(enriched_at) as enriched_at')
-            ->groupBy('track_name', 'artist_name')
+        $tracks = DB::table('tracks')
+            ->join('plays', 'plays.track_id', '=', 'tracks.id')
+            ->leftJoin('albums', 'albums.id', '=', 'tracks.album_id')
+            ->leftJoin('track_artists', function ($join) {
+                $join->on('track_artists.track_id', '=', 'tracks.id')
+                    ->where('track_artists.is_primary', true);
+            })
+            ->leftJoin('artists', 'artists.id', '=', 'track_artists.artist_id')
+            ->where('plays.source', 'lastfm')
+            ->where(function ($q) {
+                $q->whereNull('tracks.duration_ms')->orWhere('tracks.duration_ms', 0);
+            })
+            ->select(
+                'tracks.id',
+                'tracks.title as track_name',
+                'tracks.duration_ms',
+                DB::raw("COALESCE(artists.name, '') as artist_name"),
+                'albums.name as album_name',
+                'albums.image_url as album_image_url',
+            )
+            ->selectRaw('COUNT(plays.id) as scrobble_count')
+            ->groupBy('tracks.id', 'tracks.title', 'tracks.duration_ms', 'artists.name', 'albums.name', 'albums.image_url')
             ->orderByDesc('scrobble_count')
             ->paginate(50);
 
-        $totalMissing = DB::table('lastfm_scrobbles')->whereNull('duration_ms')->distinct()->count(DB::raw('CONCAT(track_name, "|||", artist_name)'));
+        foreach ($tracks as $track) {
+            // null = never tried; 0 = tried but not found on Last.fm
+            $track->enriched_at = $track->duration_ms !== null ? now() : null;
+        }
+
+        $totalMissing = DB::table('tracks')
+            ->join('plays', 'plays.track_id', '=', 'tracks.id')
+            ->where('plays.source', 'lastfm')
+            ->where(function ($q) {
+                $q->whereNull('tracks.duration_ms')->orWhere('tracks.duration_ms', 0);
+            })
+            ->distinct()
+            ->count('tracks.id');
 
         return view('lastfm.missing-duration', compact('tracks', 'totalMissing'));
     }
@@ -127,14 +160,17 @@ class LastfmController extends Controller
             return response()->json(['success' => false, 'message' => 'Track of artiest ontbreekt'], 422);
         }
 
-        $this->deduplicateTrack($trackName, $artistName);
+        $track = Track::query()
+            ->whereRaw('LOWER(title) = ?', [mb_strtolower($trackName)])
+            ->whereHas('artists', fn ($q) => $q->whereRaw('LOWER(name) = ?', [mb_strtolower($artistName)]))
+            ->first();
+
+        if (! $track) {
+            return response()->json(['success' => false, 'message' => 'Track niet gevonden in database']);
+        }
 
         $durationMs = $this->lastfm->getTrackInfo($trackName, $artistName);
-
-        DB::table('lastfm_scrobbles')
-            ->where('track_name', $trackName)
-            ->where('artist_name', $artistName)
-            ->update(['duration_ms' => $durationMs, 'enriched_at' => now(), 'updated_at' => now()]);
+        $track->update(['duration_ms' => $durationMs ?? 0]);
 
         if ($durationMs === null) {
             return response()->json(['success' => false, 'message' => 'Geen duratie gevonden op Last.fm']);
@@ -163,10 +199,10 @@ class LastfmController extends Controller
 
         $durationMs = (($minutes * 60) + $seconds) * 1000;
 
-        DB::table('lastfm_scrobbles')
-            ->where('track_name', $trackName)
-            ->where('artist_name', $artistName)
-            ->update(['duration_ms' => $durationMs, 'enriched_at' => now(), 'updated_at' => now()]);
+        Track::query()
+            ->whereRaw('LOWER(title) = ?', [mb_strtolower($trackName)])
+            ->whereHas('artists', fn ($q) => $q->whereRaw('LOWER(name) = ?', [mb_strtolower($artistName)]))
+            ->update(['duration_ms' => $durationMs]);
 
         $formatted = sprintf('%d:%02d', $minutes, $seconds);
 
@@ -181,10 +217,20 @@ class LastfmController extends Controller
 
         $correctionIndex = $corrections->keyBy(fn ($c) => $c->track_name.'|||'.$c->artist_name);
 
-        $topTracks = DB::table('lastfm_scrobbles')
-            ->select('track_name', 'artist_name')
-            ->selectRaw('COUNT(*) as scrobble_count')
-            ->groupBy('track_name', 'artist_name')
+        $topTracks = DB::table('plays')
+            ->join('tracks', 'tracks.id', '=', 'plays.track_id')
+            ->leftJoin('track_artists', function ($join) {
+                $join->on('track_artists.track_id', '=', 'tracks.id')
+                    ->where('track_artists.is_primary', true);
+            })
+            ->leftJoin('artists', 'artists.id', '=', 'track_artists.artist_id')
+            ->where('plays.source', 'lastfm')
+            ->select(
+                'tracks.title as track_name',
+                DB::raw("COALESCE(artists.name, '') as artist_name"),
+            )
+            ->selectRaw('COUNT(plays.id) as scrobble_count')
+            ->groupBy('tracks.title', 'artists.name')
             ->orderByDesc('scrobble_count')
             ->limit(100)
             ->get()
@@ -243,11 +289,21 @@ class LastfmController extends Controller
             return response()->json([]);
         }
 
-        $tracks = DB::table('lastfm_scrobbles')
-            ->where('track_name', 'like', "%{$query}%")
-            ->select('track_name', 'artist_name')
-            ->selectRaw('COUNT(*) as scrobble_count')
-            ->groupBy('track_name', 'artist_name')
+        $tracks = DB::table('plays')
+            ->join('tracks', 'tracks.id', '=', 'plays.track_id')
+            ->leftJoin('track_artists', function ($join) {
+                $join->on('track_artists.track_id', '=', 'tracks.id')
+                    ->where('track_artists.is_primary', true);
+            })
+            ->leftJoin('artists', 'artists.id', '=', 'track_artists.artist_id')
+            ->where('plays.source', 'lastfm')
+            ->where('tracks.title', 'like', "%{$query}%")
+            ->select(
+                'tracks.title as track_name',
+                DB::raw("COALESCE(artists.name, '') as artist_name"),
+            )
+            ->selectRaw('COUNT(plays.id) as scrobble_count')
+            ->groupBy('tracks.title', 'artists.name')
             ->orderByDesc('scrobble_count')
             ->limit(10)
             ->get()
@@ -270,28 +326,7 @@ class LastfmController extends Controller
 
     public function deduplicateAll(): RedirectResponse
     {
-        $deleted = DB::affectingStatement('
-            DELETE s1 FROM lastfm_scrobbles s1
-            INNER JOIN lastfm_scrobbles s2
-                ON s1.track_name = s2.track_name
-                AND s1.artist_name = s2.artist_name
-                AND s1.played_at = s2.played_at
-                AND s1.id > s2.id
-        ');
-
-        return back()->with('success', "Opschonen klaar — {$deleted} dubbele scrobbles verwijderd.");
-    }
-
-    private function deduplicateTrack(string $trackName, string $artistName): void
-    {
-        DB::affectingStatement('
-            DELETE s1 FROM lastfm_scrobbles s1
-            INNER JOIN lastfm_scrobbles s2
-                ON s1.track_name = s2.track_name
-                AND s1.artist_name = s2.artist_name
-                AND s1.played_at = s2.played_at
-                AND s1.id > s2.id
-            WHERE s1.track_name = ? AND s1.artist_name = ?
-        ', [$trackName, $artistName]);
+        // The new normalized schema enforces uniqueness via DB constraint — no duplicates possible.
+        return back()->with('success', 'Opschonen klaar — het nieuwe schema voorkomt duplicaten automatisch.');
     }
 }

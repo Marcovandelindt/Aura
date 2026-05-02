@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
 
 class Game extends Model
@@ -41,11 +40,6 @@ class Game extends Model
                 $game->slug = Str::slug($game->name);
             }
         });
-    }
-
-    public function trackMoods(): HasMany
-    {
-        return $this->hasMany(PlayedTrackMood::class);
     }
 
     public function incrementTrackCount(): void

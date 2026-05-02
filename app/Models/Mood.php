@@ -21,12 +21,9 @@ class Mood extends Model
         'usage_count' => 'integer',
     ];
 
-    /**
-     * Get all tracks that have this mood (via spotify_track_id)
-     */
     public function tracks(): BelongsToMany
     {
-        return $this->belongsToMany(PlayedTrack::class, 'played_track_mood', 'mood_id', 'spotify_track_id', 'id', 'spotify_track_id');
+        return $this->belongsToMany(Track::class, 'track_mood', 'mood_id', 'track_id');
     }
 
     /**
@@ -53,13 +50,8 @@ class Mood extends Model
         return $query->orderBy('usage_count', 'desc');
     }
 
-    /**
-     * Get tracks by spotify track ID
-     */
     public static function getTracksWithMoods(string $spotifyTrackId)
     {
-        return self::whereHas('tracks', function($query) use ($spotifyTrackId) {
-            $query->where('spotify_track_id', $spotifyTrackId);
-        })->get();
+        return self::whereHas('tracks', fn ($q) => $q->where('spotify_track_id', $spotifyTrackId))->get();
     }
 }

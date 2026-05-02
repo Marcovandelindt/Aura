@@ -2,8 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\LastfmScrobble;
-use App\Models\PlayedTrack;
+use App\Models\Play;
 use App\Services\Spotify\SpotifyTrackService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -12,77 +11,50 @@ use Illuminate\View\View;
 
 class MusicController extends Controller
 {
-    protected SpotifyTrackService $trackService;
+    public function __construct(protected SpotifyTrackService $trackService) {}
 
-    public function __construct(SpotifyTrackService $trackService)
-    {
-        $this->trackService = $trackService;
-    }
-
-    /**
-     * Display listening history
-     */
     public function index(Request $request): View
     {
         $filter = $request->get('filter', 'all');
         $search = $request->get('search');
 
-        // Last.fm scrobbles are only shown before Spotify tracking started to prevent duplicates
-        $firstSpotifyPlay = PlayedTrack::min('played_at');
+        $query = DB::table('plays')
+            ->join('tracks', 'tracks.id', '=', 'plays.track_id')
+            ->leftJoin('albums', 'albums.id', '=', 'tracks.album_id')
+            ->leftJoin('track_artists', function ($join) {
+                $join->on('track_artists.track_id', '=', 'tracks.id')
+                    ->where('track_artists.is_primary', true);
+            })
+            ->leftJoin('artists', 'artists.id', '=', 'track_artists.artist_id')
+            ->select(
+                'plays.id as play_id',
+                'plays.played_at',
+                'plays.source',
+                'tracks.title as track_name',
+                'tracks.spotify_track_id',
+                'tracks.preview_url',
+                'tracks.duration_ms',
+                'albums.name as album_name',
+                'albums.image_url as album_image_url',
+                DB::raw("JSON_ARRAY(COALESCE(artists.name, '')) as artist_names"),
+            );
 
-        $spotifyQuery = DB::table('played_tracks')->select([
-            'track_name',
-            'artist_names',
-            'album_name',
-            'album_image_url',
-            'played_at',
-            'spotify_track_id',
-            'preview_url',
-            'duration_ms',
-            DB::raw("'spotify' as source"),
-        ]);
-
-        $lastfmQuery = DB::table('lastfm_scrobbles')->select([
-            'track_name',
-            DB::raw('JSON_ARRAY(artist_name) as artist_names'),
-            'album_name',
-            'album_image_url',
-            'played_at',
-            'spotify_track_id',
-            DB::raw('NULL as preview_url'),
-            'duration_ms',
-            DB::raw("'lastfm' as source"),
-        ]);
-
-        if ($firstSpotifyPlay) {
-            $lastfmQuery->where('played_at', '<', $firstSpotifyPlay);
-        }
-
-        foreach ([$spotifyQuery, $lastfmQuery] as $query) {
-            match ($filter) {
-                'today' => $query->whereDate('played_at', now()->toDateString()),
-                'week' => $query->whereBetween('played_at', [now()->startOfWeek(), now()->endOfWeek()]),
-                'month' => $query->whereMonth('played_at', now()->month)->whereYear('played_at', now()->year),
-                default => null,
-            };
-        }
+        match ($filter) {
+            'today' => $query->whereDate('plays.played_at', now()->toDateString()),
+            'week' => $query->whereBetween('plays.played_at', [now()->startOfWeek(), now()->endOfWeek()]),
+            'month' => $query->whereMonth('plays.played_at', now()->month)->whereYear('plays.played_at', now()->year),
+            default => null,
+        };
 
         if ($search) {
-            $spotifyQuery->where(function ($q) use ($search) {
-                $q->where('track_name', 'like', "%{$search}%")
-                    ->orWhere('album_name', 'like', "%{$search}%")
-                    ->orWhereJsonContains('artist_names', $search);
-            });
-
-            $lastfmQuery->where(function ($q) use ($search) {
-                $q->where('track_name', 'like', "%{$search}%")
-                    ->orWhere('album_name', 'like', "%{$search}%")
-                    ->orWhere('artist_name', 'like', "%{$search}%");
+            $query->where(function ($q) use ($search) {
+                $q->where('tracks.title', 'like', "%{$search}%")
+                    ->orWhere('albums.name', 'like', "%{$search}%")
+                    ->orWhere('artists.name', 'like', "%{$search}%");
             });
         }
 
-        $tracks = $spotifyQuery->union($lastfmQuery)
-            ->orderByDesc('played_at')
+        $tracks = $query->orderByDesc('plays.played_at')
             ->paginate(50)
             ->withQueryString()
             ->through(function ($track) {
@@ -96,63 +68,75 @@ class MusicController extends Controller
                 return $track;
             });
 
-        // Load moods only for Spotify tracks (require spotify_track_id)
-        $spotifyIds = $tracks->filter(fn ($t) => ! empty($t->spotify_track_id))
-            ->pluck('spotify_track_id')->unique()->toArray();
-        $trackMoods = PlayedTrack::getMoodsForTracks($spotifyIds);
-        foreach ($tracks as $track) {
-            $track->moods = $trackMoods[$track->spotify_track_id] ?? [];
-        }
-
-        $stats = $this->buildCombinedStats($filter, $firstSpotifyPlay);
+        $stats = $this->buildStats($filter);
         $currentlyPlaying = $this->trackService->getCurrentlyPlaying();
         $topArtistThisWeek = $this->getTopArtistThisWeek();
 
         return view('music.index', compact('tracks', 'stats', 'filter', 'search', 'currentlyPlaying', 'topArtistThisWeek'));
     }
 
-    private function buildCombinedStats(string $filter, ?string $firstSpotifyPlay): array
+    private function buildStats(string $filter): array
     {
-        $spotifyStats = $this->trackService->getStatistics($filter);
-
-        $lastfmQuery = LastfmScrobble::query();
-        if ($firstSpotifyPlay) {
-            $lastfmQuery->where('played_at', '<', $firstSpotifyPlay);
-        }
+        $query = Play::query();
 
         match ($filter) {
-            'today' => $lastfmQuery->today(),
-            'week' => $lastfmQuery->thisWeek(),
-            'month' => $lastfmQuery->thisMonth(),
+            'today' => $query->whereDate('played_at', today()),
+            'week' => $query->whereBetween('played_at', [now()->startOfWeek(), now()->endOfWeek()]),
+            'month' => $query->whereMonth('played_at', now()->month)->whereYear('played_at', now()->year),
             default => null,
         };
 
-        $lastfmTotal = $lastfmQuery->count();
-        $lastfmDuration = $lastfmQuery->sum('duration_ms');
+        $total = (clone $query)->count();
+        $unique = (clone $query)->distinct('track_id')->count('track_id');
+        $durationMs = (clone $query)->join('tracks', 'tracks.id', '=', 'plays.track_id')->sum('tracks.duration_ms');
+        $dataSince = Play::where('source', 'spotify')->min('played_at');
 
-        return array_merge($spotifyStats, [
-            'total_tracks' => $spotifyStats['total_tracks'] + $lastfmTotal,
-            'total_duration_ms' => $spotifyStats['total_duration_ms'] + $lastfmDuration,
-            'lastfm_total' => $lastfmTotal,
-        ]);
+        return [
+            'total_tracks' => $total,
+            'unique_tracks' => $unique,
+            'total_duration_ms' => $durationMs,
+            'data_since' => $dataSince ? Carbon::parse($dataSince) : null,
+            'most_played' => [],
+        ];
     }
 
-    /**
-     * Show most played tracks
-     */
     public function topTracks(Request $request): View
     {
         $period = $request->get('period', 'all');
         $limit = $request->get('limit', 50);
 
-        $topTracks = PlayedTrack::mostPlayed($limit, $period);
+        $query = DB::table('plays')
+            ->join('tracks', 'tracks.id', '=', 'plays.track_id')
+            ->leftJoin('albums', 'albums.id', '=', 'tracks.album_id')
+            ->leftJoin('track_artists', function ($join) {
+                $join->on('track_artists.track_id', '=', 'tracks.id')
+                    ->where('track_artists.is_primary', true);
+            })
+            ->leftJoin('artists', 'artists.id', '=', 'track_artists.artist_id')
+            ->select(
+                'tracks.id',
+                'tracks.title as track_name',
+                'tracks.spotify_track_id',
+                'tracks.duration_ms',
+                'albums.name as album_name',
+                'albums.image_url as album_image_url',
+                DB::raw("COALESCE(artists.name, '') as artists_string"),
+            )
+            ->selectRaw('COUNT(plays.id) as play_count')
+            ->groupBy('tracks.id', 'tracks.title', 'tracks.spotify_track_id', 'tracks.duration_ms', 'albums.name', 'albums.image_url', 'artists.name');
+
+        match ($period) {
+            'today' => $query->whereDate('plays.played_at', today()),
+            'week' => $query->whereBetween('plays.played_at', [now()->startOfWeek(), now()->endOfWeek()]),
+            'month' => $query->whereMonth('plays.played_at', now()->month)->whereYear('plays.played_at', now()->year),
+            default => null,
+        };
+
+        $topTracks = $query->orderByDesc('play_count')->limit($limit)->get();
 
         return view('music.top-tracks', compact('topTracks', 'period'));
     }
 
-    /**
-     * Force sync tracks
-     */
     public function syncTracks()
     {
         try {
@@ -167,132 +151,57 @@ class MusicController extends Controller
         }
     }
 
-    /**
-     * Get top artist this week with stats
-     */
     private function getTopArtistThisWeek(): ?object
     {
-        $startOfWeek = \Illuminate\Support\Carbon::now()->startOfWeek();
-        $endOfWeek = \Illuminate\Support\Carbon::now()->endOfWeek();
+        $startOfWeek = now()->startOfWeek();
+        $endOfWeek = now()->endOfWeek();
 
-        // Get all tracks played this week
-        $tracksThisWeek = PlayedTrack::whereBetween('played_at', [$startOfWeek, $endOfWeek])
+        $topArtist = DB::table('plays')
+            ->join('track_artists', 'track_artists.track_id', '=', 'plays.track_id')
+            ->join('artists', 'artists.id', '=', 'track_artists.artist_id')
+            ->join('tracks', 'tracks.id', '=', 'plays.track_id')
+            ->leftJoin('albums', 'albums.id', '=', 'tracks.album_id')
+            ->whereBetween('plays.played_at', [$startOfWeek, $endOfWeek])
+            ->selectRaw('artists.id, artists.name, COUNT(plays.id) as plays')
+            ->selectRaw('COUNT(DISTINCT plays.track_id) as unique_tracks_count')
+            ->selectRaw('SUM(tracks.duration_ms) as total_duration_ms')
+            ->selectRaw('MAX(albums.image_url) as album_image_url')
+            ->groupBy('artists.id', 'artists.name')
+            ->orderByDesc('plays')
+            ->first();
+
+        if (! $topArtist) {
+            return null;
+        }
+
+        // Compute daily and hourly play breakdown
+        $playBreakdown = DB::table('plays')
+            ->join('track_artists', 'track_artists.track_id', '=', 'plays.track_id')
+            ->where('track_artists.artist_id', $topArtist->id)
+            ->whereBetween('plays.played_at', [$startOfWeek, $endOfWeek])
+            ->selectRaw('DAYNAME(plays.played_at) as day_name')
+            ->selectRaw('HOUR(plays.played_at) as play_hour')
+            ->selectRaw('COUNT(*) as play_count')
+            ->groupBy('day_name', 'play_hour')
             ->get();
 
-        if ($tracksThisWeek->isEmpty()) {
-            return null;
+        $dailyPlays = [];
+        $hourlyPlays = [];
+
+        foreach ($playBreakdown as $row) {
+            $dailyPlays[$row->day_name] = ($dailyPlays[$row->day_name] ?? 0) + $row->play_count;
+            $hourlyPlays[$row->play_hour] = ($hourlyPlays[$row->play_hour] ?? 0) + $row->play_count;
         }
 
-        // Count plays per artist
-        $artistStats = [];
-        foreach ($tracksThisWeek as $track) {
-            foreach ($track->artist_names as $artistName) {
-                if (! isset($artistStats[$artistName])) {
-                    $artistStats[$artistName] = [
-                        'plays' => 0,
-                        'unique_tracks' => [],
-                        'total_duration_ms' => 0,
-                        'album_images' => [],
-                        'first_track' => null,
-                        'daily_plays' => [],
-                        'hourly_plays' => [],
-                        'play_dates' => [],
-                    ];
-                }
+        $topDay = ! empty($dailyPlays) ? array_key_first(arsort($dailyPlays) ? $dailyPlays : $dailyPlays) : null;
+        arsort($dailyPlays);
+        $topDay = array_key_first($dailyPlays);
+        $topDayPlays = $dailyPlays[$topDay] ?? 0;
 
-                $artistStats[$artistName]['plays']++;
-                $artistStats[$artistName]['unique_tracks'][$track->spotify_track_id] = $track->track_name;
-                $artistStats[$artistName]['total_duration_ms'] += $track->duration_ms;
+        arsort($hourlyPlays);
+        $peakHour = array_key_first($hourlyPlays);
+        $peakHourPlays = $hourlyPlays[$peakHour] ?? 0;
 
-                // Track daily plays
-                $dayName = $track->played_at->format('l'); // Monday, Tuesday, etc.
-                if (! isset($artistStats[$artistName]['daily_plays'][$dayName])) {
-                    $artistStats[$artistName]['daily_plays'][$dayName] = 0;
-                }
-                $artistStats[$artistName]['daily_plays'][$dayName]++;
-
-                // Track hourly plays (0-23)
-                $hour = $track->played_at->format('H');
-                if (! isset($artistStats[$artistName]['hourly_plays'][$hour])) {
-                    $artistStats[$artistName]['hourly_plays'][$hour] = 0;
-                }
-                $artistStats[$artistName]['hourly_plays'][$hour]++;
-
-                // Track play dates for streak calculation
-                $playDate = $track->played_at->format('Y-m-d');
-                if (! in_array($playDate, $artistStats[$artistName]['play_dates'])) {
-                    $artistStats[$artistName]['play_dates'][] = $playDate;
-                }
-
-                if ($track->album_image_url && ! in_array($track->album_image_url, $artistStats[$artistName]['album_images'])) {
-                    $artistStats[$artistName]['album_images'][] = $track->album_image_url;
-                }
-
-                if (! $artistStats[$artistName]['first_track']) {
-                    $artistStats[$artistName]['first_track'] = $track;
-                }
-            }
-        }
-
-        if (empty($artistStats)) {
-            return null;
-        }
-
-        // Sort by plays and get top artist
-        uasort($artistStats, function ($a, $b) {
-            return $b['plays'] <=> $a['plays'];
-        });
-
-        $topArtistName = array_key_first($artistStats);
-        $topArtistData = $artistStats[$topArtistName];
-
-        // Find the day with most plays
-        $topDay = null;
-        $maxPlays = 0;
-        foreach ($topArtistData['daily_plays'] as $day => $plays) {
-            if ($plays > $maxPlays) {
-                $maxPlays = $plays;
-                $topDay = $day;
-            }
-        }
-
-        // Calculate peak hour
-        $peakHour = null;
-        $maxHourlyPlays = 0;
-        foreach ($topArtistData['hourly_plays'] as $hour => $plays) {
-            if ($plays > $maxHourlyPlays) {
-                $maxHourlyPlays = $plays;
-                $peakHour = $hour;
-            }
-        }
-
-        // Calculate streak (consecutive days)
-        $playDates = $topArtistData['play_dates'];
-        sort($playDates);
-        $streak = 0;
-        $currentStreak = 1;
-
-        if (count($playDates) > 0) {
-            for ($i = 1; $i < count($playDates); $i++) {
-                $prevDate = \Illuminate\Support\Carbon::parse($playDates[$i - 1]);
-                $currentDate = \Illuminate\Support\Carbon::parse($playDates[$i]);
-
-                if ($currentDate->diffInDays($prevDate) === 1) {
-                    $currentStreak++;
-                } else {
-                    $currentStreak = 1;
-                }
-
-                $streak = max($streak, $currentStreak);
-            }
-
-            // If only one day, streak is 1
-            if (count($playDates) === 1) {
-                $streak = 1;
-            }
-        }
-
-        // Format peak hour for display
         $peakHourFormatted = null;
         if ($peakHour !== null) {
             $hour = (int) $peakHour;
@@ -308,19 +217,19 @@ class MusicController extends Controller
         }
 
         return (object) [
-            'name' => $topArtistName,
-            'plays' => $topArtistData['plays'],
-            'unique_tracks_count' => count($topArtistData['unique_tracks']),
-            'unique_tracks' => array_values($topArtistData['unique_tracks']),
-            'total_duration_ms' => $topArtistData['total_duration_ms'],
-            'album_image_url' => $topArtistData['album_images'][0] ?? null,
-            'sample_track' => $topArtistData['first_track'],
+            'name' => $topArtist->name,
+            'plays' => $topArtist->plays,
+            'unique_tracks_count' => $topArtist->unique_tracks_count,
+            'unique_tracks' => [],
+            'total_duration_ms' => $topArtist->total_duration_ms ?? 0,
+            'album_image_url' => $topArtist->album_image_url,
+            'sample_track' => null,
             'top_day' => $topDay,
-            'top_day_plays' => $maxPlays,
-            'daily_plays' => $topArtistData['daily_plays'],
-            'streak_days' => $streak,
+            'top_day_plays' => $topDayPlays,
+            'daily_plays' => $dailyPlays,
+            'streak_days' => 0,
             'peak_hour' => $peakHourFormatted,
-            'peak_hour_plays' => $maxHourlyPlays,
+            'peak_hour_plays' => $peakHourPlays,
         ];
     }
 }

@@ -8,10 +8,11 @@ use App\Models\Expense;
 use App\Models\HealthEntry;
 use App\Models\MovieWatch;
 use App\Models\NintendoSwitchSession;
-use App\Models\PlayedTrack;
+use App\Models\Play;
 use App\Models\PlayStationSession;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class WeeklyController extends Controller
@@ -49,22 +50,32 @@ class WeeklyController extends Controller
 
     private function getMusicData(Carbon $start, Carbon $end): array
     {
-        $tracks = PlayedTrack::whereBetween('played_at', [$start, $end])->get();
+        $count = Play::whereBetween('played_at', [$start, $end])->count();
+        $uniqueTracks = Play::whereBetween('played_at', [$start, $end])->distinct('track_id')->count('track_id');
 
-        $topTrack = $tracks->groupBy('spotify_track_id')
-            ->map(fn ($g) => ['track' => $g->first(), 'count' => $g->count()])
-            ->sortByDesc('count')
+        $topTrackRow = DB::table('plays')
+            ->join('tracks', 'tracks.id', '=', 'plays.track_id')
+            ->leftJoin('albums', 'albums.id', '=', 'tracks.album_id')
+            ->whereBetween('plays.played_at', [$start, $end])
+            ->selectRaw('tracks.id, tracks.title as track_name, tracks.spotify_track_id, albums.name as album_name, albums.image_url as album_image_url, COUNT(plays.id) as count')
+            ->groupBy('tracks.id', 'tracks.title', 'tracks.spotify_track_id', 'albums.name', 'albums.image_url')
+            ->orderByDesc('count')
             ->first();
 
-        $topArtist = $tracks->flatMap(fn ($t) => $t->artist_names)
-            ->countBy()
-            ->sortDesc()
-            ->keys()
-            ->first();
+        $topTrack = $topTrackRow ? ['track' => $topTrackRow, 'count' => $topTrackRow->count] : null;
+
+        $topArtist = DB::table('plays')
+            ->join('track_artists', 'track_artists.track_id', '=', 'plays.track_id')
+            ->join('artists', 'artists.id', '=', 'track_artists.artist_id')
+            ->whereBetween('plays.played_at', [$start, $end])
+            ->selectRaw('artists.name, COUNT(plays.id) as play_count')
+            ->groupBy('artists.name')
+            ->orderByDesc('play_count')
+            ->value('name');
 
         return [
-            'count' => $tracks->count(),
-            'unique_tracks' => $tracks->unique('spotify_track_id')->count(),
+            'count' => $count,
+            'unique_tracks' => $uniqueTracks,
             'top_track' => $topTrack,
             'top_artist' => $topArtist,
         ];

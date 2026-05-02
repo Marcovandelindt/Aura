@@ -2,8 +2,12 @@
 
 namespace App\Jobs;
 
-use App\Models\LastfmScrobble;
+use App\Models\Album;
+use App\Models\Artist;
+use App\Models\Play;
+use App\Models\Track;
 use App\Services\Lastfm\LastfmService;
+use Carbon\Carbon;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Cache;
@@ -32,67 +36,70 @@ class ImportLastfmScrobblesJob implements ShouldQueue
         $endPage = $this->startPage + self::PAGES_PER_BATCH - 1;
         $totalPages = null;
 
-        Cache::put('lastfm_import_status', [
-            'running' => true,
-            'page' => $this->startPage,
-            'total_pages' => Cache::get('lastfm_import_status.total_pages'),
-            'imported' => $imported,
-            'skipped' => $skipped,
-            'error' => null,
-        ], now()->addHours(2));
+        // Only import scrobbles before Spotify tracking started to prevent duplicates
+        $firstSpotifyPlay = Play::where('source', 'spotify')->min('played_at');
+
+        $this->updateStatus(running: true, page: $this->startPage, imported: $imported, skipped: $skipped);
 
         for ($page = $this->startPage; $page <= $endPage; $page++) {
             $result = $lastfm->getRecentTracksPage($page);
             $totalPages = $result['totalPages'];
 
-            foreach ($result['tracks'] as $track) {
-                if (isset($track['@attr']['nowplaying'])) {
+            foreach ($result['tracks'] as $scrobble) {
+                if (isset($scrobble['@attr']['nowplaying'])) {
                     continue;
                 }
 
-                $playedAt = isset($track['date']['uts'])
-                    ? \Carbon\Carbon::createFromTimestamp((int) $track['date']['uts'])
+                $playedAt = isset($scrobble['date']['uts'])
+                    ? Carbon::createFromTimestamp((int) $scrobble['date']['uts'])
                     : null;
 
                 if (! $playedAt) {
                     continue;
                 }
 
-                $trackName = $track['name'] ?? '';
-                $artistName = is_array($track['artist']) ? ($track['artist']['#text'] ?? '') : ($track['artist'] ?? '');
-                $albumName = is_array($track['album']) ? ($track['album']['#text'] ?? null) : null;
+                if ($firstSpotifyPlay && $playedAt >= $firstSpotifyPlay) {
+                    $skipped++;
+
+                    continue;
+                }
+
+                $trackName = $scrobble['name'] ?? '';
+                $artistName = is_array($scrobble['artist'])
+                    ? ($scrobble['artist']['#text'] ?? '')
+                    : ($scrobble['artist'] ?? '');
+                $albumName = is_array($scrobble['album']) ? ($scrobble['album']['#text'] ?? null) : null;
+
+                if (! $trackName || ! $artistName) {
+                    continue;
+                }
 
                 $albumImage = null;
-                if (! empty($track['image'])) {
-                    $images = collect($track['image']);
+                if (! empty($scrobble['image'])) {
+                    $images = collect($scrobble['image']);
                     $albumImage = $images->last()['#text'] ?? null;
                     if (empty($albumImage)) {
                         $albumImage = $images->firstWhere('#text', '!=', '')['#text'] ?? null;
                     }
                 }
 
-                try {
-                    $scrobble = LastfmScrobble::firstOrCreate(
-                        ['track_name' => $trackName, 'artist_name' => $artistName, 'played_at' => $playedAt],
-                        ['album_name' => $albumName ?: null, 'album_image_url' => $albumImage ?: null],
-                    );
+                $track = $this->findOrCreateTrack($trackName, $artistName, $albumName, $albumImage ?: null);
 
-                    $scrobble->wasRecentlyCreated ? $imported++ : $skipped++;
-                } catch (\Illuminate\Database\UniqueConstraintViolationException) {
-                    $skipped++;
-                }
+                $inserted = Play::insertOrIgnore([[
+                    'track_id' => $track->id,
+                    'played_at' => $playedAt,
+                    'source' => 'lastfm',
+                    'context' => null,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]]);
+
+                $inserted ? $imported++ : $skipped++;
             }
 
             usleep(250_000);
 
-            Cache::put('lastfm_import_status', [
-                'running' => true,
-                'page' => $page,
-                'total_pages' => $totalPages,
-                'imported' => $imported,
-                'skipped' => $skipped,
-                'error' => null,
-            ], now()->addHours(2));
+            $this->updateStatus(running: true, page: $page, totalPages: $totalPages, imported: $imported, skipped: $skipped);
 
             Log::info("Last.fm import: page {$page}/{$totalPages}, imported {$imported}, skipped {$skipped}");
 
@@ -106,30 +113,56 @@ class ImportLastfmScrobblesJob implements ShouldQueue
         if ($totalPages !== null && $nextPage <= $totalPages) {
             self::dispatch($nextPage, $imported, $skipped);
         } else {
-            Cache::put('lastfm_import_status', [
-                'running' => false,
-                'page' => $totalPages,
-                'total_pages' => $totalPages,
-                'imported' => $imported,
-                'skipped' => $skipped,
-                'error' => null,
-            ], now()->addHours(2));
-
+            $this->updateStatus(running: false, page: $totalPages, totalPages: $totalPages, imported: $imported, skipped: $skipped);
             Log::info("Last.fm import complete: {$imported} imported, {$skipped} skipped");
         }
+    }
+
+    private function findOrCreateTrack(string $title, string $artistName, ?string $albumName, ?string $albumImage): Track
+    {
+        $track = Track::query()
+            ->whereRaw('LOWER(title) = ?', [mb_strtolower($title)])
+            ->whereHas('artists', fn ($q) => $q->whereRaw('LOWER(name) = ?', [mb_strtolower($artistName)]))
+            ->first();
+
+        if ($track) {
+            return $track;
+        }
+
+        $album = $albumName
+            ? Album::firstOrCreate(['name' => $albumName], ['image_url' => $albumImage])
+            : null;
+
+        $track = Track::create(['title' => $title, 'album_id' => $album?->id]);
+
+        $artist = Artist::firstOrCreate(['name' => $artistName]);
+        $track->artists()->attach($artist->id, ['is_primary' => true, 'sort_order' => 0]);
+
+        return $track;
+    }
+
+    private function updateStatus(bool $running, ?int $page = null, ?int $totalPages = null, int $imported = 0, int $skipped = 0, ?string $error = null): void
+    {
+        Cache::put('lastfm_import_status', [
+            'running' => $running,
+            'page' => $page,
+            'total_pages' => $totalPages ?? Cache::get('lastfm_import_status')['total_pages'] ?? null,
+            'imported' => $imported,
+            'skipped' => $skipped,
+            'error' => $error,
+        ], now()->addHours(2));
     }
 
     public function failed(\Throwable $exception): void
     {
         Log::error("Last.fm import failed on page {$this->startPage}: {$exception->getMessage()}");
 
-        Cache::put('lastfm_import_status', [
-            'running' => false,
-            'page' => $this->startPage,
-            'total_pages' => Cache::get('lastfm_import_status')['total_pages'] ?? null,
-            'imported' => $this->totalImportedSoFar,
-            'skipped' => $this->totalSkippedSoFar,
-            'error' => "Mislukt op pagina {$this->startPage}: {$exception->getMessage()}",
-        ], now()->addHours(2));
+        $this->updateStatus(
+            running: false,
+            page: $this->startPage,
+            imported: $this->totalImportedSoFar,
+            skipped: $this->totalSkippedSoFar,
+            error: "Mislukt op pagina {$this->startPage}: {$exception->getMessage()}",
+        );
     }
 }

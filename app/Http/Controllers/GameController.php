@@ -3,8 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Game;
-use App\Models\PlayedTrack;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class GameController extends Controller
@@ -21,48 +21,57 @@ class GameController extends Controller
 
     public function show(Game $game): View
     {
-        // Get all tracks associated with this game through the played_track_mood pivot
-        $tracks = PlayedTrack::query()
-            ->select('played_tracks.spotify_track_id', 'played_tracks.track_name', 'played_tracks.artist_names',
-                'played_tracks.album_name', 'played_tracks.album_image_url', 'played_tracks.duration_ms')
-            ->selectRaw('COUNT(*) as play_count')
-            ->selectRaw('MAX(played_tracks.played_at) as last_played')
-            ->selectRaw('MIN(played_tracks.played_at) as first_played')
-            ->join('played_track_mood', 'played_tracks.spotify_track_id', '=', 'played_track_mood.spotify_track_id')
-            ->where('played_track_mood.game_id', $game->id)
-            ->groupBy('played_tracks.spotify_track_id', 'played_tracks.track_name', 'played_tracks.artist_names',
-                'played_tracks.album_name', 'played_tracks.album_image_url', 'played_tracks.duration_ms')
-            ->orderBy('play_count', 'desc')
+        $tracks = DB::table('track_mood')
+            ->join('tracks', 'tracks.id', '=', 'track_mood.track_id')
+            ->leftJoin('albums', 'albums.id', '=', 'tracks.album_id')
+            ->leftJoin('track_artists', function ($join) {
+                $join->on('track_artists.track_id', '=', 'tracks.id')
+                    ->where('track_artists.is_primary', true);
+            })
+            ->leftJoin('artists', 'artists.id', '=', 'track_artists.artist_id')
+            ->leftJoin('plays', 'plays.track_id', '=', 'tracks.id')
+            ->where('track_mood.game_id', $game->id)
+            ->select(
+                'tracks.id',
+                'tracks.spotify_track_id',
+                'tracks.title as track_name',
+                'tracks.duration_ms',
+                'albums.name as album_name',
+                'albums.image_url as album_image_url',
+                DB::raw("COALESCE(artists.name, '') as artists_string"),
+            )
+            ->selectRaw('COUNT(plays.id) as play_count')
+            ->selectRaw('MAX(plays.played_at) as last_played')
+            ->selectRaw('MIN(plays.played_at) as first_played')
+            ->groupBy('tracks.id', 'tracks.spotify_track_id', 'tracks.title', 'tracks.duration_ms', 'albums.name', 'albums.image_url', 'artists.name')
+            ->orderByDesc('play_count')
+            ->get();
+
+        $trackIds = $tracks->pluck('id')->all();
+
+        $moodsByTrack = DB::table('track_mood')
+            ->join('moods', 'moods.id', '=', 'track_mood.mood_id')
+            ->whereIn('track_mood.track_id', $trackIds)
+            ->where('moods.is_active', true)
+            ->select('track_mood.track_id', 'moods.id', 'moods.name', 'moods.color', 'moods.icon')
             ->get()
-            ->map(function ($track) {
-                $track->artists_string = implode(', ', $track->artist_names);
+            ->groupBy('track_id');
 
-                return $track;
-            });
+        $tracks = $tracks->map(function ($track) use ($moodsByTrack) {
+            $track->moods = ($moodsByTrack->get($track->id) ?? collect())
+                ->map(fn ($m) => ['id' => $m->id, 'name' => $m->name, 'color' => $m->color, 'icon' => $m->icon])
+                ->all();
 
-        // Calculate statistics
-        $firstPlayed = $tracks->min('first_played');
-        $lastPlayed = $tracks->max('last_played');
+            return $track;
+        });
 
         $stats = [
             'total_plays' => $tracks->sum('play_count'),
             'unique_tracks' => $tracks->count(),
-            'total_duration_ms' => $tracks->sum(function ($track) {
-                return $track->duration_ms * $track->play_count;
-            }),
-            'first_played' => $firstPlayed ? Carbon::parse($firstPlayed) : null,
-            'last_played' => $lastPlayed ? Carbon::parse($lastPlayed) : null,
+            'total_duration_ms' => $tracks->sum(fn ($t) => ($t->duration_ms ?? 0) * $t->play_count),
+            'first_played' => $tracks->min('first_played') ? Carbon::parse($tracks->min('first_played')) : null,
+            'last_played' => $tracks->max('last_played') ? Carbon::parse($tracks->max('last_played')) : null,
         ];
-
-        // Get moods for tracks
-        $trackIds = $tracks->pluck('spotify_track_id')->toArray();
-        $trackMoods = PlayedTrack::getMoodsForTracks($trackIds);
-
-        $tracks = $tracks->map(function ($track) use ($trackMoods) {
-            $track->moods = $trackMoods[$track->spotify_track_id] ?? [];
-
-            return $track;
-        });
 
         return view('games.show', compact('game', 'tracks', 'stats'));
     }

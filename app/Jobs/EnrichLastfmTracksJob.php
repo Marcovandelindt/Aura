@@ -2,11 +2,11 @@
 
 namespace App\Jobs;
 
+use App\Models\Track;
 use App\Services\Lastfm\LastfmService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class EnrichLastfmTracksJob implements ShouldQueue
@@ -30,9 +30,8 @@ class EnrichLastfmTracksJob implements ShouldQueue
         $total = $this->totalToEnrich;
 
         if ($total === 0) {
-            $total = (int) DB::selectOne(
-                'SELECT COUNT(*) as count FROM (SELECT DISTINCT track_name, artist_name FROM lastfm_scrobbles WHERE enriched_at IS NULL) as t'
-            )->count;
+            // Last.fm-only tracks (no Spotify ID) that still have no duration
+            $total = Track::whereNull('spotify_track_id')->whereNull('duration_ms')->count();
         }
 
         Cache::put('lastfm_enrich_status', [
@@ -42,10 +41,10 @@ class EnrichLastfmTracksJob implements ShouldQueue
             'error' => null,
         ], now()->addHours(4));
 
-        $tracks = DB::table('lastfm_scrobbles')
-            ->whereNull('enriched_at')
-            ->select('track_name', 'artist_name')
-            ->groupBy('track_name', 'artist_name')
+        $tracks = Track::query()
+            ->whereNull('spotify_track_id')
+            ->whereNull('duration_ms')
+            ->with('artists')
             ->limit(self::TRACKS_PER_BATCH)
             ->get();
 
@@ -64,32 +63,28 @@ class EnrichLastfmTracksJob implements ShouldQueue
         }
 
         foreach ($tracks as $track) {
-            $durationMs = $lastfm->getTrackInfo($track->track_name, $track->artist_name);
+            $primaryArtist = $track->primaryArtist;
 
-            DB::affectingStatement('
-                DELETE s1 FROM lastfm_scrobbles s1
-                INNER JOIN lastfm_scrobbles s2
-                    ON s1.track_name = s2.track_name
-                    AND s1.artist_name = s2.artist_name
-                    AND s1.played_at = s2.played_at
-                    AND s1.id > s2.id
-                WHERE s1.track_name = ? AND s1.artist_name = ?
-            ', [$track->track_name, $track->artist_name]);
+            if (! $primaryArtist) {
+                // Mark as attempted with 0 so it won't be retried endlessly
+                $track->update(['duration_ms' => 0]);
+                $enriched++;
 
-            DB::table('lastfm_scrobbles')
-                ->where('track_name', $track->track_name)
-                ->where('artist_name', $track->artist_name)
-                ->whereNull('enriched_at')
-                ->update(['duration_ms' => $durationMs, 'enriched_at' => now(), 'updated_at' => now()]);
+                continue;
+            }
+
+            $durationMs = $lastfm->getTrackInfo($track->title, $primaryArtist->name);
+
+            // 0 is used as a sentinel for "tried but not found" so we don't retry endlessly.
+            // The formatted_duration accessor treats 0 the same as null (displays '—').
+            $track->update(['duration_ms' => $durationMs ?? 0]);
 
             $enriched++;
 
             usleep(500_000);
         }
 
-        $remaining = (int) (DB::selectOne(
-            'SELECT COUNT(*) as count FROM (SELECT DISTINCT track_name, artist_name FROM lastfm_scrobbles WHERE enriched_at IS NULL) as t'
-        )->count);
+        $remaining = Track::whereNull('spotify_track_id')->whereNull('duration_ms')->count();
 
         Cache::put('lastfm_enrich_status', [
             'running' => false,
@@ -99,7 +94,11 @@ class EnrichLastfmTracksJob implements ShouldQueue
             'error' => null,
         ], now()->addHours(4));
 
-        Log::info("Last.fm enrichment batch done: {$enriched} processed this run, {$remaining} remaining");
+        if ($remaining > 0) {
+            self::dispatch($enriched, $total);
+        } else {
+            Log::info("Last.fm enrichment complete: {$enriched} tracks processed");
+        }
     }
 
     public function failed(\Throwable $exception): void
