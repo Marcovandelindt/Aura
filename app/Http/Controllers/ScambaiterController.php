@@ -94,7 +94,7 @@ class ScambaiterController extends Controller
         $lines[] = '';
 
         $lines[] = '## EMAIL THREAD';
-        foreach ($conversation->emails as $email) {
+        foreach ($conversation->emails->sortBy(fn ($e) => $e->sent_at ?? $e->created_at) as $email) {
             $senderLabel = $email->sender->label();
             $lines[] = "--- {$senderLabel} ---";
             if ($email->subject) {

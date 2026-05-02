@@ -31,6 +31,6 @@ class ScambaiterConversation extends Model
 
     public function emails(): HasMany
     {
-        return $this->hasMany(ScambaiterEmail::class)->orderBy('created_at');
+        return $this->hasMany(ScambaiterEmail::class)->orderByRaw('COALESCE(sent_at, created_at) DESC');
     }
 }

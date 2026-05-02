@@ -100,7 +100,7 @@
                     document.addEventListener('DOMContentLoaded', () => {
                         const emails = document.querySelectorAll('.scambaiter-email');
                         emails.forEach((email, index) => {
-                            if (index === emails.length - 1) return;
+                            if (index === 0) return;
                             const body = email.querySelector('.scambaiter-email-body');
                             const chevron = email.querySelector('.scambaiter-chevron');
                             body.style.display = 'none';
