@@ -49,7 +49,14 @@
             <div class="card" style="margin-bottom: 1.5rem;">
                 <div class="card-header" style="display: flex; align-items: center; justify-content: space-between;">
                     <h3>Email Thread</h3>
-                    <span style="font-size: 0.8rem; color: #888;">{{ $conversation->emails->count() }} email{{ $conversation->emails->count() === 1 ? '' : 's' }}</span>
+                    <div style="display: flex; align-items: center; gap: 1rem;">
+                        <span style="font-size: 0.8rem; color: #888;">{{ $conversation->emails->count() }} email{{ $conversation->emails->count() === 1 ? '' : 's' }}</span>
+                        @if($conversation->emails->count() > 1)
+                            <button type="button" onclick="toggleAllEmails()" id="toggle-all-btn" style="background: none; border: none; cursor: pointer; font-size: 0.8rem; color: var(--primary-color); padding: 0;">
+                                Collapse all
+                            </button>
+                        @endif
+                    </div>
                 </div>
                 <div class="card-body" style="padding: 0;">
                     @if($conversation->emails->isEmpty())
@@ -61,8 +68,8 @@
                         <div class="scambaiter-thread">
                             @foreach($conversation->emails as $email)
                                 <div class="scambaiter-email scambaiter-email-{{ $email->sender->value }}">
-                                    <div class="scambaiter-email-header">
-                                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                    <div class="scambaiter-email-header" onclick="toggleEmail(this)" style="cursor: pointer;">
+                                        <div style="display: flex; align-items: center; gap: 0.5rem; min-width: 0; flex: 1;">
                                             <span class="scambaiter-sender-badge scambaiter-sender-{{ $email->sender->value }}">
                                                 {{ $email->sender->label() }}
                                             </span>
@@ -70,9 +77,10 @@
                                                 <span style="font-weight: 600; font-size: 0.9rem;">{{ $email->subject }}</span>
                                             @endif
                                         </div>
-                                        <div style="display: flex; align-items: center; gap: 0.75rem;">
+                                        <div style="display: flex; align-items: center; gap: 0.75rem; flex-shrink: 0;">
                                             <span style="font-size: 0.75rem; color: #888;">{{ $email->created_at->format('M j, Y H:i') }}</span>
-                                            <form method="POST" action="{{ route('scambaiter.emails.destroy', [$conversation, $email]) }}" onsubmit="return confirm('Remove this email?')">
+                                            <i class="fas fa-chevron-up scambaiter-chevron" style="font-size: 0.75rem; color: #aaa; transition: transform 0.2s;"></i>
+                                            <form method="POST" action="{{ route('scambaiter.emails.destroy', [$conversation, $email]) }}" onsubmit="return confirm('Remove this email?')" onclick="event.stopPropagation()">
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit" style="background: none; border: none; cursor: pointer; color: #ccc; padding: 0; line-height: 1;" title="Remove email">
@@ -87,6 +95,45 @@
                         </div>
                     @endif
                 </div>
+
+                <script>
+                    document.addEventListener('DOMContentLoaded', () => {
+                        const emails = document.querySelectorAll('.scambaiter-email');
+                        emails.forEach((email, index) => {
+                            if (index === emails.length - 1) return;
+                            const body = email.querySelector('.scambaiter-email-body');
+                            const chevron = email.querySelector('.scambaiter-chevron');
+                            body.style.display = 'none';
+                            chevron.style.transform = 'rotate(180deg)';
+                        });
+                    });
+
+                    function toggleEmail(header) {
+                        const email = header.closest('.scambaiter-email');
+                        const body = email.querySelector('.scambaiter-email-body');
+                        const chevron = header.querySelector('.scambaiter-chevron');
+                        const collapsed = body.style.display === 'none';
+
+                        body.style.display = collapsed ? '' : 'none';
+                        chevron.style.transform = collapsed ? '' : 'rotate(180deg)';
+                    }
+
+                    function toggleAllEmails() {
+                        const btn = document.getElementById('toggle-all-btn');
+                        const allBodies = document.querySelectorAll('.scambaiter-email-body');
+                        const anyExpanded = [...allBodies].some(b => b.style.display !== 'none');
+
+                        document.querySelectorAll('.scambaiter-email').forEach(email => {
+                            const body = email.querySelector('.scambaiter-email-body');
+                            const chevron = email.querySelector('.scambaiter-chevron');
+
+                            body.style.display = anyExpanded ? 'none' : '';
+                            chevron.style.transform = anyExpanded ? 'rotate(180deg)' : '';
+                        });
+
+                        btn.textContent = anyExpanded ? 'Expand all' : 'Collapse all';
+                    }
+                </script>
             </div>
 
             {{-- Add Email Form --}}
