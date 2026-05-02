@@ -282,6 +282,7 @@ Route::prefix('scambaiter')->group(function () {
     Route::put('/{conversation}', [App\Http\Controllers\ScambaiterConversationController::class, 'update'])->name('scambaiter.update');
     Route::delete('/{conversation}', [App\Http\Controllers\ScambaiterConversationController::class, 'destroy'])->name('scambaiter.destroy');
     Route::get('/{conversation}/export', [App\Http\Controllers\ScambaiterController::class, 'export'])->name('scambaiter.export');
+    Route::get('/{conversation}/export-profile', [App\Http\Controllers\ScambaiterController::class, 'exportProfile'])->name('scambaiter.export-profile');
     Route::post('/{conversation}/emails', [App\Http\Controllers\ScambaiterEmailController::class, 'store'])->name('scambaiter.emails.store');
     Route::delete('/{conversation}/emails/{email}', [App\Http\Controllers\ScambaiterEmailController::class, 'destroy'])->name('scambaiter.emails.destroy');
 });

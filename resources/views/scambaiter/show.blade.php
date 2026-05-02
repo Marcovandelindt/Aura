@@ -257,6 +257,9 @@
                     <p style="font-size: 0.8rem; color: #888; margin-bottom: 1rem;">
                         Generates a ready-made prompt with the full character profile and email thread for pasting into Claude or any other AI.
                     </p>
+                    <a href="{{ route('scambaiter.export-profile', $conversation) }}" class="btn btn-secondary" style="width: 100%; margin-bottom: 0.75rem;">
+                        <i class="fas fa-id-card"></i> Generate Character Profile
+                    </a>
                     <a href="{{ route('scambaiter.export', $conversation) }}" class="btn btn-primary" style="width: 100%;">
                         <i class="fas fa-file-export"></i> Download Export
                     </a>
