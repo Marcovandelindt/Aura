@@ -21,11 +21,6 @@ class AlbumController extends Controller
         // Unique tracks on this album with play counts
         $albumTracks = DB::table('tracks')
             ->leftJoin('plays', 'plays.track_id', '=', 'tracks.id')
-            ->leftJoin('track_artists', function ($join) {
-                $join->on('track_artists.track_id', '=', 'tracks.id')
-                    ->where('track_artists.is_primary', true);
-            })
-            ->leftJoin('artists', 'artists.id', '=', 'track_artists.artist_id')
             ->where('tracks.album_id', $album->id)
             ->select(
                 'tracks.id',
@@ -41,8 +36,20 @@ class AlbumController extends Controller
             ->orderByDesc('play_count')
             ->paginate(20);
 
+        $trackIds = $albumTracks->pluck('id')->all();
+
+        $artistsByTrack = DB::table('track_artists')
+            ->join('artists', 'artists.id', '=', 'track_artists.artist_id')
+            ->whereIn('track_artists.track_id', $trackIds)
+            ->select('track_artists.track_id', 'artists.name')
+            ->orderByDesc('track_artists.is_primary')
+            ->get()
+            ->groupBy('track_id')
+            ->map(fn ($items) => $items->pluck('name')->all());
+
         foreach ($albumTracks as $track) {
             $track->moods = [];
+            $track->artist_names = $artistsByTrack->get($track->id, []);
         }
 
         // All plays for this album
@@ -52,6 +59,7 @@ class AlbumController extends Controller
             ->select(
                 'plays.played_at',
                 'plays.source',
+                'tracks.id as track_id',
                 'tracks.title as track_name',
                 'tracks.spotify_track_id',
                 DB::raw("'{$album->name}' as album_name"),
@@ -61,8 +69,20 @@ class AlbumController extends Controller
             ->orderByDesc('plays.played_at')
             ->paginate(30, ['*'], 'plays');
 
+        $playTrackIds = $allPlays->pluck('track_id')->unique()->all();
+
+        $artistsByPlayTrack = DB::table('track_artists')
+            ->join('artists', 'artists.id', '=', 'track_artists.artist_id')
+            ->whereIn('track_artists.track_id', $playTrackIds)
+            ->select('track_artists.track_id', 'artists.name')
+            ->orderByDesc('track_artists.is_primary')
+            ->get()
+            ->groupBy('track_id')
+            ->map(fn ($items) => $items->pluck('name')->all());
+
         foreach ($allPlays as $play) {
             $play->played_at = Carbon::parse($play->played_at);
+            $play->artist_names = $artistsByPlayTrack->get($play->track_id, []);
         }
 
         // Stats
