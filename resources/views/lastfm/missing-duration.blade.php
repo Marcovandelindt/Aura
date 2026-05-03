@@ -31,9 +31,22 @@
     <div class="card">
         <div class="card-header" style="display: flex; align-items: center; justify-content: space-between;">
             <h3>Tracks zonder duratie</h3>
-            <button class="btn btn-primary" onclick="fetchAllVisible()" id="fetch-all-btn" style="font-size: 0.8rem; padding: 6px 14px;">
-                <i class="fas fa-play"></i> Alle {{ $tracks->count() }} op deze pagina ophalen
-            </button>
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <form method="GET" action="{{ route('lastfm.missing-duration') }}" style="display: flex; gap: 0.5rem;">
+                    <input type="text" name="search" value="{{ $search }}" placeholder="Zoek op artiest of track..." class="form-control" style="width: 260px; font-size: 0.875rem;">
+                    <button type="submit" class="btn btn-secondary" style="font-size: 0.8rem; padding: 6px 14px;">
+                        <i class="fas fa-search"></i>
+                    </button>
+                    @if($search)
+                        <a href="{{ route('lastfm.missing-duration') }}" class="btn btn-secondary" style="font-size: 0.8rem; padding: 6px 14px;">
+                            <i class="fas fa-times"></i>
+                        </a>
+                    @endif
+                </form>
+                <button class="btn btn-primary" onclick="fetchAllVisible()" id="fetch-all-btn" style="font-size: 0.8rem; padding: 6px 14px;">
+                    <i class="fas fa-play"></i> Alle {{ $tracks->count() }} op deze pagina ophalen
+                </button>
+            </div>
         </div>
         <div class="card-body">
             @if($tracks->count() > 0)

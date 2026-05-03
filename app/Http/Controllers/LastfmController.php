@@ -107,8 +107,10 @@ class LastfmController extends Controller
         ]));
     }
 
-    public function missingDuration(): View
+    public function missingDuration(Request $request): View
     {
+        $search = $request->input('search');
+
         $tracks = DB::table('tracks')
             ->join('plays', 'plays.track_id', '=', 'tracks.id')
             ->leftJoin('albums', 'albums.id', '=', 'tracks.album_id')
@@ -121,6 +123,12 @@ class LastfmController extends Controller
             ->where(function ($q) {
                 $q->whereNull('tracks.duration_ms')->orWhere('tracks.duration_ms', 0);
             })
+            ->when($search, function ($q) use ($search) {
+                $q->where(function ($q2) use ($search) {
+                    $q2->where('tracks.title', 'like', "%{$search}%")
+                        ->orWhere('artists.name', 'like', "%{$search}%");
+                });
+            })
             ->select(
                 'tracks.id',
                 'tracks.title as track_name',
@@ -132,7 +140,8 @@ class LastfmController extends Controller
             ->selectRaw('COUNT(plays.id) as scrobble_count')
             ->groupBy('tracks.id', 'tracks.title', 'tracks.duration_ms', 'artists.name', 'albums.name', 'albums.image_url')
             ->orderByDesc('scrobble_count')
-            ->paginate(50);
+            ->paginate(50)
+            ->appends(['search' => $search]);
 
         foreach ($tracks as $track) {
             // null = never tried; 0 = tried but not found on Last.fm
@@ -148,7 +157,7 @@ class LastfmController extends Controller
             ->distinct()
             ->count('tracks.id');
 
-        return view('lastfm.missing-duration', compact('tracks', 'totalMissing'));
+        return view('lastfm.missing-duration', compact('tracks', 'totalMissing', 'search'));
     }
 
     public function enrichTrack(Request $request): JsonResponse
