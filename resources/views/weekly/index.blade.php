@@ -94,9 +94,13 @@
                         <div style="padding-top: 0.75rem; border-top: 1px solid var(--border-color); font-size: 0.875rem; display: flex; flex-direction: column; gap: 0.4rem;">
                             <div>
                                 <span style="color: var(--text-muted);">Most played:</span>
-                                <a href="{{ route('tracks.show', $data['music']['top_track']['track']->spotify_track_id) }}" style="margin-left: 0.5rem;">
-                                    <strong>{{ $data['music']['top_track']['track']->track_name }}</strong>
-                                </a>
+                                @if($data['music']['top_track']['track']->spotify_track_id)
+                                    <a href="{{ route('tracks.show', $data['music']['top_track']['track']->spotify_track_id) }}" style="margin-left: 0.5rem;">
+                                        <strong>{{ $data['music']['top_track']['track']->track_name }}</strong>
+                                    </a>
+                                @else
+                                    <strong style="margin-left: 0.5rem;">{{ $data['music']['top_track']['track']->track_name }}</strong>
+                                @endif
                                 <span style="color: var(--text-muted);"> × {{ $data['music']['top_track']['count'] }}</span>
                             </div>
                             @if($data['music']['top_artist'])

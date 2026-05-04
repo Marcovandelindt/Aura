@@ -163,7 +163,11 @@
             @else
                 <div style="display: flex; flex-direction: column; gap: 0.75rem;">
                     @foreach($tracks as $track)
-                        <a href="{{ route('tracks.show', $track->spotify_track_id) }}" style="display: flex; align-items: center; gap: 1rem; text-decoration: none; color: inherit;">
+                        @if($track->spotify_track_id)
+                            <a href="{{ route('tracks.show', $track->spotify_track_id) }}" style="display: flex; align-items: center; gap: 1rem; text-decoration: none; color: inherit;">
+                        @else
+                            <div style="display: flex; align-items: center; gap: 1rem;">
+                        @endif
                             @if($track->album_image_url)
                                 <img src="{{ $track->album_image_url }}" alt="{{ $track->album_name }}" style="width: 48px; height: 48px; border-radius: 0.25rem; flex-shrink: 0;">
                             @endif
@@ -173,7 +177,11 @@
                             </div>
                             <div style="font-size: 0.8rem; flex-shrink: 0;">{{ $track->played_at->setTimezone($activity->clean_timezone)->format('H:i') }}</div>
                             <div style="font-size: 0.8rem; flex-shrink: 0;">{{ $track->formatted_duration }}</div>
-                        </a>
+                        @if($track->spotify_track_id)
+                            </a>
+                        @else
+                            </div>
+                        @endif
                     @endforeach
                 </div>
                 <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border-color); color: var(--text-muted); font-size: 0.875rem;">

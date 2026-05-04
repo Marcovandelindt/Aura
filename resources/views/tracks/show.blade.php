@@ -58,7 +58,17 @@
                                 <circle cx="12" cy="12" r="10"/>
                                 <polyline points="12,6 12,12 16,14"/>
                             </svg>
-                            <span>{{ $track->formatted_duration }}</span>
+                            <span id="duration-display">{{ $track->formatted_duration }}</span>
+                            <button onclick="toggleDurationEdit()" id="duration-edit-btn" title="Duratie aanpassen" style="background: none; border: none; cursor: pointer; color: #bbb; padding: 0 2px; line-height: 1;">
+                                <i class="fas fa-pencil-alt" style="font-size: 0.7rem;"></i>
+                            </button>
+                        </div>
+                        <div id="duration-edit-form" style="display: none; align-items: center; gap: 0.4rem;">
+                            <input type="number" id="duration-minutes" min="0" max="99" class="form-control" placeholder="min" style="width: 60px; font-size: 0.85rem; padding: 4px 8px;">
+                            <span style="color: #666;">:</span>
+                            <input type="number" id="duration-seconds" min="0" max="59" class="form-control" placeholder="sec" style="width: 60px; font-size: 0.85rem; padding: 4px 8px;">
+                            <button onclick="saveDuration()" class="btn btn-primary" style="font-size: 0.8rem; padding: 4px 10px;"><i class="fas fa-check"></i></button>
+                            <button onclick="toggleDurationEdit()" class="btn btn-secondary" style="font-size: 0.8rem; padding: 4px 10px;"><i class="fas fa-times"></i></button>
                         </div>
                         
                         @if($track->popularity)
@@ -338,6 +348,50 @@
 
 <script>
     const trackId = '{{ $track->spotify_track_id }}';
+    const trackName = '{{ addslashes($track->track_name) }}';
+    const artistName = '{{ addslashes($track->artist_names[0] ?? '') }}';
+
+    function toggleDurationEdit() {
+        const form = document.getElementById('duration-edit-form');
+        const btn = document.getElementById('duration-edit-btn');
+        const isHidden = form.style.display === 'none';
+
+        if (isHidden) {
+            const current = document.getElementById('duration-display').textContent.trim();
+            if (current !== '—') {
+                const parts = current.split(':');
+                document.getElementById('duration-minutes').value = parseInt(parts[0]);
+                document.getElementById('duration-seconds').value = parseInt(parts[1]);
+            }
+            form.style.display = 'flex';
+            btn.style.display = 'none';
+            document.getElementById('duration-minutes').focus();
+        } else {
+            form.style.display = 'none';
+            btn.style.display = '';
+        }
+    }
+
+    async function saveDuration() {
+        const minutes = parseInt(document.getElementById('duration-minutes').value) || 0;
+        const seconds = parseInt(document.getElementById('duration-seconds').value) || 0;
+
+        const response = await fetch('{{ route('lastfm.set-duration') }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            },
+            body: JSON.stringify({ track_name: trackName, artist_name: artistName, minutes, seconds }),
+        });
+
+        const data = await response.json();
+        if (data.success) {
+            document.getElementById('duration-display').textContent = data.formatted;
+            document.getElementById('duration-edit-form').style.display = 'none';
+            document.getElementById('duration-edit-btn').style.display = '';
+        }
+    }
 
     // Load track games on page load
     document.addEventListener('DOMContentLoaded', async function() {

@@ -78,10 +78,14 @@
                         <div class="album-top-track">
                             <p class="top-track-label"><strong>Most played track:</strong></p>
                             <p class="top-track-name">
-                                <a href="{{ route('tracks.show', ['track' => $topTrack->spotify_track_id]) }}" 
-                                   style="color: inherit; text-decoration: none;">
+                                @if($topTrack->spotify_track_id)
+                                    <a href="{{ route('tracks.show', ['track' => $topTrack->spotify_track_id]) }}"
+                                       style="color: inherit; text-decoration: none;">
+                                        {{ $topTrack->track_name }}
+                                    </a>
+                                @else
                                     {{ $topTrack->track_name }}
-                                </a>
+                                @endif
                                 ({{ $topTrack->play_count }} plays)
                             </p>
                         </div>
@@ -194,10 +198,14 @@
                                         @endif
                                     </td>
                                     <td>
-                                        <a href="{{ route('tracks.show', ['track' => $track->spotify_track_id]) }}" 
-                                           style="color: inherit; text-decoration: none; display: block;">
-                                            <strong style="color: #333; transition: color 0.2s;">{{ $track->track_name }}</strong>
-                                        </a>
+                                        @if($track->spotify_track_id)
+                                            <a href="{{ route('tracks.show', ['track' => $track->spotify_track_id]) }}"
+                                               style="color: inherit; text-decoration: none; display: block;">
+                                                <strong style="color: #333; transition: color 0.2s;">{{ $track->track_name }}</strong>
+                                            </a>
+                                        @else
+                                            <strong style="color: #333;">{{ $track->track_name }}</strong>
+                                        @endif
                                         <x-mood-pills :moods="$track->moods ?? []" :compact="true" />
                                     </td>
                                     <td>
@@ -270,10 +278,14 @@
                                 </div>
                                 <div class="activity-content">
                                     <p>
-                                        <a href="{{ route('tracks.show', ['track' => $play->spotify_track_id]) }}" 
-                                           style="color: inherit; text-decoration: none;">
+                                        @if($play->spotify_track_id)
+                                            <a href="{{ route('tracks.show', ['track' => $play->spotify_track_id]) }}"
+                                               style="color: inherit; text-decoration: none;">
+                                                <strong>{{ $play->track_name }}</strong>
+                                            </a>
+                                        @else
                                             <strong>{{ $play->track_name }}</strong>
-                                        </a>
+                                        @endif
                                         by 
                                         @foreach($play->artist_names as $index => $artistName)
                                             <a href="{{ route('artists.show', ['artist' => urlencode($artistName)]) }}" 

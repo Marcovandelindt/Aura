@@ -139,9 +139,13 @@
                                 @endif
                             </div>
                             <div class="track-info">
-                                <a href="{{ route('tracks.show', $track->spotify_track_id) }}" class="track-name">
-                                    {{ $track->track_name }}
-                                </a>
+                                @if($track->spotify_track_id)
+                                    <a href="{{ route('tracks.show', $track->spotify_track_id) }}" class="track-name">
+                                        {{ $track->track_name }}
+                                    </a>
+                                @else
+                                    <span class="track-name">{{ $track->track_name }}</span>
+                                @endif
                                 <div class="track-artist">{{ $track->artists_string }}</div>
                                 @if(!empty($track->moods))
                                     <div class="track-moods">

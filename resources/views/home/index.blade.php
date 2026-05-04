@@ -116,9 +116,13 @@
                             </div>
                             <div class="activity-content">
                                 <p>Listened to
-                                    <a href="{{ route('tracks.show', ['track' => $lastPlayedTrack->spotify_track_id]) }}" class="activity-link">
+                                    @if($lastPlayedTrack->spotify_track_id)
+                                        <a href="{{ route('tracks.show', ['track' => $lastPlayedTrack->spotify_track_id]) }}" class="activity-link">
+                                            <strong>{{ $lastPlayedTrack->track_name }}</strong>
+                                        </a>
+                                    @else
                                         <strong>{{ $lastPlayedTrack->track_name }}</strong>
-                                    </a>
+                                    @endif
                                     by
                                     @foreach($lastPlayedTrack->artist_names as $index => $artistName)
                                         <a href="{{ route('artists.show', ['artist' => urlencode($artistName)]) }}" class="activity-link">{{ $artistName }}</a>@if($index < count($lastPlayedTrack->artist_names) - 1), @endif
