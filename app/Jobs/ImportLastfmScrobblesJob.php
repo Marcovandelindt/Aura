@@ -38,11 +38,12 @@ class ImportLastfmScrobblesJob implements ShouldQueue
 
         // Only import scrobbles before Spotify tracking started to prevent duplicates
         $firstSpotifyPlay = Play::where('source', 'spotify')->min('played_at');
+        $importBefore = $firstSpotifyPlay ? strtotime($firstSpotifyPlay) - 1 : null;
 
         $this->updateStatus(running: true, page: $this->startPage, imported: $imported, skipped: $skipped);
 
         for ($page = $this->startPage; $page <= $endPage; $page++) {
-            $result = $lastfm->getRecentTracksPage($page);
+            $result = $lastfm->getRecentTracksPage($page, to: $importBefore);
             $totalPages = $result['totalPages'];
 
             foreach ($result['tracks'] as $scrobble) {
@@ -129,13 +130,18 @@ class ImportLastfmScrobblesJob implements ShouldQueue
             return $track;
         }
 
-        $album = $albumName
-            ? Album::firstOrCreate(['name' => $albumName], ['image_url' => $albumImage])
-            : null;
+        $artist = Artist::firstOrCreate(['name' => $artistName]);
+
+        $album = null;
+        if ($albumName) {
+            // Match albums by name AND artist to prevent cross-artist album collisions
+            // (e.g. two different "In My Arms" albums by different artists)
+            $album = Album::where('name', $albumName)
+                ->whereHas('tracks.artists', fn ($q) => $q->where('artists.id', $artist->id))
+                ->first() ?? Album::create(['name' => $albumName, 'image_url' => $albumImage]);
+        }
 
         $track = Track::create(['title' => $title, 'album_id' => $album?->id]);
-
-        $artist = Artist::firstOrCreate(['name' => $artistName]);
         $track->artists()->attach($artist->id, ['is_primary' => true, 'sort_order' => 0]);
 
         return $track;

@@ -55,6 +55,7 @@ class LastfmService
             'limit' => self::PAGE_LIMIT,
             'page' => $page,
             'extended' => 0,
+            'autocorrect' => 0,
         ];
 
         if ($from) {
