@@ -185,10 +185,7 @@
                                                 <strong style="color: #333; transition: color 0.2s;">{{ $track->track_name }}</strong>
                                             </a>
                                         @else
-                                            <a href="{{ route('tracks.lastfm', ['artist' => urlencode($artistName), 'track' => urlencode($track->track_name)]) }}"
-                                               style="color: inherit; text-decoration: none; display: block;">
-                                                <strong style="color: #333; transition: color 0.2s;">{{ $track->track_name }}</strong>
-                                            </a>
+                                            <strong style="color: #333;">{{ $track->track_name }}</strong>
                                         @endif
                                         <x-mood-pills :moods="$track->moods ?? []" :compact="true" />
                                     </td>
@@ -257,19 +254,14 @@
                                 </div>
                                 <div class="activity-content">
                                     <p>
-                                        @if($play->source === 'spotify' && $play->spotify_track_id)
+                                        @if($play->spotify_track_id)
                                             <a href="{{ route('tracks.show', ['track' => $play->spotify_track_id]) }}" style="color: inherit; text-decoration: none;">
                                                 <strong>{{ $play->track_name }}</strong>
                                             </a>
                                         @else
-                                            <a href="{{ route('tracks.lastfm', ['artist' => urlencode($artistName), 'track' => urlencode($play->track_name)]) }}" style="color: inherit; text-decoration: none;">
-                                                <strong>{{ $play->track_name }}</strong>
-                                            </a>
+                                            <strong>{{ $play->track_name }}</strong>
                                         @endif
                                         from <em>{{ $play->album_name }}</em>
-                                        <i class="fab fa-{{ $play->source === 'lastfm' ? 'lastfm' : 'spotify' }}"
-                                           style="font-size: 0.7rem; color: {{ $play->source === 'lastfm' ? '#e8183f' : '#1DB954' }}; margin-left: 0.25rem;"
-                                           title="{{ ucfirst($play->source) }}"></i>
                                     </p>
                                     <span class="activity-time">{{ $play->played_at->setTimezone('Europe/Amsterdam')->format('M j, H:i') }} - {{ $play->played_at->diffForHumans() }}</span>
                                 </div>
