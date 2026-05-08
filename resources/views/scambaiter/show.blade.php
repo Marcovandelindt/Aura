@@ -204,6 +204,17 @@
                     @endif
                 </div>
                 <div class="card-body">
+                    @if(!empty($conversation->scammer_email_addresses))
+                        <div style="margin-bottom: 1rem;">
+                            <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: #888; margin-bottom: 0.5rem;">Scammer Email Addresses</div>
+                            <div style="display: flex; flex-direction: column; gap: 0.3rem;">
+                                @foreach($conversation->scammer_email_addresses as $address)
+                                    <span style="font-size: 0.8rem; font-family: monospace; background: rgba(0,0,0,0.04); border-radius: 4px; padding: 0.2rem 0.5rem; word-break: break-all;">{{ $address }}</span>
+                                @endforeach
+                            </div>
+                        </div>
+                    @endif
+
                     @if($conversation->subject)
                         <div style="margin-bottom: 1rem;">
                             <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: #888; margin-bottom: 0.25rem;">Default Subject</div>

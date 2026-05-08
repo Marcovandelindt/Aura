@@ -26,7 +26,14 @@
       "Bash(rmdir \"app/Enums/Enums\")",
       "WebFetch(domain:www.last.fm)",
       "WebFetch(domain:musicbrainz.org)",
-      "WebFetch(domain:ws.audioscrobbler.com)"
+      "WebFetch(domain:ws.audioscrobbler.com)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(curl -s \"https://ws.audioscrobbler.com/2.0/?method=track.getinfo&track=In+My+Arms&artist=ILLENIUM&api_key=fbb88d56c423f6c45b2b8cda040ea888&format=json\")",
+      "Bash(python -m json.tool)",
+      "Bash(curl -s \"https://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks&user=Marcovandelindt&limit=5&extended=1&api_key=fbb88d56c423f6c45b2b8cda040ea888&format=json\")",
+      "Bash(curl -s \"https://musicbrainz.org/ws/2/recording/c38b9fc2-ac50-45d7-9bd6-49657988772a?inc=artist-credits&fmt=json\" -H \"User-Agent: AuraApp/1.0 \\(marcovdlindt1998@gmail.com\\)\")",
+      "Bash(curl -s \"https://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks&user=Marcovandelindt&limit=20&page=500&api_key=fbb88d56c423f6c45b2b8cda040ea888&format=json\")"
     ],
     "deny": []
   }

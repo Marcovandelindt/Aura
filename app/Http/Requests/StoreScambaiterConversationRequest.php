@@ -18,6 +18,7 @@ class StoreScambaiterConversationRequest extends FormRequest
         return [
             'title' => ['required', 'string', 'max:255'],
             'scammer_name' => ['nullable', 'string', 'max:255'],
+            'scammer_email_addresses' => ['nullable', 'string'],
             'subject' => ['nullable', 'string', 'max:255'],
             'occupation' => ['nullable', 'string', 'max:255'],
             'intelligence_level' => ['required', new Enum(IntelligenceLevel::class)],

@@ -358,12 +358,18 @@ function closeWatchModal() {
     currentEpisodeId = null;
 }
 
+function currentTimeString() {
+    const now = new Date();
+    return `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
+}
+
 function submitWatch() {
     const dateType = document.querySelector('input[name="dateType"]:checked').value;
     let watchedAt = null;
 
     if (dateType === 'full') {
-        watchedAt = document.getElementById('watchedAt').value || null;
+        const dateValue = document.getElementById('watchedAt').value;
+        if (dateValue) watchedAt = `${dateValue}T${currentTimeString()}`;
     } else if (dateType === 'year') {
         const year = document.getElementById('watchedYear').value;
         if (year) {
@@ -429,7 +435,8 @@ function submitBulkWatch() {
     let watchedAt = null;
 
     if (dateType === 'full') {
-        watchedAt = document.getElementById('bulkWatchedAt').value || null;
+        const dateValue = document.getElementById('bulkWatchedAt').value;
+        if (dateValue) watchedAt = `${dateValue}T${currentTimeString()}`;
     } else if (dateType === 'year') {
         const year = document.getElementById('bulkWatchedYear').value;
         if (year) {

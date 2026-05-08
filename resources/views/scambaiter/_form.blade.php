@@ -16,6 +16,13 @@
                 </div>
 
                 <div class="form-group" style="margin-bottom: 1.25rem;">
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Scammer Email Addresses</label>
+                    <input type="text" name="scammer_email_addresses" value="{{ old('scammer_email_addresses', implode(', ', $conversation->scammer_email_addresses ?? [])) }}" class="form-control" placeholder="e.g. prince@gmail.com, backup@yahoo.com">
+                    <p style="font-size: 0.75rem; color: #888; margin-top: 0.25rem;">Add all known scammer addresses, separated by commas.</p>
+                    @error('scammer_email_addresses')<p style="color: #ef4444; font-size: 0.8rem; margin-top: 0.25rem;">{{ $message }}</p>@enderror
+                </div>
+
+                <div class="form-group" style="margin-bottom: 1.25rem;">
                     <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Default Subject</label>
                     <input type="text" name="subject" value="{{ old('subject', $conversation->subject ?? '') }}" class="form-control" placeholder="e.g. Re: Urgent Business Proposal">
                     <p style="font-size: 0.75rem; color: #888; margin-top: 0.25rem;">Pre-filled on every email in this conversation. Can still be overridden per email.</p>

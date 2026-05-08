@@ -188,6 +188,169 @@
         </div>
     @endif
 
+    <!-- Watch Time Chart -->
+    @if(count($stats['watch_time_chart']) > 0)
+        <div class="card" style="margin-top: 2rem;">
+            <div class="card-header" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
+                <h3 style="margin: 0;"><i class="fas fa-chart-bar" style="margin-right: 8px;"></i> Watch Time Per Day</h3>
+                <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+                    <button class="chart-period-btn active" data-period="30">30 days</button>
+                    <button class="chart-period-btn" data-period="60">60 days</button>
+                    <button class="chart-period-btn" data-period="90">90 days</button>
+                    <button class="chart-period-btn" data-period="180">180 days</button>
+                    <button class="chart-period-btn" data-period="360">360 days</button>
+                    <button class="chart-period-btn" data-period="custom">Custom</button>
+                </div>
+            </div>
+            <div id="customRangeWrapper" style="display: none; padding: 0.75rem 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.1); align-items: center; gap: 1rem; flex-wrap: wrap;">
+                <label style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.875rem;">
+                    From
+                    <input type="text" id="customStart" placeholder="DD-MM-YYYY" style="background: #fff; border: 1px solid #d1d5db; border-radius: 0.375rem; padding: 0.25rem 0.5rem; color: #111827; font-size: 0.875rem; width: 110px;">
+                </label>
+                <label style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.875rem;">
+                    To
+                    <input type="text" id="customEnd" placeholder="DD-MM-YYYY" style="background: #fff; border: 1px solid #d1d5db; border-radius: 0.375rem; padding: 0.25rem 0.5rem; color: #111827; font-size: 0.875rem; width: 110px;">
+                </label>
+                <button id="applyCustomRange" class="btn btn-sm btn-primary" style="padding: 0.25rem 0.75rem; font-size: 0.875rem;">Apply</button>
+            </div>
+            <div class="card-body">
+                <div style="display: flex; justify-content: center; gap: 3rem; margin-bottom: 1.25rem; flex-wrap: wrap;">
+                    <div style="text-align: center;">
+                        <div id="chartTotalHours" style="font-size: 2.5rem; font-weight: 700; background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">0</div>
+                        <div style="color: #9ca3af; font-size: 0.875rem; margin-top: 0.25rem;">total hours in period</div>
+                    </div>
+                    <div style="text-align: center;">
+                        <div id="chartAvgHours" style="font-size: 2.5rem; font-weight: 700; background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">0</div>
+                        <div style="color: #9ca3af; font-size: 0.875rem; margin-top: 0.25rem;">avg hours per day</div>
+                    </div>
+                </div>
+                <canvas id="watchTimeChart" height="80"></canvas>
+            </div>
+        </div>
+    @endif
+
+    <!-- Activity Heatmap -->
+    <div class="card" style="margin-top: 2rem;">
+        <div class="card-header">
+            <h3><i class="fas fa-calendar-alt" style="margin-right: 8px;"></i> Activity Heatmap — Last 365 Days</h3>
+        </div>
+        <div class="card-body">
+            <div id="heatmapContainer" style="overflow-x: auto;"></div>
+        </div>
+    </div>
+
+    <!-- Hour Distribution + Weekend vs Weekday -->
+    <div class="stats-grid" style="margin-top: 2rem;">
+        <div class="card" style="grid-column: span 2;">
+            <div class="card-header">
+                <h3><i class="fas fa-clock" style="margin-right: 8px;"></i> Hour of Day Distribution</h3>
+            </div>
+            <div class="card-body">
+                <canvas id="hourChart" height="80"></canvas>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-header">
+                <h3><i class="fas fa-calendar-week" style="margin-right: 8px;"></i> Weekday vs Weekend</h3>
+            </div>
+            <div class="card-body" style="display: flex; flex-direction: column; justify-content: center; gap: 1.5rem;">
+                <div style="text-align: center;">
+                    <div id="weekdayPct" style="font-size: 2.5rem; font-weight: 700; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">—</div>
+                    <div style="color: #9ca3af; font-size: 0.875rem; margin-top: 0.25rem;">weekday (Mon–Fri)</div>
+                </div>
+                <div style="height: 1px; background: rgba(255,255,255,0.08);"></div>
+                <div style="text-align: center;">
+                    <div id="weekendPct" style="font-size: 2.5rem; font-weight: 700; background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">—</div>
+                    <div style="color: #9ca3af; font-size: 0.875rem; margin-top: 0.25rem;">weekend (Sat–Sun)</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cumulative Watch Time -->
+    <div class="card" style="margin-top: 2rem;">
+        <div class="card-header">
+            <h3><i class="fas fa-chart-line" style="margin-right: 8px;"></i> Cumulative Watch Time</h3>
+        </div>
+        <div class="card-body">
+            <canvas id="cumulativeChart" height="70"></canvas>
+        </div>
+    </div>
+
+    <!-- Rating vs Watch Time Scatter -->
+    @if(count($stats['top_series']) > 1)
+        <div class="card" style="margin-top: 2rem;">
+            <div class="card-header">
+                <h3><i class="fas fa-star" style="margin-right: 8px;"></i> Rating vs Watch Time</h3>
+            </div>
+            <div class="card-body">
+                <canvas id="scatterChart" height="70"></canvas>
+            </div>
+        </div>
+    @endif
+
+    <!-- Abandonment Analysis -->
+    @if(count($stats['abandonment']) > 0)
+        <div class="card" style="margin-top: 2rem;">
+            <div class="card-header">
+                <h3><i class="fas fa-pause-circle" style="margin-right: 8px;"></i> Abandoned Series</h3>
+            </div>
+            <div class="card-body">
+                <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                    @foreach($stats['abandonment'] as $series)
+                        <div>
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.3rem;">
+                                <a href="{{ route('tv.show', $series['id']) }}" style="color: inherit; text-decoration: none; font-size: 0.9rem; font-weight: 500; hover: underline;">
+                                    {{ $series['name'] }}
+                                </a>
+                                <span style="font-size: 0.8rem; color: #9ca3af; white-space: nowrap; margin-left: 1rem;">
+                                    {{ $series['episodes_watched'] }}/{{ $series['number_of_episodes'] }} eps &mdash; {{ number_format($series['completion_percentage'], 1) }}%
+                                </span>
+                            </div>
+                            <div style="height: 6px; background: rgba(255,255,255,0.08); border-radius: 3px; overflow: hidden;">
+                                <div style="height: 100%; width: {{ $series['completion_percentage'] }}%; background: linear-gradient(90deg, #fa709a 0%, #fee140 100%); border-radius: 3px;"></div>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+        </div>
+    @endif
+
+    <!-- Time to Complete -->
+    @if(count($stats['completion_time']) > 0)
+        <div class="card" style="margin-top: 2rem;">
+            <div class="card-header">
+                <h3><i class="fas fa-stopwatch" style="margin-right: 8px;"></i> Days to Complete a Series</h3>
+            </div>
+            <div class="card-body">
+                <div style="position: relative; height: {{ max(300, count($stats['completion_time']) * 32) }}px;">
+                    <canvas id="completionTimeChart"></canvas>
+                </div>
+            </div>
+        </div>
+    @endif
+
+    <!-- Longest Pause -->
+    @if(count($stats['longest_pause']) > 0)
+        <div class="card" style="margin-top: 2rem;">
+            <div class="card-header">
+                <h3><i class="fas fa-bed" style="margin-right: 8px;"></i> Longest Break Within a Series</h3>
+            </div>
+            <div class="card-body">
+                <div style="display: flex; flex-direction: column; gap: 0.6rem;">
+                    @foreach($stats['longest_pause'] as $i => $item)
+                        <div style="display: flex; align-items: center; gap: 1rem;">
+                            <span style="width: 1.5rem; text-align: right; color: #9ca3af; font-size: 0.875rem; flex-shrink: 0;">{{ $i + 1 }}.</span>
+                            <span style="flex: 1; font-size: 0.9rem;">{{ $item['series_name'] }}</span>
+                            <span style="font-weight: 700; color: #fa709a; white-space: nowrap;">{{ number_format($item['days']) }} days</span>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+        </div>
+    @endif
+
     <!-- Completion Progress -->
     @if(count($stats['completion_stats']) > 0)
         <div class="card" style="margin-top: 2rem;">
@@ -541,7 +704,452 @@
     </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+(function () {
+    const watchTimeData = @json($stats['watch_time_chart']);
+    if (!watchTimeData.length) return;
+
+    const ctx = document.getElementById('watchTimeChart');
+    if (!ctx) return;
+
+    const chart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: [],
+            datasets: [{
+                label: 'Hours watched',
+                data: [],
+                backgroundColor: 'rgba(250, 112, 154, 0.5)',
+                borderColor: '#fa709a',
+                borderWidth: 1,
+                borderRadius: 2,
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: ctx => ctx.raw.toFixed(2) + ' hrs',
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    ticks: {
+                        maxTicksLimit: 12,
+                        color: '#9ca3af',
+                        font: { size: 11 },
+                    },
+                    grid: { color: 'rgba(255,255,255,0.05)' },
+                },
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        color: '#9ca3af',
+                        callback: val => val + ' hrs',
+                    },
+                    grid: { color: 'rgba(255,255,255,0.05)' },
+                }
+            }
+        }
+    });
+
+    function filterByDays(days) {
+        const today = new Date();
+        today.setHours(23, 59, 59, 999);
+        const from = new Date();
+        from.setDate(today.getDate() - days + 1);
+        from.setHours(0, 0, 0, 0);
+        return watchTimeData.filter(d => {
+            const date = new Date(d.date);
+            return date >= from && date <= today;
+        });
+    }
+
+    function parseDMY(str) {
+        const [d, m, y] = str.split('-');
+        return new Date(`${y}-${m}-${d}`);
+    }
+
+    function filterByRange(startStr, endStr) {
+        const from = parseDMY(startStr);
+        const to = parseDMY(endStr);
+        to.setHours(23, 59, 59, 999);
+        return watchTimeData.filter(d => {
+            const date = new Date(d.date);
+            return date >= from && date <= to;
+        });
+    }
+
+    function applyData(data) {
+        const total = data.reduce((sum, d) => sum + d.hours, 0);
+        const avg = data.length > 0 ? total / data.length : 0;
+        document.getElementById('chartTotalHours').textContent = total.toFixed(1);
+        document.getElementById('chartAvgHours').textContent = avg.toFixed(2);
+        chart.data.labels = data.map(d => d.date);
+        chart.data.datasets[0].data = data.map(d => d.hours);
+        chart.update();
+    }
+
+    // Default: 30 days
+    applyData(filterByDays(30));
+
+    document.querySelectorAll('.chart-period-btn').forEach(btn => {
+        btn.addEventListener('click', function () {
+            document.querySelectorAll('.chart-period-btn').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+
+            const period = this.dataset.period;
+            const wrapper = document.getElementById('customRangeWrapper');
+
+            if (period === 'custom') {
+                wrapper.style.display = 'flex';
+            } else {
+                wrapper.style.display = 'none';
+                applyData(filterByDays(parseInt(period)));
+            }
+        });
+    });
+
+    document.getElementById('applyCustomRange').addEventListener('click', function () {
+        const start = document.getElementById('customStart').value;
+        const end = document.getElementById('customEnd').value;
+        if (start && end && parseDMY(start) <= parseDMY(end)) {
+            applyData(filterByRange(start, end));
+        }
+    });
+})();
+</script>
+<script>
+(function () {
+    // ── Shared colours ──────────────────────────────────────────────────────
+    const PINK   = '#fa709a';
+    const YELLOW = '#fee140';
+    const PURPLE = '#764ba2';
+    const BLUE   = '#667eea';
+    const GRID   = 'rgba(255,255,255,0.05)';
+    const TICK   = '#9ca3af';
+
+    // ── 1. Activity Heatmap ─────────────────────────────────────────────────
+    (function () {
+        const data = @json($stats['heatmap']);
+        const container = document.getElementById('heatmapContainer');
+        if (!container || !data.length) return;
+
+        const maxCount = Math.max(...data.map(d => d.count), 1);
+        const COLORS = [
+            'rgba(255,255,255,0.06)',
+            'rgba(250,112,154,0.25)',
+            'rgba(250,112,154,0.5)',
+            'rgba(250,112,154,0.75)',
+            'rgba(250,112,154,1)',
+        ];
+        const DAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+        function cellColor(count) {
+            if (count === 0) return COLORS[0];
+            const ratio = count / maxCount;
+            if (ratio < 0.2)  return COLORS[1];
+            if (ratio < 0.45) return COLORS[2];
+            if (ratio < 0.75) return COLORS[3];
+            return COLORS[4];
+        }
+
+        // Pad first week so day 0 = Sunday
+        const firstDow = data[0].day_of_week;
+        const padded = [...Array(firstDow).fill(null), ...data];
+
+        // Group into weeks
+        const weeks = [];
+        for (let i = 0; i < padded.length; i += 7) weeks.push(padded.slice(i, i + 7));
+
+        // Month label per week
+        const monthLabel = {};
+        data.forEach((d, i) => {
+            const dt = new Date(d.date);
+            if (dt.getDate() <= 7) {
+                const wk = Math.floor((i + firstDow) / 7);
+                monthLabel[wk] = dt.toLocaleDateString('en-GB', { month: 'short' });
+            }
+        });
+
+        const outer = document.createElement('div');
+        outer.style.cssText = 'display:flex;gap:3px;align-items:flex-start;min-width:max-content;';
+
+        // Day label column
+        const labelCol = document.createElement('div');
+        labelCol.style.cssText = 'display:flex;flex-direction:column;gap:3px;padding-top:20px;margin-right:2px;';
+        DAY_LABELS.forEach(label => {
+            const el = document.createElement('div');
+            el.style.cssText = 'width:22px;height:11px;font-size:9px;color:#9ca3af;display:flex;align-items:center;';
+            el.textContent = label;
+            labelCol.appendChild(el);
+        });
+        outer.appendChild(labelCol);
+
+        weeks.forEach((week, wkIdx) => {
+            const col = document.createElement('div');
+            col.style.cssText = 'display:flex;flex-direction:column;gap:3px;';
+
+            const ml = document.createElement('div');
+            ml.style.cssText = 'height:16px;font-size:9px;color:#9ca3af;white-space:nowrap;';
+            ml.textContent = monthLabel[wkIdx] ?? '';
+            col.appendChild(ml);
+
+            for (let dow = 0; dow < 7; dow++) {
+                const day = week[dow] ?? null;
+                const cell = document.createElement('div');
+                cell.style.cssText = `width:11px;height:11px;border-radius:2px;background:${day ? cellColor(day.count) : 'transparent'};`;
+                if (day) {
+                    cell.title = `${day.date}: ${day.count} episode${day.count !== 1 ? 's' : ''}`;
+                    cell.style.cursor = 'default';
+                }
+                col.appendChild(cell);
+            }
+            outer.appendChild(col);
+        });
+
+        container.appendChild(outer);
+
+        // Legend
+        const legend = document.createElement('div');
+        legend.style.cssText = 'display:flex;align-items:center;gap:4px;margin-top:0.75rem;justify-content:flex-end;';
+        legend.innerHTML = `<span style="font-size:10px;color:#9ca3af;">Less</span>`;
+        COLORS.forEach(c => {
+            const sq = document.createElement('div');
+            sq.style.cssText = `width:11px;height:11px;border-radius:2px;background:${c};border:1px solid rgba(255,255,255,0.08);`;
+            legend.appendChild(sq);
+        });
+        legend.innerHTML += `<span style="font-size:10px;color:#9ca3af;">More</span>`;
+        container.appendChild(legend);
+    })();
+
+    // ── 2. Hour of Day ──────────────────────────────────────────────────────
+    (function () {
+        const ctx = document.getElementById('hourChart');
+        if (!ctx) return;
+        const hours = @json($stats['hour_distribution']);
+        const labels = Array.from({length: 24}, (_, i) => `${String(i).padStart(2,'0')}:00`);
+
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels,
+                datasets: [{
+                    label: 'Episodes',
+                    data: hours,
+                    backgroundColor: hours.map((_, i) => {
+                        const t = i / 23;
+                        return `rgba(${Math.round(250*(1-t)+102*t)}, ${Math.round(112*(1-t)+126*t)}, ${Math.round(154*(1-t)+238*t)}, 0.7)`;
+                    }),
+                    borderRadius: 3,
+                    borderWidth: 0,
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { ticks: { color: TICK, font: { size: 10 } }, grid: { color: GRID } },
+                    y: { beginAtZero: true, ticks: { color: TICK }, grid: { color: GRID } },
+                },
+            },
+        });
+    })();
+
+    // ── 3. Weekday vs Weekend ───────────────────────────────────────────────
+    (function () {
+        const heatmap = @json($stats['heatmap']);
+        let weekday = 0, weekend = 0;
+        heatmap.forEach(d => {
+            // day_of_week: 0=Sun, 6=Sat
+            if (d.day_of_week === 0 || d.day_of_week === 6) weekend += d.count;
+            else weekday += d.count;
+        });
+        const total = weekday + weekend || 1;
+        const wdEl = document.getElementById('weekdayPct');
+        const weEl = document.getElementById('weekendPct');
+        if (wdEl) wdEl.textContent = Math.round(weekday / total * 100) + '%';
+        if (weEl) weEl.textContent = Math.round(weekend / total * 100) + '%';
+    })();
+
+    // ── 4. Cumulative Watch Time ────────────────────────────────────────────
+    (function () {
+        const ctx = document.getElementById('cumulativeChart');
+        if (!ctx) return;
+        const raw = @json($stats['watch_time_chart']);
+        let cumulative = 0;
+        const data = raw.map(d => { cumulative += d.hours; return { x: d.date, y: +cumulative.toFixed(2) }; });
+
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                datasets: [{
+                    label: 'Total hours',
+                    data,
+                    borderColor: PINK,
+                    backgroundColor: 'rgba(250,112,154,0.1)',
+                    fill: true,
+                    tension: 0.3,
+                    pointRadius: 0,
+                    borderWidth: 2,
+                }]
+            },
+            options: {
+                responsive: true,
+                parsing: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { callbacks: { label: ctx => ctx.parsed.y.toFixed(1) + ' hrs total' } },
+                },
+                scales: {
+                    x: {
+                        type: 'category',
+                        ticks: { maxTicksLimit: 12, color: TICK, font: { size: 10 } },
+                        grid: { color: GRID },
+                    },
+                    y: {
+                        beginAtZero: true,
+                        ticks: { color: TICK, callback: v => v + ' hrs' },
+                        grid: { color: GRID },
+                    },
+                },
+            },
+        });
+    })();
+
+    // ── 5. Rating vs Watch Time Scatter ─────────────────────────────────────
+    (function () {
+        const ctx = document.getElementById('scatterChart');
+        if (!ctx) return;
+        const series = @json($stats['top_series']);
+        const points = series
+            .filter(s => s.vote_average > 0 && s.total_hours > 0)
+            .map(s => ({ x: s.vote_average, y: s.total_hours, label: s.name }));
+
+        new Chart(ctx, {
+            type: 'scatter',
+            data: {
+                datasets: [{
+                    label: 'Series',
+                    data: points,
+                    backgroundColor: 'rgba(250,112,154,0.6)',
+                    pointRadius: 6,
+                    pointHoverRadius: 8,
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: ctx => `${ctx.raw.label} — ⭐ ${ctx.raw.x} / ${ctx.raw.y} hrs`,
+                        },
+                    },
+                },
+                scales: {
+                    x: {
+                        title: { display: true, text: 'Rating (TMDB)', color: TICK },
+                        ticks: { color: TICK },
+                        grid: { color: GRID },
+                    },
+                    y: {
+                        title: { display: true, text: 'Hours watched', color: TICK },
+                        beginAtZero: true,
+                        ticks: { color: TICK, callback: v => v + ' hrs' },
+                        grid: { color: GRID },
+                    },
+                },
+            },
+        });
+    })();
+
+    // ── 6. Days to Complete ─────────────────────────────────────────────────
+    (function () {
+        const ctx = document.getElementById('completionTimeChart');
+        if (!ctx) return;
+        const data = @json($stats['completion_time']);
+
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: data.map(d => d.name),
+                datasets: [{
+                    label: 'Days',
+                    data: data.map(d => d.days),
+                    backgroundColor: 'rgba(102,126,234,0.6)',
+                    borderColor: BLUE,
+                    borderWidth: 1,
+                    borderRadius: 3,
+                    minBarLength: 40,
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                onHover: (e, elements) => {
+                    e.native.target.style.cursor = elements.length ? 'pointer' : 'default';
+                },
+                onClick: (e, elements) => {
+                    if (!elements.length) return;
+                    const id = data[elements[0].index].id;
+                    window.location.href = '{{ route('tv.show', ['series' => '__id__']) }}'.replace('__id__', id);
+                },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: ctx => {
+                                const item = data[ctx.dataIndex];
+                                return `${ctx.raw} days — ${item.episodes} eps — ${item.eps_per_day} eps/day`;
+                            },
+                        },
+                    },
+                },
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        ticks: { color: TICK, callback: v => v + 'd' },
+                        grid: { color: GRID },
+                    },
+                    y: { ticks: { color: TICK, font: { size: 10 } }, grid: { display: false } },
+                },
+            },
+        });
+    })();
+})();
+</script>
+
 <style>
+.chart-period-btn {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 0.375rem;
+    color: #9ca3af;
+    cursor: pointer;
+    font-size: 0.8125rem;
+    padding: 0.3rem 0.75rem;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.chart-period-btn:hover {
+    background: rgba(250, 112, 154, 0.2);
+    border-color: #fa709a;
+    color: #fa709a;
+}
+
+.chart-period-btn.active {
+    background: rgba(250, 112, 154, 0.25);
+    border-color: #fa709a;
+    color: #fa709a;
+    font-weight: 600;
+}
+
 .tv-card-small {
     display: block;
     text-decoration: none;

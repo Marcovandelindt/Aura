@@ -14,6 +14,12 @@ class TvStatsController extends Controller
     {
         $stats = [
             'overview' => $this->getOverviewStats(),
+            'watch_time_chart' => $this->getWatchTimeChart(),
+            'heatmap' => $this->getHeatmapData(),
+            'hour_distribution' => $this->getHourDistribution(),
+            'abandonment' => $this->getAbandonmentData(),
+            'completion_time' => $this->getCompletionTimeData(),
+            'longest_pause' => $this->getLongestPauseData(),
             'top_series' => $this->getTopSeries(18),
             'recently_watched' => $this->getRecentlyWatched(),
             'watch_history' => $this->getWatchHistory(),
@@ -27,6 +33,203 @@ class TvStatsController extends Controller
         ];
 
         return view('tv.stats', compact('stats'));
+    }
+
+    private function getHeatmapData(): array
+    {
+        $endDate = Carbon::now()->endOfDay();
+        $startDate = Carbon::now()->subDays(364)->startOfDay();
+
+        $counts = EpisodeWatch::whereNotNull('watched_at')
+            ->whereBetween('watched_at', [$startDate, $endDate])
+            ->get()
+            ->groupBy(fn ($w) => $w->watched_at->format('Y-m-d'))
+            ->map(fn ($group) => $group->count());
+
+        $result = [];
+        $current = $startDate->copy();
+        while ($current->lte($endDate)) {
+            $date = $current->format('Y-m-d');
+            $result[] = [
+                'date' => $date,
+                'count' => $counts[$date] ?? 0,
+                'day_of_week' => $current->dayOfWeek,
+            ];
+            $current->addDay();
+        }
+
+        return $result;
+    }
+
+    private function getHourDistribution(): array
+    {
+        $hours = array_fill(0, 24, 0);
+
+        EpisodeWatch::whereNotNull('watched_at')->get()
+            ->each(function ($watch) use (&$hours) {
+                $hours[$watch->watched_at->hour]++;
+            });
+
+        return $hours;
+    }
+
+    private function getAbandonmentData(): array
+    {
+        return TvSeries::where('episodes_watched', '>', 0)
+            ->where('completion_percentage', '<', 100)
+            ->orderByDesc('completion_percentage')
+            ->get()
+            ->map(fn ($series) => [
+                'id' => $series->id,
+                'name' => $series->name,
+                'completion_percentage' => $series->completion_percentage,
+                'episodes_watched' => $series->episodes_watched,
+                'number_of_episodes' => $series->number_of_episodes,
+                'poster_url' => $series->poster_url,
+            ])
+            ->toArray();
+    }
+
+    private function getCompletionTimeData(): array
+    {
+        return TvSeries::where('completion_percentage', 100)
+            ->with('seasons.episodes.watches')
+            ->get()
+            ->map(function ($series) {
+                $allWatches = $series->seasons
+                    ->flatMap(fn ($s) => $s->episodes)
+                    ->flatMap(fn ($e) => $e->watches)
+                    ->filter(fn ($w) => $w->watched_at !== null)
+                    ->sortBy('watched_at');
+
+                if ($allWatches->isEmpty()) {
+                    return null;
+                }
+
+                $maxPerDay = $allWatches
+                    ->groupBy(fn ($w) => $w->watched_at->format('Y-m-d'))
+                    ->map(fn ($group) => $group->count())
+                    ->max();
+
+                if ($maxPerDay > 20) {
+                    return null;
+                }
+
+                // Sliding window of size $episodeCount to find the fastest complete run
+                $episodeCount = $series->number_of_episodes;
+                $dates = $allWatches->sortBy('watched_at')->pluck('watched_at')->values();
+                $total = $dates->count();
+
+                if ($total < $episodeCount) {
+                    return null;
+                }
+
+                $fastestDays = PHP_INT_MAX;
+                for ($i = 0; $i <= $total - $episodeCount; $i++) {
+                    $span = max(1, $dates[$i]->diffInDays($dates[$i + $episodeCount - 1]) + 1);
+                    if ($span < $fastestDays) {
+                        $fastestDays = $span;
+                    }
+                }
+
+                return [
+                    'id' => $series->id,
+                    'name' => $series->name,
+                    'days' => $fastestDays,
+                    'episodes' => $episodeCount,
+                    'eps_per_day' => round($episodeCount / $fastestDays, 1),
+                ];
+            })
+            ->filter()
+            ->sortBy('days')
+            ->values()
+            ->toArray();
+    }
+
+    private function getLongestPauseData(): array
+    {
+        $watches = EpisodeWatch::with('episode.season.series')
+            ->whereNotNull('watched_at')
+            ->get()
+            ->groupBy(fn ($w) => $w->episode->season->series->id);
+
+        $pauses = [];
+
+        foreach ($watches as $seriesWatches) {
+            $sorted = $seriesWatches->sortBy('watched_at')->values();
+            $total = $sorted->count();
+
+            if ($total < 2) {
+                continue;
+            }
+
+            $series = $sorted->first()->episode->season->series;
+            $episodeCount = max(1, $series->number_of_episodes);
+            $estimatedRuns = max(1, (int) round($total / $episodeCount));
+
+            // Build all consecutive gaps with their index
+            $gaps = [];
+            for ($i = 1; $i < $total; $i++) {
+                $gaps[$i - 1] = $sorted[$i - 1]->watched_at->diffInDays($sorted[$i]->watched_at);
+            }
+
+            // Mark the ($estimatedRuns - 1) largest gaps as run boundaries to exclude
+            $boundaryIndices = [];
+            if ($estimatedRuns > 1) {
+                $sortedBySize = $gaps;
+                arsort($sortedBySize);
+                $boundaryIndices = array_slice(array_keys($sortedBySize), 0, $estimatedRuns - 1);
+            }
+
+            $maxDays = 0;
+            foreach ($gaps as $idx => $gap) {
+                if (! in_array($idx, $boundaryIndices)) {
+                    $maxDays = max($maxDays, $gap);
+                }
+            }
+
+            if ($maxDays > 0) {
+                $pauses[] = [
+                    'series_name' => $series->name,
+                    'days' => $maxDays,
+                ];
+            }
+        }
+
+        usort($pauses, fn ($a, $b) => $b['days'] - $a['days']);
+
+        return array_slice($pauses, 0, 10);
+    }
+
+    private function getWatchTimeChart(): array
+    {
+        $watches = EpisodeWatch::with('episode')
+            ->whereNotNull('watched_at')
+            ->get();
+
+        if ($watches->isEmpty()) {
+            return [];
+        }
+
+        $startDate = $watches->min('watched_at')->copy()->startOfDay();
+        $endDate = Carbon::now()->endOfDay();
+
+        $minutesByDate = $watches
+            ->groupBy(fn ($w) => $w->watched_at->format('Y-m-d'))
+            ->map(fn ($group) => $group->sum(fn ($w) => $w->episode->runtime ?? 0));
+
+        $result = [];
+        $current = $startDate->copy();
+        while ($current->lte($endDate)) {
+            $date = $current->format('Y-m-d');
+            $result[] = [
+                'date' => $date,
+                'hours' => round(($minutesByDate[$date] ?? 0) / 60, 2),
+            ];
+            $current->addDay();
+        }
+
+        return $result;
     }
 
     private function getOverviewStats(): array

@@ -11,6 +11,7 @@ class ScambaiterConversation extends Model
     protected $fillable = [
         'title',
         'scammer_name',
+        'scammer_email_addresses',
         'subject',
         'occupation',
         'intelligence_level',
@@ -26,6 +27,7 @@ class ScambaiterConversation extends Model
         return [
             'intelligence_level' => IntelligenceLevel::class,
             'personality_traits' => 'array',
+            'scammer_email_addresses' => 'array',
             'is_locked' => 'boolean',
         ];
     }

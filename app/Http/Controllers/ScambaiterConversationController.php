@@ -24,9 +24,14 @@ class ScambaiterConversationController extends Controller
             array_map('trim', explode(',', $request->string('personality_traits', '')))
         );
 
+        $emailAddresses = array_filter(
+            array_map('trim', explode(',', $request->string('scammer_email_addresses', '')))
+        );
+
         $conversation = ScambaiterConversation::create([
             'title' => $request->title,
             'scammer_name' => $request->scammer_name,
+            'scammer_email_addresses' => array_values($emailAddresses) ?: null,
             'subject' => $request->subject,
             'occupation' => $request->occupation,
             'intelligence_level' => $request->intelligence_level,
@@ -53,9 +58,14 @@ class ScambaiterConversationController extends Controller
             array_map('trim', explode(',', $request->string('personality_traits', '')))
         );
 
+        $emailAddresses = array_filter(
+            array_map('trim', explode(',', $request->string('scammer_email_addresses', '')))
+        );
+
         $conversation->update([
             'title' => $request->title,
             'scammer_name' => $request->scammer_name,
+            'scammer_email_addresses' => array_values($emailAddresses) ?: null,
             'subject' => $request->subject,
             'occupation' => $request->occupation,
             'intelligence_level' => $request->intelligence_level,
