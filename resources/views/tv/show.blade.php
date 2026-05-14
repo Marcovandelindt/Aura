@@ -233,7 +233,7 @@
                                             @foreach($episode->watches()->orderBy('watched_at', 'desc')->get() as $watch)
                                                 <span style="display: inline-flex; align-items: center; gap: 0.25rem; padding: 0.125rem 0.5rem; background: #374151; border-radius: 0.25rem; font-size: 0.75rem; color: #f3f4f6;">
                                                     @if($watch->watched_at)
-                                                        {{ $watch->watched_at->format('m-d') === '01-01' ? $watch->watched_at->format('Y') : $watch->watched_at->format('M d, Y') }}
+                                                        {{ $watch->year_only ? $watch->watched_at->format('Y') : $watch->watched_at->format('M d, Y') }}
                                                     @else
                                                         No date
                                                     @endif
@@ -492,7 +492,7 @@ function submitWatch() {
             'Content-Type': 'application/json',
             'X-CSRF-TOKEN': '{{ csrf_token() }}'
         },
-        body: JSON.stringify({ watched_at: watchedAt })
+        body: JSON.stringify({ watched_at: watchedAt, year_only: dateType === 'year' })
     })
     .then(response => response.json())
     .then(data => {
@@ -564,7 +564,7 @@ function submitBulkWatch() {
             'Content-Type': 'application/json',
             'X-CSRF-TOKEN': '{{ csrf_token() }}'
         },
-        body: JSON.stringify({ watched_at: watchedAt })
+        body: JSON.stringify({ watched_at: watchedAt, year_only: dateType === 'year' })
     })
     .then(response => response.json())
     .then(data => {

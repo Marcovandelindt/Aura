@@ -10,6 +10,7 @@ class MovieWatch extends Model
     protected $fillable = [
         'movie_id',
         'watched_at',
+        'year_only',
         'notes',
         'rating',
     ];
@@ -18,6 +19,7 @@ class MovieWatch extends Model
     {
         return [
             'watched_at' => 'datetime',
+            'year_only' => 'boolean',
         ];
     }
 

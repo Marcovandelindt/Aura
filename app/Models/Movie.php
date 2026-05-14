@@ -75,10 +75,13 @@ class Movie extends Model
     public function incrementWatchCount(): void
     {
         $this->increment('watch_count');
-        $this->last_watched_at = now();
+
+        $latestWatch = $this->watches()->latest('watched_at')->first();
+        $this->last_watched_at = $latestWatch?->watched_at ?? now();
 
         if (! $this->first_watched_at) {
-            $this->first_watched_at = now();
+            $earliestWatch = $this->watches()->oldest('watched_at')->first();
+            $this->first_watched_at = $earliestWatch?->watched_at ?? now();
         }
 
         $this->save();

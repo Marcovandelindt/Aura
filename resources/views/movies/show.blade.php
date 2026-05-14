@@ -197,7 +197,13 @@
                         <div style="padding: 1rem; background: #1f2937; border-radius: 0.5rem; display: flex; justify-content: space-between; align-items: center; color: #f3f4f6;">
                             <div>
                                 <div style="font-weight: 500;">Watched</div>
-                                <div style="color: #9ca3af; font-size: 0.875rem;">{{ $watch->watched_at ? $watch->watched_at->format('F d, Y') : 'No date' }}</div>
+                                <div style="color: #9ca3af; font-size: 0.875rem;">
+                                    @if($watch->watched_at)
+                                        {{ $watch->year_only ? $watch->watched_at->format('Y') : $watch->watched_at->format('F d, Y') }}
+                                    @else
+                                        No date
+                                    @endif
+                                </div>
                             </div>
                             <button onclick="deleteMovieWatch({{ $watch->id }})" class="btn btn-sm btn-danger">
                                 <i class="fas fa-trash"></i> Delete
@@ -327,7 +333,7 @@ function submitWatch() {
             'Content-Type': 'application/json',
             'X-CSRF-TOKEN': '{{ csrf_token() }}'
         },
-        body: JSON.stringify({ watched_at: watchedAt })
+        body: JSON.stringify({ watched_at: watchedAt, year_only: dateType === 'year' })
     })
     .then(response => response.json())
     .then(data => {

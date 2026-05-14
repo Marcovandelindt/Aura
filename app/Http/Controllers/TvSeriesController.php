@@ -112,6 +112,7 @@ class TvSeriesController extends Controller
             EpisodeWatch::create([
                 'tv_episode_id' => $episode->id,
                 'watched_at' => $request->input('watched_at'),
+                'year_only' => $request->boolean('year_only'),
             ]);
 
             $episode->season->updateProgress();
@@ -157,6 +158,7 @@ class TvSeriesController extends Controller
     {
         try {
             $watchedAt = $request->input('watched_at');
+            $yearOnly = $request->boolean('year_only');
             $count = 0;
 
             $series->load('seasons.episodes');
@@ -166,6 +168,7 @@ class TvSeriesController extends Controller
                     EpisodeWatch::create([
                         'tv_episode_id' => $episode->id,
                         'watched_at' => $watchedAt,
+                        'year_only' => $yearOnly,
                     ]);
                     $count++;
                 }

@@ -32,6 +32,9 @@ class MovieController extends Controller
             'people' => fn ($query) => $query->orderByPivot('cast_order'),
         ]);
 
+        $movie->last_watched_at = $movie->watches->sortByDesc('watched_at')->first()?->watched_at;
+        $movie->first_watched_at = $movie->watches->sortBy('watched_at')->first()?->watched_at;
+
         return view('movies.show', compact('movie'));
     }
 
@@ -94,6 +97,7 @@ class MovieController extends Controller
             MovieWatch::create([
                 'movie_id' => $movie->id,
                 'watched_at' => $request->input('watched_at'),
+                'year_only' => $request->boolean('year_only'),
             ]);
 
             $movie->incrementWatchCount();

@@ -10,6 +10,7 @@ class EpisodeWatch extends Model
     protected $fillable = [
         'tv_episode_id',
         'watched_at',
+        'year_only',
         'notes',
         'rating',
     ];
@@ -18,6 +19,7 @@ class EpisodeWatch extends Model
     {
         return [
             'watched_at' => 'datetime',
+            'year_only' => 'boolean',
         ];
     }
 
