@@ -272,6 +272,14 @@
 </div>
 
 <script>
+document.addEventListener('DOMContentLoaded', function() {
+    ['watchedAt', 'watchedYear'].forEach(id => {
+        document.getElementById(id)?.addEventListener('keydown', e => {
+            if (e.key === 'Enter') submitWatch();
+        });
+    });
+});
+
 function toggleCast() {
     const extra = document.getElementById('cast-extra');
     const icon = document.getElementById('cast-toggle-icon');
