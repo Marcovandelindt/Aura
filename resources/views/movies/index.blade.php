@@ -229,9 +229,7 @@ function addMovie(tmdbId) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            showNotification('Movie added successfully!');
-            closeAddMovieModal();
-            setTimeout(() => window.location.reload(), 1000);
+            window.location.href = `/movies/${data.movie.id}`;
         } else {
             showNotification(data.message, 'error');
         }
