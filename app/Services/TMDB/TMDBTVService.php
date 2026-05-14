@@ -5,6 +5,7 @@ namespace App\Services\TMDB;
 use App\Models\TvEpisode;
 use App\Models\TvSeason;
 use App\Models\TvSeries;
+use App\Services\PersonSyncService;
 use Chiiya\Tmdb\Query\AppendToResponse;
 use Chiiya\Tmdb\Repositories\SearchRepository;
 use Chiiya\Tmdb\Repositories\TvSeasonRepository;
@@ -16,7 +17,8 @@ class TMDBTVService
     public function __construct(
         protected TvShowRepository $tvShowRepository,
         protected TvSeasonRepository $tvSeasonRepository,
-        protected SearchRepository $searchRepository
+        protected SearchRepository $searchRepository,
+        protected PersonSyncService $personSyncService,
     ) {}
 
     public function search(string $query, int $page = 1): array
@@ -51,7 +53,7 @@ class TMDBTVService
         return Cache::remember($cacheKey, config('tmdb.cache_duration'), function () use ($tmdbId) {
             $result = $this->tvShowRepository->getTvShow($tmdbId, [
                 'language' => config('tmdb.language'),
-                'append_to_response' => new AppendToResponse(['credits', 'videos']),
+                'append_to_response' => new AppendToResponse(['aggregate_credits', 'videos']),
             ]);
 
             return json_decode(json_encode($result), true);
@@ -113,6 +115,8 @@ class TMDBTVService
                 'number_of_episodes' => $details['number_of_episodes'] ?? 0,
             ]
         );
+
+        $this->personSyncService->syncForTvSeries($series, $details['aggregate_credits'] ?? []);
 
         return $series;
     }

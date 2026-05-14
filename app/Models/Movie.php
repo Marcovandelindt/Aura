@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Movie extends Model
@@ -44,6 +45,13 @@ class Movie extends Model
     public function watches(): HasMany
     {
         return $this->hasMany(MovieWatch::class);
+    }
+
+    public function people(): BelongsToMany
+    {
+        return $this->belongsToMany(Person::class)
+            ->withPivot(['character', 'department', 'job', 'cast_order'])
+            ->withTimestamps();
     }
 
     public function posterUrl(): Attribute

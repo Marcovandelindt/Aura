@@ -27,7 +27,10 @@ class MovieController extends Controller
 
     public function show(Movie $movie): View
     {
-        $movie->load('watches');
+        $movie->load([
+            'watches',
+            'people' => fn ($query) => $query->orderByPivot('cast_order'),
+        ]);
 
         return view('movies.show', compact('movie'));
     }

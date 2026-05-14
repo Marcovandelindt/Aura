@@ -41,7 +41,10 @@ class TvSeriesController extends Controller
 
     public function show(TvSeries $series): View
     {
-        $series->load(['seasons.episodes']);
+        $series->load([
+            'seasons.episodes',
+            'people' => fn ($query) => $query->orderByPivot('cast_order'),
+        ]);
 
         return view('tv.show', compact('series'));
     }

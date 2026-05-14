@@ -3,6 +3,7 @@
 namespace App\Services\TMDB;
 
 use App\Models\Movie;
+use App\Services\PersonSyncService;
 use Chiiya\Tmdb\Query\AppendToResponse;
 use Chiiya\Tmdb\Repositories\MovieRepository;
 use Chiiya\Tmdb\Repositories\SearchRepository;
@@ -12,7 +13,8 @@ class TMDBMovieService
 {
     public function __construct(
         protected MovieRepository $movieRepository,
-        protected SearchRepository $searchRepository
+        protected SearchRepository $searchRepository,
+        protected PersonSyncService $personSyncService,
     ) {}
 
     public function search(string $query, int $page = 1): array
@@ -58,7 +60,7 @@ class TMDBMovieService
     {
         $details = $this->getDetails($tmdbId);
 
-        return Movie::updateOrCreate(
+        $movie = Movie::updateOrCreate(
             ['tmdb_id' => $tmdbId],
             [
                 'title' => $details['title'],
@@ -77,6 +79,10 @@ class TMDBMovieService
                 'original_language' => $details['original_language'] ?? null,
             ]
         );
+
+        $this->personSyncService->syncForMovie($movie, $details['credits'] ?? []);
+
+        return $movie;
     }
 
     public function getPopular(int $page = 1): array

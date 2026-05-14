@@ -95,6 +95,68 @@
         </div>
     </div>
 
+    @if($movie->people->isNotEmpty())
+        @php
+            $cast = $movie->people->filter(fn ($p) => $p->pivot->department === 'Acting');
+            $directors = $movie->people->filter(fn ($p) => $p->pivot->job === 'Director');
+        @endphp
+
+        <div class="card" style="margin-top: 2rem;">
+            <div class="card-header">
+                <h3>Cast & Crew</h3>
+            </div>
+            <div class="card-body">
+                @if($directors->isNotEmpty())
+                    <div style="margin-bottom: 1.5rem;">
+                        <div style="color: #6b7280; font-size: 0.875rem; margin-bottom: 0.75rem;">Director</div>
+                        <div style="display: flex; flex-wrap: wrap; gap: 1rem;">
+                            @foreach($directors as $person)
+                                <div style="display: flex; align-items: center; gap: 0.75rem; background: #1f2937; padding: 0.75rem; border-radius: 0.5rem; min-width: 180px;">
+                                    @if($person->profile_url)
+                                        <img src="{{ $person->profile_url }}" alt="{{ $person->name }}" style="width: 3rem; height: 3rem; border-radius: 50%; object-fit: cover; flex-shrink: 0;">
+                                    @else
+                                        <div style="width: 3rem; height: 3rem; border-radius: 50%; background: #374151; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                            <i class="fas fa-user" style="color: #6b7280;"></i>
+                                        </div>
+                                    @endif
+                                    <div>
+                                        <div style="font-weight: 500; font-size: 0.875rem; color: #f3f4f6;">{{ $person->name }}</div>
+                                        <div style="color: #6b7280; font-size: 0.75rem;">Director</div>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
+
+                @if($cast->isNotEmpty())
+                    <div>
+                        <div style="color: #6b7280; font-size: 0.875rem; margin-bottom: 0.75rem;">Cast</div>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 1rem;">
+                            @foreach($cast as $person)
+                                <div style="background: #1f2937; border-radius: 0.5rem; overflow: hidden; text-align: center;">
+                                    @if($person->profile_url)
+                                        <img src="{{ $person->profile_url }}" alt="{{ $person->name }}" style="width: 100%; aspect-ratio: 2/3; object-fit: cover;">
+                                    @else
+                                        <div style="width: 100%; aspect-ratio: 2/3; background: #374151; display: flex; align-items: center; justify-content: center;">
+                                            <i class="fas fa-user" style="color: #6b7280; font-size: 2rem;"></i>
+                                        </div>
+                                    @endif
+                                    <div style="padding: 0.5rem;">
+                                        <div style="font-weight: 500; font-size: 0.8125rem; line-height: 1.3; color: #f3f4f6;">{{ $person->name }}</div>
+                                        @if($person->pivot->character)
+                                            <div style="color: #6b7280; font-size: 0.75rem; margin-top: 0.25rem;">{{ $person->pivot->character }}</div>
+                                        @endif
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
+            </div>
+        </div>
+    @endif
+
     @if($movie->watches->isNotEmpty())
         <div class="card" style="margin-top: 2rem;">
             <div class="card-header">

@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class TvSeries extends Model
@@ -49,6 +50,13 @@ class TvSeries extends Model
     public function seasons(): HasMany
     {
         return $this->hasMany(TvSeason::class);
+    }
+
+    public function people(): BelongsToMany
+    {
+        return $this->belongsToMany(Person::class, 'tv_series_person')
+            ->withPivot(['character', 'department', 'job', 'cast_order', 'episode_count'])
+            ->withTimestamps();
     }
 
     public function posterUrl(): Attribute
