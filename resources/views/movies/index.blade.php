@@ -37,9 +37,28 @@
             </div>
         </div>
     @else
-        <div class="games-grid">
+        <!-- Search Bar -->
+        <div class="card" style="margin-bottom: 2rem;">
+            <div class="card-body">
+                <div class="form-group" style="margin-bottom: 0;">
+                    <div style="position: relative;">
+                        <i class="fas fa-search" style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: #6b7280;"></i>
+                        <input
+                            type="text"
+                            id="movieSearchInput"
+                            class="form-control"
+                            placeholder="Search movies..."
+                            style="padding-left: 2.5rem;"
+                            oninput="filterMovies()"
+                        >
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="games-grid" id="moviesGrid">
             @foreach($movies as $movie)
-                <a href="{{ route('movies.show', $movie->id) }}" class="game-card movie-card">
+                <a href="{{ route('movies.show', $movie->id) }}" class="game-card movie-card movie-item" data-title="{{ strtolower($movie->title) }}" data-original-title="{{ strtolower($movie->original_title ?? '') }}">
                     @if($movie->poster_url)
                         <div class="game-cover movie-poster">
                             <img src="{{ $movie->poster_url }}" alt="{{ $movie->title }}">
@@ -102,6 +121,37 @@
 
 <script>
 let searchTimeout;
+
+function filterMovies() {
+    const searchTerm = document.getElementById('movieSearchInput').value.toLowerCase().trim();
+    const items = document.querySelectorAll('.movie-item');
+    let visibleCount = 0;
+
+    items.forEach(item => {
+        const title = item.getAttribute('data-title');
+        const originalTitle = item.getAttribute('data-original-title');
+
+        if (title.includes(searchTerm) || originalTitle.includes(searchTerm)) {
+            item.style.display = '';
+            visibleCount++;
+        } else {
+            item.style.display = 'none';
+        }
+    });
+
+    let noResultsMsg = document.getElementById('noResultsMessage');
+    if (visibleCount === 0 && searchTerm !== '') {
+        if (!noResultsMsg) {
+            noResultsMsg = document.createElement('div');
+            noResultsMsg.id = 'noResultsMessage';
+            noResultsMsg.style.cssText = 'grid-column: 1/-1; text-align: center; padding: 3rem; color: #9ca3af;';
+            noResultsMsg.innerHTML = '<i class="fas fa-search" style="font-size: 3rem; margin-bottom: 1rem; display: block;"></i><p>No movies found matching your search.</p>';
+            document.getElementById('moviesGrid').appendChild(noResultsMsg);
+        }
+    } else if (noResultsMsg) {
+        noResultsMsg.remove();
+    }
+}
 
 function openAddMovieModal() {
     const modal = document.getElementById('addMovieModal');
