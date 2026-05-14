@@ -137,24 +137,26 @@
                         <div style="color: #6b7280; font-size: 0.875rem; margin-bottom: 0.75rem;">Cast</div>
                         <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 1rem;">
                             @foreach($cast->take(20) as $person)
-                                <div style="background: #1f2937; border-radius: 0.5rem; overflow: hidden; text-align: center;">
-                                    @if($person->profile_url)
-                                        <img src="{{ $person->profile_url }}" alt="{{ $person->name }}" style="width: 100%; aspect-ratio: 2/3; object-fit: cover;">
-                                    @else
-                                        <div style="width: 100%; aspect-ratio: 2/3; background: #374151; display: flex; align-items: center; justify-content: center;">
-                                            <i class="fas fa-user" style="color: #6b7280; font-size: 2rem;"></i>
+                                <a href="{{ route('people.show', $person) }}" style="text-decoration: none;">
+                                    <div style="background: #1f2937; border-radius: 0.5rem; overflow: hidden; text-align: center;">
+                                        @if($person->profile_url)
+                                            <img src="{{ $person->profile_url }}" alt="{{ $person->name }}" style="width: 100%; aspect-ratio: 2/3; object-fit: cover;">
+                                        @else
+                                            <div style="width: 100%; aspect-ratio: 2/3; background: #374151; display: flex; align-items: center; justify-content: center;">
+                                                <i class="fas fa-user" style="color: #6b7280; font-size: 2rem;"></i>
+                                            </div>
+                                        @endif
+                                        <div style="padding: 0.5rem;">
+                                            <div style="font-weight: 500; font-size: 0.8125rem; line-height: 1.3; color: #f3f4f6;">{{ $person->name }}</div>
+                                            @if($person->pivot->character)
+                                                <div style="color: #6b7280; font-size: 0.75rem; margin-top: 0.25rem;">{{ $person->pivot->character }}</div>
+                                            @endif
+                                            @if($person->pivot->episode_count)
+                                                <div style="color: #4b5563; font-size: 0.75rem; margin-top: 0.125rem;">{{ $person->pivot->episode_count }} eps</div>
+                                            @endif
                                         </div>
-                                    @endif
-                                    <div style="padding: 0.5rem;">
-                                        <div style="font-weight: 500; font-size: 0.8125rem; line-height: 1.3; color: #f3f4f6;">{{ $person->name }}</div>
-                                        @if($person->pivot->character)
-                                            <div style="color: #6b7280; font-size: 0.75rem; margin-top: 0.25rem;">{{ $person->pivot->character }}</div>
-                                        @endif
-                                        @if($person->pivot->episode_count)
-                                            <div style="color: #4b5563; font-size: 0.75rem; margin-top: 0.125rem;">{{ $person->pivot->episode_count }} eps</div>
-                                        @endif
                                     </div>
-                                </div>
+                                </a>
                             @endforeach
                         </div>
 
@@ -181,7 +183,7 @@
                                     </div>
                                 @endforeach
                             </div>
-                            <button onclick="toggleCast()" id="cast-toggle-btn" class="btn btn-secondary" style="margin-top: 1rem; font-size: 0.875rem;">
+                            <button onclick="toggleCast()" id="cast-toggle-btn" data-count="{{ $castHidden->count() }}" class="btn btn-secondary" style="margin-top: 1rem; font-size: 0.875rem;">
                                 <i class="fas fa-chevron-down" id="cast-toggle-icon"></i>
                                 Show {{ $castHidden->count() }} more
                             </button>
@@ -374,7 +376,7 @@ function toggleCast() {
 
     extra.style.display = isHidden ? 'grid' : 'none';
     icon.className = isHidden ? 'fas fa-chevron-up' : 'fas fa-chevron-down';
-    btn.innerHTML = `<i class="${icon.className}" id="cast-toggle-icon"></i> ${isHidden ? 'Show less' : 'Show {{ $castHidden->count() }} more'}`;
+    btn.innerHTML = `<i class="${icon.className}" id="cast-toggle-icon"></i> ${isHidden ? 'Show less' : 'Show ' + btn.dataset.count + ' more'}`;
 }
 
 // Restore season states on page load

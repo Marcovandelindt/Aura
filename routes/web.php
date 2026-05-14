@@ -155,6 +155,11 @@ Route::prefix('nintendo-switch')->group(function () {
 });
 
 /**
+ * People Routes
+ */
+Route::get('/people/{person}', [App\Http\Controllers\PersonController::class, 'show'])->name('people.show');
+
+/**
  * Movie Routes
  */
 Route::prefix('movies')->group(function () {
