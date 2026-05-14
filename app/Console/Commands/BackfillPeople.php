@@ -53,8 +53,8 @@ class BackfillPeople extends Command
         }
 
         foreach ($series as $show) {
-            $details = $tvService->getDetails($show->tmdb_id);
-            $personSyncService->syncForTvSeries($show, $details['aggregate_credits'] ?? []);
+            $credits = $tvService->getAggregateCredits($show->tmdb_id);
+            $personSyncService->syncForTvSeries($show, $credits);
             $bar->advance();
             usleep(250000);
         }

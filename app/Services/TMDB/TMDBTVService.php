@@ -53,10 +53,24 @@ class TMDBTVService
         return Cache::remember($cacheKey, config('tmdb.cache_duration'), function () use ($tmdbId) {
             $result = $this->tvShowRepository->getTvShow($tmdbId, [
                 'language' => config('tmdb.language'),
-                'append_to_response' => new AppendToResponse(['aggregate_credits', 'videos']),
+                'append_to_response' => new AppendToResponse(['videos']),
             ]);
 
             return json_decode(json_encode($result), true);
+        });
+    }
+
+    public function getAggregateCredits(int $tmdbId): array
+    {
+        $cacheKey = "tmdb_tv_aggregate_credits_{$tmdbId}";
+
+        return Cache::remember($cacheKey, config('tmdb.cache_duration'), function () use ($tmdbId) {
+            $result = $this->tvShowRepository->getTvShow($tmdbId, [
+                'language' => 'en-US',
+                'append_to_response' => new AppendToResponse(['aggregate_credits']),
+            ]);
+
+            return json_decode(json_encode($result), true)['aggregate_credits'] ?? [];
         });
     }
 
@@ -116,7 +130,7 @@ class TMDBTVService
             ]
         );
 
-        $this->personSyncService->syncForTvSeries($series, $details['aggregate_credits'] ?? []);
+        $this->personSyncService->syncForTvSeries($series, $this->getAggregateCredits($tmdbId));
 
         return $series;
     }
@@ -198,6 +212,8 @@ class TMDBTVService
     {
         // Clear series details cache
         Cache::forget("tmdb_tv_details_{$tmdbId}");
+
+        Cache::forget("tmdb_tv_aggregate_credits_{$tmdbId}");
 
         // Clear all season caches for this series (assume max 50 seasons)
         for ($i = 0; $i <= 50; $i++) {
