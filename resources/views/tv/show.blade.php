@@ -197,11 +197,9 @@
     <!-- Seasons and Episodes -->
     @foreach($series->seasons()->orderBy('season_number')->get() as $season)
         <div class="card" style="margin-top: 2rem;">
-            <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+            <div class="card-header" onclick="toggleSeason({{ $season->id }})" style="display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none;">
                 <h3>{{ $season->name }} ({{ $season->episodes_watched }}/{{ $season->episode_count }} watched)</h3>
-                <button onclick="toggleSeason({{ $season->id }})" class="btn btn-sm btn-secondary">
-                    <i class="fas fa-chevron-down" id="season-icon-{{ $season->id }}"></i>
-                </button>
+                <i class="fas fa-chevron-down" id="season-icon-{{ $season->id }}"></i>
             </div>
             <div id="season-{{ $season->id }}" class="card-body" style="display: none;">
                 <div style="display: grid; gap: 0.75rem;">
