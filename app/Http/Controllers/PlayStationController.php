@@ -357,4 +357,43 @@ class PlayStationController extends Controller
         return redirect()->route('playstation.index')
             ->with('error', 'Sync failed: '.($result['error'] ?? 'Unknown error'));
     }
+
+    public function watDeedIk(Request $request): \Illuminate\Http\JsonResponse
+    {
+        $request->validate(['date' => 'required|date']);
+
+        $date = $request->date;
+
+        $sessions = PlayStationSession::with('game')
+            ->whereDate('started_at', $date)
+            ->orderBy('started_at')
+            ->get()
+            ->groupBy('play_station_game_id')
+            ->map(function ($sessions) {
+                $game = $sessions->first()->game;
+                $totalMinutes = $sessions->sum('duration_minutes');
+                $hours = floor($totalMinutes / 60);
+                $minutes = $totalMinutes % 60;
+
+                return [
+                    'name' => $game->name,
+                    'url' => route('playstation.games.show', $game),
+                    'image_url' => $game->image_url ?? null,
+                    'platform' => $game->platform ?? null,
+                    'duration' => $hours > 0 ? "{$hours}h {$minutes}m" : "{$minutes}m",
+                    'sessions' => $sessions->map(fn ($s) => [
+                        'started_at' => $s->started_at->setTimezone('Europe/Amsterdam')->format('H:i'),
+                        'ended_at' => $s->ended_at?->setTimezone('Europe/Amsterdam')->format('H:i'),
+                        'duration' => $s->formatted_duration,
+                    ]),
+                ];
+            })
+            ->values();
+
+        return response()->json([
+            'date' => \Carbon\Carbon::parse($date)->translatedFormat('l j F Y'),
+            'sessions' => $sessions,
+            'total_minutes' => PlayStationSession::whereDate('started_at', $date)->sum('duration_minutes'),
+        ]);
+    }
 }

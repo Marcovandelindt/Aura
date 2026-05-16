@@ -134,6 +134,7 @@ Route::prefix('playstation')->group(function () {
     Route::put('/games/{game}', [App\Http\Controllers\PlayStationController::class, 'update'])->name('playstation.games.update');
     Route::post('/games/{game}/convert-to-manual', [App\Http\Controllers\PlayStationController::class, 'convertToManual'])->name('playstation.games.convert-to-manual');
     Route::post('/sync', [App\Http\Controllers\PlayStationController::class, 'sync'])->name('playstation.sync');
+    Route::get('/wat-deed-ik', [App\Http\Controllers\PlayStationController::class, 'watDeedIk'])->name('playstation.wat-deed-ik');
 });
 
 /**

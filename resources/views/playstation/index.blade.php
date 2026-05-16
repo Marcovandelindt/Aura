@@ -12,6 +12,10 @@
                 </ul>
             </div>
             <div style="display: flex; gap: 0.5rem;">
+                <button type="button" class="btn btn-secondary" onclick="openWatDeedIk()">
+                    <i class="fas fa-calendar-day" style="margin-right: 8px;"></i>
+                    Wat deed ik?
+                </button>
                 <button type="button" class="btn btn-primary" onclick="openRecommendation()" style="background: linear-gradient(135deg, #003087 0%, #0070cc 100%); border: none;">
                     <i class="fas fa-magic" style="margin-right: 8px;"></i>
                     Aanbeveling
@@ -307,4 +311,94 @@
     platform-name="PlayStation"
     accent-color="#003087"
 />
+
+<!-- Wat deed ik? Modal -->
+<div id="watDeedIkModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
+    <div style="background:var(--bg-card, #1a1a2e); border-radius:12px; padding:2rem; width:100%; max-width:540px; max-height:80vh; overflow-y:auto; position:relative; color:#fff;">
+        <button onclick="closeWatDeedIk()" style="position:absolute; top:1rem; right:1rem; background:none; border:none; color:inherit; font-size:1.25rem; cursor:pointer;">
+            <i class="fas fa-times"></i>
+        </button>
+
+        <h2 style="margin:0 0 1.5rem; font-size:1.25rem; color:#fff;">Wat deed ik?</h2>
+
+        <div style="display:flex; gap:0.75rem; margin-bottom:1.5rem;">
+            <input type="date" id="watDeedIkDate" value="{{ now()->toDateString() }}"
+                style="flex:1; padding:0.5rem 0.75rem; border-radius:8px; border:1px solid rgba(255,255,255,0.15); background:rgba(255,255,255,0.05); color:#fff; font-size:0.95rem; color-scheme:dark;">
+            <button onclick="fetchWatDeedIk()" class="btn btn-primary" style="background:linear-gradient(135deg, #003087 0%, #0070cc 100%); border:none; white-space:nowrap;">
+                <i class="fas fa-search" style="margin-right:6px;"></i>Zoeken
+            </button>
+        </div>
+
+        <div id="watDeedIkResult"></div>
+    </div>
+</div>
+
+<script>
+function openWatDeedIk() {
+    document.getElementById('watDeedIkModal').style.display = 'flex';
+    fetchWatDeedIk();
+}
+
+function closeWatDeedIk() {
+    document.getElementById('watDeedIkModal').style.display = 'none';
+}
+
+document.getElementById('watDeedIkDate').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') fetchWatDeedIk();
+});
+
+document.getElementById('watDeedIkModal').addEventListener('click', function(e) {
+    if (e.target === this) closeWatDeedIk();
+});
+
+async function fetchWatDeedIk() {
+    const date = document.getElementById('watDeedIkDate').value;
+    const result = document.getElementById('watDeedIkResult');
+
+    if (!date) return;
+
+    result.innerHTML = '<p style="color:#888; text-align:center;"><i class="fas fa-spinner fa-spin"></i> Laden...</p>';
+
+    try {
+        const res = await fetch(`{{ route('playstation.wat-deed-ik') }}?date=${date}`);
+        const data = await res.json();
+
+        if (!data.sessions.length) {
+            result.innerHTML = '<p style="color:#888; text-align:center;">Geen PlayStation sessies gevonden op deze datum.</p>';
+            return;
+        }
+
+        const totalHours = Math.floor(data.total_minutes / 60);
+        const totalMins = data.total_minutes % 60;
+        const totalStr = totalHours > 0 ? `${totalHours}h ${totalMins}m` : `${totalMins}m`;
+
+        let html = `<p style="color:#888; margin:0 0 1rem; font-size:0.875rem;">${data.date} &mdash; ${totalStr} totaal</p>`;
+
+        data.sessions.forEach(game => {
+            html += `
+                <a href="${game.url}" style="display:flex; gap:1rem; align-items:flex-start; padding:0.875rem 0; border-top:1px solid rgba(255,255,255,0.08); text-decoration:none; color:inherit; transition:opacity 0.15s;" onmouseover="this.style.opacity='0.75'" onmouseout="this.style.opacity='1'">
+                    ${game.image_url
+                        ? `<img src="${game.image_url}" style="width:52px; height:52px; object-fit:cover; border-radius:8px; flex-shrink:0;">`
+                        : `<div style="width:52px; height:52px; border-radius:8px; background:rgba(255,255,255,0.05); flex-shrink:0; display:flex; align-items:center; justify-content:center;"><i class="fas fa-gamepad" style="color:#555;"></i></div>`
+                    }
+                    <div style="flex:1; min-width:0;">
+                        <div style="display:flex; justify-content:space-between; align-items:baseline; gap:0.5rem;">
+                            <span style="font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${game.name}</span>
+                            <span style="color:#0070cc; font-weight:600; white-space:nowrap;">${game.duration}</span>
+                        </div>
+                        <div style="margin-top:0.25rem;">
+                            ${game.sessions.map(s => `
+                                <span style="font-size:0.8rem; color:#888;">${s.started_at}${s.ended_at ? ' – ' + s.ended_at : ''}</span>
+                            `).join('<span style="color:#444; margin:0 0.25rem;">·</span>')}
+                        </div>
+                    </div>
+                </a>`;
+        });
+
+        result.innerHTML = html;
+    } catch (e) {
+        result.innerHTML = '<p style="color:#e74c3c;">Er ging iets mis. Probeer opnieuw.</p>';
+    }
+}
+</script>
 @endsection
