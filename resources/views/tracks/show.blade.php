@@ -49,7 +49,7 @@
                 <div style="flex: 1;">
                     <h2 style="margin: 0 0 0.5rem 0; font-size: 2rem; font-weight: 700;">{{ $track->track_name }}</h2>
                     <x-mood-pills :moods="$track->moods ?? []" />
-                    <p style="margin: 0 0 1rem 0; font-size: 1.25rem; color: #666;">by {{ $track->artists_string }}</p>
+                    <p style="margin: 0 0 1rem 0; font-size: 1.25rem; color: #666;">by @foreach($track->artist_names as $i => $artistName)<a href="{{ route('artists.show', ['artist' => urlencode($artistName)]) }}" style="color: #666;">{{ $artistName }}</a>@if($i < count($track->artist_names) - 1), @endif@endforeach</p>
                     <p style="margin: 0 0 1rem 0; color: #888;">from <strong>{{ $track->album_name }}</strong></p>
                     
                     <div style="display: flex; flex-wrap: gap: 1rem; margin-bottom: 1rem;">
