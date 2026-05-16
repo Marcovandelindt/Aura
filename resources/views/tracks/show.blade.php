@@ -223,7 +223,7 @@
                                         </div>
                                     </td>
                                     <td>
-                                        @if($playedTrack->contexts)
+                                        @if($playedTrack->contexts && isset($playedTrack->contexts['type']))
                                             <div style="display: flex; align-items: center; gap: 0.5rem;">
                                                 @if($playedTrack->contexts['type'] === 'playlist')
                                                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
