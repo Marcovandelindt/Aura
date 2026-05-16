@@ -157,7 +157,7 @@
                         </svg>
                     </div>
                     <div class="stat-details">
-                        <h3 class="stat-value">{{ $stats['last_played'] ? $stats['last_played']->setTimezone('Europe/Amsterdam')->format('M j') : 'N/A' }}</h3>
+                        <h3 class="stat-value">{{ $stats['last_played'] ? $stats['last_played']->setTimezone('Europe/Amsterdam')->format('M j, Y') : 'N/A' }}</h3>
                         <p class="stat-label">Last Played</p>
                         <span class="stat-change">{{ $stats['last_played'] ? $stats['last_played']->setTimezone('Europe/Amsterdam')->format('H:i') . ' - ' . $stats['last_played']->diffForHumans() : '' }}</span>
                     </div>
@@ -221,7 +221,7 @@
                                             {{ $track->play_count }} plays
                                         </span>
                                     </td>
-                                    <td style="color: #666;">{{ $track->last_played ? \Carbon\Carbon::parse($track->last_played)->setTimezone('Europe/Amsterdam')->format('M j, H:i') : 'N/A' }}</td>
+                                    <td style="color: #666;">{{ $track->last_played ? \Carbon\Carbon::parse($track->last_played)->setTimezone('Europe/Amsterdam')->format('M j Y, H:i') : 'N/A' }}</td>
                                     <td>
                                         <button class="mood-trigger{{ !empty($track->moods) ? ' has-moods' : '' }}" 
                                                 data-track-id="{{ $track->spotify_track_id }}"
@@ -292,7 +292,7 @@
                                                style="color: #1DB954; text-decoration: none;">{{ $artistName }}</a>@if($index < count($play->artist_names) - 1), @endif
                                         @endforeach
                                     </p>
-                                    <span class="activity-time">{{ $play->played_at->setTimezone('Europe/Amsterdam')->format('M j, H:i') }} - {{ $play->played_at->diffForHumans() }}</span>
+                                    <span class="activity-time">{{ $play->played_at->setTimezone('Europe/Amsterdam')->format('M j Y, H:i') }} - {{ $play->played_at->diffForHumans() }}</span>
                                 </div>
                             </div>
                         @endforeach

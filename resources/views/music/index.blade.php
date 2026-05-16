@@ -273,7 +273,7 @@
                                 <td>{{ $track->formatted_duration }}</td>
                                 <td>
                                     <span title="{{ $track->played_at->setTimezone('Europe/Amsterdam')->format('Y-m-d H:i:s') }}">
-                                        {{ $track->played_at->setTimezone('Europe/Amsterdam')->format('M j, H:i') }}
+                                        {{ $track->played_at->setTimezone('Europe/Amsterdam')->format('M j Y, H:i') }}
                                     </span>
                                 </td>
                                 <td>
