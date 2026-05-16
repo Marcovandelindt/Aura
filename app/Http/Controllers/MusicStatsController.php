@@ -255,11 +255,34 @@ class MusicStatsController extends Controller
             ->orderBy('plays.played_at')
             ->cursor();
 
-        $sessions = [];
+        // Rolling top-3 — never accumulate all sessions in memory
+        $topSessions = [];
         $currentSession = null;
+        $totalSessions = 0;
+        $totalBingeTracks = 0;
         $minSessionTracks = 5;
         $maxGapMinutes = 10;
         $maxSessionHours = 6;
+
+        $finalizeSession = function () use (&$currentSession, &$topSessions, &$totalSessions, &$totalBingeTracks, $minSessionTracks): void {
+            if (! $currentSession || $currentSession['track_count'] < $minSessionTracks) {
+                $currentSession = null;
+
+                return;
+            }
+
+            $totalSessions++;
+            $totalBingeTracks += $currentSession['track_count'];
+
+            $topSessions[] = $currentSession;
+            usort($topSessions, fn ($a, $b) => $b['track_count'] <=> $a['track_count']);
+
+            if (count($topSessions) > 3) {
+                array_pop($topSessions); // drop lowest, freeing its tracks array
+            }
+
+            $currentSession = null;
+        };
 
         foreach ($plays as $row) {
             $playTime = Carbon::parse($row->played_at);
@@ -277,20 +300,13 @@ class MusicStatsController extends Controller
                     $currentSession['total_duration_ms'] += $row->duration_ms;
                     $currentSession['tracks'][] = $this->bingeSessionTrack($row, $playTime);
                 } else {
-                    if ($currentSession['track_count'] >= $minSessionTracks) {
-                        $sessions[] = $currentSession;
-                    }
+                    $finalizeSession();
                     $currentSession = $this->newBingeSession($row, $playTime);
                 }
             }
         }
 
-        if ($currentSession && $currentSession['track_count'] >= $minSessionTracks) {
-            $sessions[] = $currentSession;
-        }
-
-        usort($sessions, fn ($a, $b) => $b['track_count'] <=> $a['track_count']);
-        $topSessions = array_slice($sessions, 0, 3);
+        $finalizeSession();
 
         foreach ($topSessions as &$session) {
             $session['duration_minutes'] = round($session['total_duration_ms'] / 1000 / 60, 1);
@@ -298,10 +314,10 @@ class MusicStatsController extends Controller
         }
 
         return [
-            'total_sessions' => count($sessions),
+            'total_sessions' => $totalSessions,
             'top_sessions' => $topSessions,
             'longest_session_tracks' => ! empty($topSessions) ? $topSessions[0]['track_count'] : 0,
-            'total_binge_tracks' => array_sum(array_column($sessions, 'track_count')),
+            'total_binge_tracks' => $totalBingeTracks,
         ];
     }
 
