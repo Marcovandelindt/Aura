@@ -230,7 +230,7 @@
                                 <div class="session-info">
                                     <div class="session-tracks">{{ $session['track_count'] }} tracks</div>
                                     <div class="session-duration">{{ $session['duration_minutes'] }}min music</div>
-                                    <div class="session-time">{{ $session['start_time']->format('M j Y, g:i A') }}</div>
+                                    <div class="session-time">{{ $session['start_time']->setTimezone('Europe/Amsterdam')->format('M j Y, g:i A') }}</div>
                                 </div>
                                 <div class="session-badge">🔥</div>
                             </div>
