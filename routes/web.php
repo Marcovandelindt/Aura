@@ -40,6 +40,7 @@ Route::middleware(['spotify.connected'])->group(function () {
     Route::get('/music/stats', [App\Http\Controllers\MusicStatsController::class, 'index'])->name('music.stats');
     Route::get('/music/top', [App\Http\Controllers\MusicController::class, 'topTracks'])->name('music.top');
     Route::get('/music/all-time', [App\Http\Controllers\MusicAllTimeController::class, 'index'])->name('music.all-time');
+    Route::get('/music/report/year/{year?}', [App\Http\Controllers\MusicReportController::class, 'year'])->name('music.report.year');
     Route::post('/music/sync', [App\Http\Controllers\MusicController::class, 'syncTracks'])->name('music.sync');
     Route::get('/tracks/lastfm/{artist}/{track}', [App\Http\Controllers\LastfmTrackController::class, 'show'])->name('tracks.lastfm');
     Route::get('/tracks/{track}', [App\Http\Controllers\TrackController::class, 'show'])->name('tracks.show');

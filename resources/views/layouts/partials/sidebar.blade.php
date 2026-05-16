@@ -41,6 +41,13 @@
             </li>
 
             <li class="nav-item">
+                <a href="{{ route('music.report.year') }}" class="nav-link {{ request()->routeIs('music.report.*') ? 'active' : '' }}">
+                    <i class="fas fa-calendar-star nav-icon"></i>
+                    <span class="nav-text">Jaar in Beeld</span>
+                </a>
+            </li>
+
+            <li class="nav-item">
                 <a href="{{ route('playstation.index') }}" class="nav-link {{ request()->routeIs('playstation.*') ? 'active' : '' }}">
                     <i class="fas fa-gamepad nav-icon"></i>
                     <span class="nav-text">PlayStation</span>
