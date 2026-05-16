@@ -258,27 +258,22 @@ class MusicStatsController extends Controller
         // Rolling top-3 — never accumulate all sessions in memory
         $topSessions = [];
         $currentSession = null;
-        $totalSessions = 0;
-        $totalBingeTracks = 0;
         $minSessionTracks = 5;
         $maxGapMinutes = 10;
         $maxSessionHours = 6;
 
-        $finalizeSession = function () use (&$currentSession, &$topSessions, &$totalSessions, &$totalBingeTracks, $minSessionTracks): void {
+        $finalizeSession = function () use (&$currentSession, &$topSessions, $minSessionTracks): void {
             if (! $currentSession || $currentSession['track_count'] < $minSessionTracks) {
                 $currentSession = null;
 
                 return;
             }
 
-            $totalSessions++;
-            $totalBingeTracks += $currentSession['track_count'];
-
             $topSessions[] = $currentSession;
             usort($topSessions, fn ($a, $b) => $b['track_count'] <=> $a['track_count']);
 
             if (count($topSessions) > 3) {
-                array_pop($topSessions); // drop lowest, freeing its tracks array
+                array_pop($topSessions);
             }
 
             $currentSession = null;
@@ -314,10 +309,8 @@ class MusicStatsController extends Controller
         }
 
         return [
-            'total_sessions' => $totalSessions,
             'top_sessions' => $topSessions,
             'longest_session_tracks' => ! empty($topSessions) ? $topSessions[0]['track_count'] : 0,
-            'total_binge_tracks' => $totalBingeTracks,
         ];
     }
 
