@@ -7,6 +7,7 @@ use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class HealthController extends Controller
 {
@@ -102,6 +103,47 @@ class HealthController extends Controller
                 'message' => 'Failed to delete health entry: '.$e->getMessage(),
             ], 500);
         }
+    }
+
+    public function export(Request $request): StreamedResponse
+    {
+        $request->validate([
+            'start_date' => ['required', 'date'],
+            'end_date' => ['required', 'date', 'after_or_equal:start_date'],
+        ]);
+
+        $startDate = Carbon::parse($request->start_date)->startOfDay();
+        $endDate = Carbon::parse($request->end_date)->endOfDay();
+        $stepGoal = HealthEntry::getStepGoal();
+
+        $entries = HealthEntry::whereBetween('date', [$startDate, $endDate])
+            ->orderBy('date')
+            ->get();
+
+        $filename = 'health_steps_'.$startDate->format('Y-m-d').'_to_'.$endDate->format('Y-m-d').'.csv';
+
+        return response()->streamDownload(function () use ($entries, $stepGoal) {
+            $handle = fopen('php://output', 'w');
+
+            fputcsv($handle, ['date', 'day_of_week', 'steps', 'step_goal', 'goal_met', 'avg_heart_rate', 'resting_heart_rate', 'notes']);
+
+            foreach ($entries as $entry) {
+                fputcsv($handle, [
+                    $entry->date->format('Y-m-d'),
+                    $entry->date->format('l'),
+                    $entry->steps ?? '',
+                    $stepGoal,
+                    $entry->steps !== null ? ($entry->meetsStepGoal() ? 'yes' : 'no') : '',
+                    $entry->avg_heart_rate ?? '',
+                    $entry->resting_heart_rate ?? '',
+                    $entry->notes ?? '',
+                ]);
+            }
+
+            fclose($handle);
+        }, $filename, [
+            'Content-Type' => 'text/csv',
+        ]);
     }
 
     private function getOverviewStats(): array

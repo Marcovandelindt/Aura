@@ -234,6 +234,7 @@ Route::prefix('health')->group(function () {
     Route::get('/', [App\Http\Controllers\HealthController::class, 'index'])->name('health.index');
     Route::post('/', [App\Http\Controllers\HealthController::class, 'store'])->name('health.store');
     Route::get('/stats', [App\Http\Controllers\HealthStatsController::class, 'index'])->name('health.stats');
+    Route::get('/export', [App\Http\Controllers\HealthController::class, 'export'])->name('health.export');
     Route::put('/{entry}', [App\Http\Controllers\HealthController::class, 'update'])->name('health.update');
     Route::delete('/{entry}', [App\Http\Controllers\HealthController::class, 'destroy'])->name('health.destroy');
 });

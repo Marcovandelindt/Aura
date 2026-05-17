@@ -16,6 +16,10 @@
                     <i class="fas fa-chart-bar"></i>
                     Statistics
                 </a>
+                <button onclick="openExportModal()" class="btn btn-secondary">
+                    <i class="fas fa-download"></i>
+                    Export
+                </button>
                 <button onclick="openAddEntryModal()" class="btn btn-primary">
                     <i class="fas fa-plus"></i>
                     Add Entry
@@ -201,6 +205,40 @@
     @endif
 </div>
 
+<!-- Export Modal -->
+<div class="mood-popup-overlay" id="exportModal">
+    <div class="mood-popup">
+        <div class="mood-popup-header">
+            <h3>Export Health Data</h3>
+            <button class="mood-popup-close" onclick="closeExportModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="mood-popup-content">
+            <p style="color: var(--text-secondary); margin-bottom: 1.5rem; font-size: 0.875rem;">
+                Exports a CSV file with your steps, heart rate, and notes — ready to paste into any AI tool.
+            </p>
+            <form id="exportForm" action="{{ route('health.export') }}" method="GET">
+                <div class="form-group">
+                    <label for="exportStartDate">Start date</label>
+                    <input type="date" id="exportStartDate" name="start_date" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="exportEndDate">End date</label>
+                    <input type="date" id="exportEndDate" name="end_date" class="form-control" required>
+                </div>
+                <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+                    <button type="button" class="btn btn-secondary" onclick="closeExportModal()" style="flex: 1;">Cancel</button>
+                    <button type="submit" class="btn btn-primary" style="flex: 1;">
+                        <i class="fas fa-download"></i>
+                        Download CSV
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <!-- Add/Edit Entry Modal -->
 <div class="mood-popup-overlay" id="entryModal">
     <div class="mood-popup">
@@ -252,6 +290,24 @@
 </div>
 
 <script>
+function openExportModal() {
+    const today = '{{ now()->format('Y-m-d') }}';
+    const firstOfMonth = '{{ now()->startOfMonth()->format('Y-m-d') }}';
+    document.getElementById('exportStartDate').value = firstOfMonth;
+    document.getElementById('exportEndDate').value = today;
+    document.getElementById('exportModal').classList.add('active');
+}
+
+function closeExportModal() {
+    document.getElementById('exportModal').classList.remove('active');
+}
+
+document.getElementById('exportModal').addEventListener('click', (e) => {
+    if (e.target.id === 'exportModal') {
+        closeExportModal();
+    }
+});
+
 let isEditing = false;
 let editingId = null;
 
@@ -386,9 +442,15 @@ document.addEventListener('keydown', (e) => {
     const isModalOpen = modal.classList.contains('active');
     const isTyping = ['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName);
 
+    const isExportModalOpen = document.getElementById('exportModal').classList.contains('active');
+
     // Close modal on Escape
     if (e.key === 'Escape' && isModalOpen) {
         closeEntryModal();
+    }
+
+    if (e.key === 'Escape' && isExportModalOpen) {
+        closeExportModal();
     }
 
     // Open modal on 'o' key (only when not typing and modal is closed)
