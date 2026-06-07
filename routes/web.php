@@ -242,7 +242,7 @@ Route::prefix('health')->group(function () {
 /**
  * Job Applications Routes
  */
-Route::resource('jobs', App\Http\Controllers\JobApplicationController::class)->except(['show']);
+Route::resource('jobs', App\Http\Controllers\JobApplicationController::class)->except(['show'])->parameters(['jobs' => 'jobApplication']);
 
 /**
  * Expenses Routes
