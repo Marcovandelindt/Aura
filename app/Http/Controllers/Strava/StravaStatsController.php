@@ -10,6 +10,8 @@ use Illuminate\View\View;
 
 class StravaStatsController extends Controller
 {
+    private const CYCLING_TYPES = ['Ride', 'VirtualRide', 'EBikeRide', 'MountainBikeRide', 'GravelRide'];
+
     public function index(): View
     {
         $records = $this->getPersonalRecords();
@@ -48,6 +50,13 @@ class StravaStatsController extends Controller
             'longest_duration' => Activity::orderByDesc('moving_time')->first(),
             'most_elevation' => Activity::orderByDesc('total_elevation_gain')->first(),
             'fastest_pace' => Activity::whereIn('sport_type', ['Run', 'Walk'])
+                ->where('distance', '>', 1000)
+                ->orderByDesc('average_speed')
+                ->first(),
+            'longest_ride' => Activity::whereIn('sport_type', self::CYCLING_TYPES)
+                ->orderByDesc('distance')
+                ->first(),
+            'fastest_ride' => Activity::whereIn('sport_type', self::CYCLING_TYPES)
                 ->where('distance', '>', 1000)
                 ->orderByDesc('average_speed')
                 ->first(),
@@ -177,6 +186,8 @@ class StravaStatsController extends Controller
 
     private function getYearComparison(): array
     {
+        $cyclingTypes = implode("','", self::CYCLING_TYPES);
+
         $rows = Activity::query()
             ->select(
                 DB::raw('YEAR(start_date_local) as year'),
@@ -184,6 +195,8 @@ class StravaStatsController extends Controller
                 DB::raw('SUM(distance)/1000 as total_km'),
                 DB::raw('SUM(moving_time) as total_time'),
                 DB::raw('SUM(total_elevation_gain) as total_elevation'),
+                DB::raw("SUM(CASE WHEN sport_type IN ('{$cyclingTypes}') THEN distance ELSE 0 END)/1000 as cycling_km"),
+                DB::raw("SUM(CASE WHEN sport_type IN ('Run','TrailRun','Walk') THEN distance ELSE 0 END)/1000 as run_walk_km"),
             )
             ->groupBy('year')
             ->orderBy('year')
@@ -195,17 +208,23 @@ class StravaStatsController extends Controller
             'total_km' => round($r->total_km, 1),
             'total_time' => $r->total_time,
             'total_elevation' => round($r->total_elevation),
+            'cycling_km' => round($r->cycling_km, 1),
+            'run_walk_km' => round($r->run_walk_km, 1),
         ])->toArray();
     }
 
     private function getMonthlyDistance(): array
     {
+        $cyclingTypes = implode("','", self::CYCLING_TYPES);
+
         $rows = Activity::query()
             ->where('start_date_local', '>=', now()->subMonths(11)->startOfMonth())
             ->select(
                 DB::raw('DATE_FORMAT(start_date_local, "%Y-%m") as month'),
                 DB::raw('SUM(distance)/1000 as total_km'),
                 DB::raw('COUNT(*) as count'),
+                DB::raw("SUM(CASE WHEN sport_type IN ('{$cyclingTypes}') THEN distance ELSE 0 END)/1000 as cycling_km"),
+                DB::raw("SUM(CASE WHEN sport_type IN ('Run','TrailRun','Walk') THEN distance ELSE 0 END)/1000 as run_walk_km"),
             )
             ->groupBy('month')
             ->orderBy('month')
@@ -214,6 +233,8 @@ class StravaStatsController extends Controller
         return [
             'labels' => $rows->map(fn ($r) => Carbon::parse($r->month.'-01')->format('M Y'))->toArray(),
             'km' => $rows->map(fn ($r) => round($r->total_km, 1))->toArray(),
+            'cycling_km' => $rows->map(fn ($r) => round($r->cycling_km, 1))->toArray(),
+            'run_walk_km' => $rows->map(fn ($r) => round($r->run_walk_km, 1))->toArray(),
         ];
     }
 

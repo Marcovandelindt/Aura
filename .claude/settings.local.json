@@ -33,7 +33,15 @@
       "Bash(python -m json.tool)",
       "Bash(curl -s \"https://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks&user=Marcovandelindt&limit=5&extended=1&api_key=fbb88d56c423f6c45b2b8cda040ea888&format=json\")",
       "Bash(curl -s \"https://musicbrainz.org/ws/2/recording/c38b9fc2-ac50-45d7-9bd6-49657988772a?inc=artist-credits&fmt=json\" -H \"User-Agent: AuraApp/1.0 \\(marcovdlindt1998@gmail.com\\)\")",
-      "Bash(curl -s \"https://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks&user=Marcovandelindt&limit=20&page=500&api_key=fbb88d56c423f6c45b2b8cda040ea888&format=json\")"
+      "Bash(curl -s \"https://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks&user=Marcovandelindt&limit=20&page=500&api_key=fbb88d56c423f6c45b2b8cda040ea888&format=json\")",
+      "Bash(git commit *)",
+      "Bash(python3 -c ' *)",
+      "Bash(php *)",
+      "Bash(C:/xampp/mysql/bin/mysql.exe *)",
+      "Bash(\"C:/xampp/mysql/bin/mysql.exe\" -u root aura -e \"CREATE TABLE sessions \\(id varchar\\(255\\) NOT NULL, user_id bigint unsigned NULL, ip_address varchar\\(45\\) NULL, user_agent text NULL, payload longtext NOT NULL, last_activity int NOT NULL, PRIMARY KEY \\(id\\), KEY sessions_user_id_index \\(user_id\\), KEY sessions_last_activity_index \\(last_activity\\)\\) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;\")",
+      "Bash(\"C:/xampp/mysql/bin/mysqldump.exe\" -u root aura --ignore-table=aura.sessions)",
+      "Bash(\"C:/xampp/mysql/bin/mysql.exe\" -u root -e \"DROP DATABASE aura; CREATE DATABASE aura CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;\")",
+      "Bash(\"C:/xampp/mysql/bin/mysql.exe\" -u root aura)"
     ],
     "deny": []
   }

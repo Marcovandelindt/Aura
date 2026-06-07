@@ -177,6 +177,28 @@
                     </a>
                 @endif
 
+                @if($records['longest_ride'])
+                    @php $a = $records['longest_ride']; @endphp
+                    <a href="{{ route('strava.show', $a) }}" style="text-decoration: none; color: inherit;">
+                        <div style="padding: 1rem; border: 1px solid var(--border-color); border-radius: 0.5rem;">
+                            <div style="color: var(--text-muted); font-size: 0.8rem; margin-bottom: 0.25rem;"><i class="fas fa-bicycle"></i> Longest Ride</div>
+                            <div style="font-size: 1.5rem; font-weight: 700;">{{ $a->distance_in_km }} km</div>
+                            <div style="color: var(--text-muted); font-size: 0.8rem; margin-top: 0.25rem;">{{ $a->name }} &mdash; {{ $a->start_date_local->format('d M Y') }}</div>
+                        </div>
+                    </a>
+                @endif
+
+                @if($records['fastest_ride'])
+                    @php $a = $records['fastest_ride']; @endphp
+                    <a href="{{ route('strava.show', $a) }}" style="text-decoration: none; color: inherit;">
+                        <div style="padding: 1rem; border: 1px solid var(--border-color); border-radius: 0.5rem;">
+                            <div style="color: var(--text-muted); font-size: 0.8rem; margin-bottom: 0.25rem;"><i class="fas fa-bicycle"></i> Fastest Ride</div>
+                            <div style="font-size: 1.5rem; font-weight: 700;">{{ round($a->average_speed * 3.6, 1) }} km/h</div>
+                            <div style="color: var(--text-muted); font-size: 0.8rem; margin-top: 0.25rem;">{{ $a->name }} &mdash; {{ $a->start_date_local->format('d M Y') }}</div>
+                        </div>
+                    </a>
+                @endif
+
             </div>
         </div>
     </div>
@@ -214,7 +236,9 @@
                     <tr>
                         <th>Year</th>
                         <th>Activities</th>
-                        <th>Distance</th>
+                        <th>Total</th>
+                        <th><i class="fas fa-bicycle"></i> Cycling</th>
+                        <th><i class="fas fa-running"></i> Run / Walk</th>
                         <th>Moving Time</th>
                         <th>Elevation</th>
                     </tr>
@@ -229,6 +253,8 @@
                             <td><strong>{{ $year['year'] }}</strong></td>
                             <td>{{ $year['count'] }}</td>
                             <td>{{ number_format($year['total_km'], 1) }} km</td>
+                            <td>{{ $year['cycling_km'] > 0 ? number_format($year['cycling_km'], 1).' km' : '—' }}</td>
+                            <td>{{ $year['run_walk_km'] > 0 ? number_format($year['run_walk_km'], 1).' km' : '—' }}</td>
                             <td>{{ $h }}h {{ $m }}m</td>
                             <td>{{ number_format($year['total_elevation']) }} m</td>
                         </tr>
@@ -345,12 +371,15 @@
         type: 'bar',
         data: {
             labels: @json($monthlyData['labels']),
-            datasets: [{ label: 'km', data: @json($monthlyData['km']), backgroundColor: stravaOrange, borderRadius: 4 }]
+            datasets: [
+                { label: 'Cycling', data: @json($monthlyData['cycling_km']), backgroundColor: '#3b82f6', borderRadius: 4, stack: 'a' },
+                { label: 'Run / Walk', data: @json($monthlyData['run_walk_km']), backgroundColor: stravaOrange, borderRadius: 4, stack: 'a' },
+            ]
         },
         options: {
             responsive: true,
-            plugins: { legend: { display: false } },
-            scales: { y: { beginAtZero: true, ticks: { callback: v => v + ' km' } } }
+            plugins: { legend: { position: 'bottom' } },
+            scales: { y: { beginAtZero: true, stacked: true, ticks: { callback: v => v + ' km' } }, x: { stacked: true } }
         }
     });
 
