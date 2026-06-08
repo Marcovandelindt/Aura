@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Gaming;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\StoreNintendoSwitchSessionRequest;
-use App\Http\Requests\UpdateNintendoSwitchSessionRequest;
+use App\Http\Requests\Gaming\StoreNintendoSwitchSessionRequest;
+use App\Http\Requests\Gaming\UpdateNintendoSwitchSessionRequest;
 use App\Models\NintendoSwitchGame;
 use App\Models\NintendoSwitchSession;
 use Carbon\Carbon;

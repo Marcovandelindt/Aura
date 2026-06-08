@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Journal;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\StoreJournalEntryRequest;
-use App\Http\Requests\UpdateJournalEntryRequest;
+use App\Http\Requests\Journal\StoreJournalEntryRequest;
+use App\Http\Requests\Journal\UpdateJournalEntryRequest;
 use App\Models\Activity;
 use App\Models\HealthEntry;
 use App\Models\JournalEntry;

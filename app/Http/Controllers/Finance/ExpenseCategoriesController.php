@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Finance;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\StoreExpenseCategoryRequest;
-use App\Http\Requests\UpdateExpenseCategoryRequest;
+use App\Http\Requests\Finance\StoreExpenseCategoryRequest;
+use App\Http\Requests\Finance\UpdateExpenseCategoryRequest;
 use App\Models\ExpenseCategory;
 use Illuminate\Http\JsonResponse;
 use Illuminate\View\View;

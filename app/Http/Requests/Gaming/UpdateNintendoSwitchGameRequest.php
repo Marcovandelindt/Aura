@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Requests;
+namespace App\Http\Requests\Gaming;
 
 use App\Enums\PlayMode;
 use Illuminate\Foundation\Http\FormRequest;

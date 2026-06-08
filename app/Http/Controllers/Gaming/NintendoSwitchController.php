@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Gaming;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\StoreNintendoSwitchGameRequest;
-use App\Http\Requests\UpdateNintendoSwitchGameRequest;
+use App\Http\Requests\Gaming\StoreNintendoSwitchGameRequest;
+use App\Http\Requests\Gaming\UpdateNintendoSwitchGameRequest;
 use App\Models\Genre;
 use App\Models\NintendoSwitchGame;
 use App\Models\NintendoSwitchSession;

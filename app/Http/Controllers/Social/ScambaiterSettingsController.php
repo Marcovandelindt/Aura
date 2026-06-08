@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Social;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\UpdateScambaiterSettingsRequest;
+use App\Http\Requests\Social\UpdateScambaiterSettingsRequest;
 use App\Models\ScambaiterProfile;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;

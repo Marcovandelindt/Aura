@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Social;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\StoreScambaiterEmailRequest;
+use App\Http\Requests\Social\StoreScambaiterEmailRequest;
 use App\Models\ScambaiterConversation;
 use App\Models\ScambaiterEmail;
 use Illuminate\Http\RedirectResponse;

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Requests;
+namespace App\Http\Requests\Social;
 
 use App\Enums\EmailSender;
 use Illuminate\Foundation\Http\FormRequest;

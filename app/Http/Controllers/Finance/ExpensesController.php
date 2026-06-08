@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Finance;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\StoreExpenseRequest;
-use App\Http\Requests\UpdateExpenseRequest;
+use App\Http\Requests\Finance\StoreExpenseRequest;
+use App\Http\Requests\Finance\UpdateExpenseRequest;
 use App\Models\Expense;
 use App\Models\ExpenseCategory;
 use Carbon\Carbon;

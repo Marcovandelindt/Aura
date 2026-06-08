@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Http\Requests;
+namespace App\Http\Requests\Productivity;
 
 use App\Enums\JobApplicationStatus;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rules\Enum;
 
-class UpdateJobApplicationRequest extends FormRequest
+class StoreJobApplicationRequest extends FormRequest
 {
     public function authorize(): bool
     {

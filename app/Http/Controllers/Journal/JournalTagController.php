@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Journal;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\StoreJournalTagRequest;
+use App\Http\Requests\Journal\StoreJournalTagRequest;
 use App\Models\JournalTag;
 use Illuminate\Http\JsonResponse;
 

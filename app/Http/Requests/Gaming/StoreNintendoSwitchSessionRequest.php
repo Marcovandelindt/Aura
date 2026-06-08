@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Http\Requests;
+namespace App\Http\Requests\Gaming;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class UpdateNintendoSwitchSessionRequest extends FormRequest
+class StoreNintendoSwitchSessionRequest extends FormRequest
 {
     public function authorize(): bool
     {

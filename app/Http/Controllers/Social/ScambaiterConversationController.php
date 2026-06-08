@@ -4,8 +4,8 @@ namespace App\Http\Controllers\Social;
 
 use App\Enums\IntelligenceLevel;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\StoreScambaiterConversationRequest;
-use App\Http\Requests\UpdateScambaiterConversationRequest;
+use App\Http\Requests\Social\StoreScambaiterConversationRequest;
+use App\Http\Requests\Social\UpdateScambaiterConversationRequest;
 use App\Models\ScambaiterConversation;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;

@@ -4,8 +4,8 @@ namespace App\Http\Controllers\Productivity;
 
 use App\Enums\JobApplicationStatus;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\StoreJobApplicationRequest;
-use App\Http\Requests\UpdateJobApplicationRequest;
+use App\Http\Requests\Productivity\StoreJobApplicationRequest;
+use App\Http\Requests\Productivity\UpdateJobApplicationRequest;
 use App\Models\JobApplication;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
