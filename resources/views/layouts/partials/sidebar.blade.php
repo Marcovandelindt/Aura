@@ -97,13 +97,6 @@
             </li>
 
             <li class="nav-item">
-                <a href="#" class="nav-link">
-                    <i class="fas fa-heart nav-icon"></i>
-                    <span class="nav-text">Mood Tracker</span>
-                </a>
-            </li>
-
-            <li class="nav-item">
                 <a href="{{ route('health.index') }}" class="nav-link {{ request()->routeIs('health.*') ? 'active' : '' }}">
                     <i class="fas fa-heartbeat nav-icon"></i>
                     <span class="nav-text">Health</span>
@@ -139,20 +132,6 @@
                 <a href="{{ route('weekly.index') }}" class="nav-link {{ request()->routeIs('weekly.*') ? 'active' : '' }}">
                     <i class="fas fa-calendar-week nav-icon"></i>
                     <span class="nav-text">Weekly</span>
-                </a>
-            </li>
-            
-            <li class="nav-item">
-                <a href="#" class="nav-link">
-                    <i class="fas fa-tasks nav-icon"></i>
-                    <span class="nav-text">Tasks</span>
-                </a>
-            </li>
-            
-            <li class="nav-item">
-                <a href="#" class="nav-link">
-                    <i class="fas fa-calendar-alt nav-icon"></i>
-                    <span class="nav-text">Calendar</span>
                 </a>
             </li>
             
@@ -215,12 +194,6 @@
                 </div>
             </li>
             
-            <li class="nav-item">
-                <a href="#" class="nav-link">
-                    <i class="fas fa-sign-out-alt nav-icon"></i>
-                    <span class="nav-text">Logout</span>
-                </a>
-            </li>
         </ul>
     </div>
 </nav>
