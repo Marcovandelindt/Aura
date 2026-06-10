@@ -343,6 +343,7 @@ class PlayStationScraperService
         $totalSkipped = 0;
         $totalExisting = 0;
         $totalGamesCreated = 0;
+        $updatedGameIds = [];
         $page = 1;
         $hasMorePages = true;
 
@@ -408,6 +409,7 @@ class PlayStationScraperService
 
                     $totalSynced++;
                     $pageHasNewSessions = true;
+                    $updatedGameIds[$gameId] = true;
                 } catch (\Illuminate\Database\QueryException $e) {
                     // Duplicate entry, skip
                     $totalExisting++;
@@ -425,6 +427,16 @@ class PlayStationScraperService
             // Safety limit
             if ($page > 50) {
                 break;
+            }
+        }
+
+        // Update last_played_at for any game that received new sessions
+        foreach (array_keys($updatedGameIds) as $gameId) {
+            $maxStartedAt = PlayStationSession::where('play_station_game_id', $gameId)->max('started_at');
+            if ($maxStartedAt) {
+                PlayStationGame::where('id', $gameId)->update([
+                    'last_played_at' => Carbon::parse($maxStartedAt)->toDateString(),
+                ]);
             }
         }
 

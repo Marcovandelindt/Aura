@@ -23,7 +23,8 @@ class PlayStationController extends Controller
 
         $query = PlayStationGame::query()
             ->withSum('sessions', 'duration_minutes')
-            ->withCount('sessions');
+            ->withCount('sessions')
+            ->withMax('sessions', 'started_at');
 
         if ($search) {
             $query->where('name', 'like', "%{$search}%");
@@ -41,12 +42,15 @@ class PlayStationController extends Controller
         }
 
         // Sorting
-        $query->orderByDesc(match ($sort) {
-            'sessions' => 'sessions_count',
-            'last_played' => 'last_played_at',
-            'name' => 'name',
-            default => 'sessions_sum_duration_minutes',
-        });
+        if ($sort === 'last_played') {
+            $query->orderByDesc('sessions_max_started_at');
+        } else {
+            $query->orderByDesc(match ($sort) {
+                'sessions' => 'sessions_count',
+                'name' => 'name',
+                default => 'sessions_sum_duration_minutes',
+            });
+        }
 
         if ($sort === 'name') {
             $query->reorder('name', 'asc');

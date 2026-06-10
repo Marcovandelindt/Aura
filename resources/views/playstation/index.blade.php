@@ -282,9 +282,14 @@
                                 <td>{{ number_format($game->calculated_sessions) }}</td>
                                 <td>{{ $game->formatted_avg_session }}</td>
                                 <td>
-                                    @if($game->last_played_at)
-                                        <span title="{{ $game->last_played_at->format('Y-m-d') }}">
-                                            {{ $game->last_played_at->diffForHumans() }}
+                                    @php
+                                        $lastPlayed = $game->sessions_max_started_at
+                                            ? \Carbon\Carbon::parse($game->sessions_max_started_at)
+                                            : $game->last_played_at;
+                                    @endphp
+                                    @if($lastPlayed)
+                                        <span title="{{ $lastPlayed->format('Y-m-d') }}">
+                                            {{ $lastPlayed->diffForHumans() }}
                                         </span>
                                     @else
                                         -
