@@ -11,10 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('played_tracks', function (Blueprint $table) {
-            // Just remove the track_id column (no foreign key exists)
-            $table->dropColumn('track_id');
-        });
+        if (Schema::hasColumn('played_tracks', 'track_id')) {
+            Schema::table('played_tracks', function (Blueprint $table) {
+                $table->dropColumn('track_id');
+            });
+        }
     }
 
     /**

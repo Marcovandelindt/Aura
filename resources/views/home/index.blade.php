@@ -281,9 +281,125 @@
                         </svg>
                         <span>Create Task</span>
                     </a>
+
+                    @if($spotifyConnected)
+                        <button type="button" class="quick-action-btn" id="createTopTracksBtn" onclick="openTopTracksModal()">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/>
+                            </svg>
+                            <span>Create Top 50 Playlist</span>
+                        </button>
+                    @endif
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+{{-- Top Tracks Playlist Modal --}}
+@if($spotifyConnected)
+<div id="topTracksModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:1000; align-items:center; justify-content:center;">
+    <div style="background:#1e1e2e; border-radius:12px; padding:32px; width:100%; max-width:420px; margin:16px;">
+        <h3 style="margin:0 0 8px; font-size:18px;">Create Top 50 Playlist</h3>
+        <p style="margin:0 0 24px; color:#888; font-size:14px;">Choose the time range for your top tracks. The playlist will be saved as a private playlist in your Spotify account.</p>
+
+        <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:24px;">
+            <label style="display:flex; align-items:flex-start; gap:10px; cursor:pointer; padding:12px; border-radius:8px; border:1px solid #333;">
+                <input type="radio" name="time_range" value="long_term" checked style="accent-color:#1DB954; flex-shrink:0; margin:0; margin-top:3px;">
+                <div>
+                    <div style="font-size:14px; font-weight:500; color:#e2e8f0; margin-bottom:2px;">All Time</div>
+                    <div style="font-size:12px; color:#888;">Based on your full Spotify history</div>
+                </div>
+            </label>
+            <label style="display:flex; align-items:flex-start; gap:10px; cursor:pointer; padding:12px; border-radius:8px; border:1px solid #333;">
+                <input type="radio" name="time_range" value="medium_term" style="accent-color:#1DB954; flex-shrink:0; margin:0; margin-top:3px;">
+                <div>
+                    <div style="font-size:14px; font-weight:500; color:#e2e8f0; margin-bottom:2px;">Last 6 Months</div>
+                    <div style="font-size:12px; color:#888;">Approximately the last 6 months</div>
+                </div>
+            </label>
+            <label style="display:flex; align-items:flex-start; gap:10px; cursor:pointer; padding:12px; border-radius:8px; border:1px solid #333;">
+                <input type="radio" name="time_range" value="short_term" style="accent-color:#1DB954; flex-shrink:0; margin:0; margin-top:3px;">
+                <div>
+                    <div style="font-size:14px; font-weight:500; color:#e2e8f0; margin-bottom:2px;">Last 4 Weeks</div>
+                    <div style="font-size:12px; color:#888;">Your most recent listening</div>
+                </div>
+            </label>
+        </div>
+
+        <div id="topTracksResult" style="display:none; margin-bottom:16px; padding:12px; border-radius:8px; font-size:14px;"></div>
+
+        <div style="display:flex; gap:10px; justify-content:flex-end;">
+            <button type="button" onclick="closeTopTracksModal()" style="padding:10px 20px; border-radius:8px; border:1px solid #444; background:transparent; color:#ccc; cursor:pointer; font-size:14px;">
+                Cancel
+            </button>
+            <button type="button" id="createPlaylistSubmitBtn" onclick="submitCreateTopTracks()" style="padding:10px 20px; border-radius:8px; border:none; background:#1DB954; color:#000; font-weight:600; cursor:pointer; font-size:14px;">
+                Create Playlist
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+function openTopTracksModal() {
+    const modal = document.getElementById('topTracksModal');
+    modal.style.display = 'flex';
+    document.getElementById('topTracksResult').style.display = 'none';
+    document.querySelectorAll('input[name="time_range"]').forEach(r => { r.checked = r.value === 'long_term'; });
+    document.getElementById('createPlaylistSubmitBtn').disabled = false;
+    document.getElementById('createPlaylistSubmitBtn').textContent = 'Create Playlist';
+}
+
+function closeTopTracksModal() {
+    document.getElementById('topTracksModal').style.display = 'none';
+}
+
+function submitCreateTopTracks() {
+    const timeRange = document.querySelector('input[name="time_range"]:checked').value;
+    const btn = document.getElementById('createPlaylistSubmitBtn');
+    const resultEl = document.getElementById('topTracksResult');
+
+    btn.disabled = true;
+    btn.textContent = 'Creating...';
+    resultEl.style.display = 'none';
+
+    fetch('{{ route('spotify.playlists.top-tracks') }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+        },
+        body: JSON.stringify({ time_range: timeRange }),
+    })
+    .then(res => res.json())
+    .then(data => {
+        resultEl.style.display = 'block';
+        if (data.success) {
+            resultEl.style.background = '#16401e';
+            resultEl.style.color = '#4ade80';
+            resultEl.innerHTML = data.message + ' <a href="' + data.playlist_url + '" target="_blank" style="color:#1DB954; text-decoration:underline;">Open in Spotify</a>';
+            btn.textContent = 'Done';
+        } else {
+            resultEl.style.background = '#3b1a1a';
+            resultEl.style.color = '#f87171';
+            resultEl.textContent = data.message;
+            btn.disabled = false;
+            btn.textContent = 'Try Again';
+        }
+    })
+    .catch(() => {
+        resultEl.style.display = 'block';
+        resultEl.style.background = '#3b1a1a';
+        resultEl.style.color = '#f87171';
+        resultEl.textContent = 'Something went wrong. Please try again.';
+        btn.disabled = false;
+        btn.textContent = 'Try Again';
+    });
+}
+
+document.getElementById('topTracksModal').addEventListener('click', function(e) {
+    if (e.target === this) { closeTopTracksModal(); }
+});
+</script>
+@endif
 @endsection

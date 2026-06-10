@@ -20,14 +20,16 @@ return new class extends Migration
             $table->index('game_id');
         });
 
-        // Migrate data from played_track_mood → track_mood via tracks.spotify_track_id
-        DB::statement('
-            INSERT INTO track_mood (track_id, mood_id, game_id, created_at, updated_at)
-            SELECT t.id, ptm.mood_id, ptm.game_id, ptm.created_at, ptm.updated_at
-            FROM played_track_mood ptm
-            INNER JOIN tracks t ON t.spotify_track_id = ptm.spotify_track_id
-            ON DUPLICATE KEY UPDATE game_id = VALUES(game_id), updated_at = VALUES(updated_at)
-        ');
+        if (DB::getDriverName() === 'mysql') {
+            // Migrate data from played_track_mood → track_mood via tracks.spotify_track_id
+            DB::statement('
+                INSERT INTO track_mood (track_id, mood_id, game_id, created_at, updated_at)
+                SELECT t.id, ptm.mood_id, ptm.game_id, ptm.created_at, ptm.updated_at
+                FROM played_track_mood ptm
+                INNER JOIN tracks t ON t.spotify_track_id = ptm.spotify_track_id
+                ON DUPLICATE KEY UPDATE game_id = VALUES(game_id), updated_at = VALUES(updated_at)
+            ');
+        }
     }
 
     public function down(): void
