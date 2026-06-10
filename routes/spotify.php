@@ -14,4 +14,5 @@ Route::middleware(['spotify.connected'])->prefix('spotify')->group(function () {
     Route::post('/playback/previous', [SpotifyPlaybackController::class, 'skipToPrevious'])->name('spotify.playback.previous');
 
     Route::post('/playlists/top-tracks', [SpotifyPlaylistController::class, 'createTopTracks'])->name('spotify.playlists.top-tracks');
+    Route::post('/playlists/date-range', [SpotifyPlaylistController::class, 'createFromDateRange'])->name('spotify.playlists.date-range');
 });

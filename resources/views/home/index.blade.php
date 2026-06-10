@@ -299,30 +299,49 @@
 {{-- Top Tracks Playlist Modal --}}
 @if($spotifyConnected)
 <div id="topTracksModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:1000; align-items:center; justify-content:center;">
-    <div style="background:#1e1e2e; border-radius:12px; padding:32px; width:100%; max-width:420px; margin:16px;">
+    <div style="background:#1e1e2e; border-radius:12px; padding:32px; width:100%; max-width:440px; margin:16px;">
         <h3 style="margin:0 0 8px; font-size:18px;">Create Top 50 Playlist</h3>
-        <p style="margin:0 0 24px; color:#888; font-size:14px;">Choose the time range for your top tracks. The playlist will be saved as a private playlist in your Spotify account.</p>
+        <p style="margin:0 0 20px; color:#888; font-size:14px;">Choose a preset period or pick your own date range. The playlist will be saved as a private playlist in your Spotify account.</p>
 
-        <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:24px;">
+        <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:16px;">
             <label style="display:flex; align-items:flex-start; gap:10px; cursor:pointer; padding:12px; border-radius:8px; border:1px solid #333;">
-                <input type="radio" name="time_range" value="long_term" checked style="accent-color:#1DB954; flex-shrink:0; margin:0; margin-top:3px;">
+                <input type="radio" name="playlist_mode" value="long_term" checked style="accent-color:#1DB954; flex-shrink:0; margin:0; margin-top:3px;" onchange="onPlaylistModeChange()">
                 <div>
                     <div style="font-size:14px; font-weight:500; color:#e2e8f0; margin-bottom:2px;">All Time</div>
                     <div style="font-size:12px; color:#888;">Based on your full Spotify history</div>
                 </div>
             </label>
             <label style="display:flex; align-items:flex-start; gap:10px; cursor:pointer; padding:12px; border-radius:8px; border:1px solid #333;">
-                <input type="radio" name="time_range" value="medium_term" style="accent-color:#1DB954; flex-shrink:0; margin:0; margin-top:3px;">
+                <input type="radio" name="playlist_mode" value="medium_term" style="accent-color:#1DB954; flex-shrink:0; margin:0; margin-top:3px;" onchange="onPlaylistModeChange()">
                 <div>
                     <div style="font-size:14px; font-weight:500; color:#e2e8f0; margin-bottom:2px;">Last 6 Months</div>
                     <div style="font-size:12px; color:#888;">Approximately the last 6 months</div>
                 </div>
             </label>
             <label style="display:flex; align-items:flex-start; gap:10px; cursor:pointer; padding:12px; border-radius:8px; border:1px solid #333;">
-                <input type="radio" name="time_range" value="short_term" style="accent-color:#1DB954; flex-shrink:0; margin:0; margin-top:3px;">
+                <input type="radio" name="playlist_mode" value="short_term" style="accent-color:#1DB954; flex-shrink:0; margin:0; margin-top:3px;" onchange="onPlaylistModeChange()">
                 <div>
                     <div style="font-size:14px; font-weight:500; color:#e2e8f0; margin-bottom:2px;">Last 4 Weeks</div>
                     <div style="font-size:12px; color:#888;">Your most recent listening</div>
+                </div>
+            </label>
+            <label style="display:flex; align-items:flex-start; gap:10px; cursor:pointer; padding:12px; border-radius:8px; border:1px solid #333;">
+                <input type="radio" name="playlist_mode" value="date_range" style="accent-color:#1DB954; flex-shrink:0; margin:0; margin-top:3px;" onchange="onPlaylistModeChange()">
+                <div style="flex:1;">
+                    <div style="font-size:14px; font-weight:500; color:#e2e8f0; margin-bottom:2px;">Custom Period</div>
+                    <div style="font-size:12px; color:#888; margin-bottom:10px;">Based on your local play history</div>
+                    <div id="dateRangeInputs" style="display:none; display:none;">
+                        <div style="display:flex; gap:8px;">
+                            <div style="flex:1;">
+                                <div style="font-size:11px; color:#888; margin-bottom:4px; text-transform:uppercase; letter-spacing:.05em;">From</div>
+                                <input type="date" id="playlistStartDate" style="width:100%; background:#2a2a3e; border:1px solid #444; border-radius:6px; padding:8px; color:#e2e8f0; font-size:13px; box-sizing:border-box;">
+                            </div>
+                            <div style="flex:1;">
+                                <div style="font-size:11px; color:#888; margin-bottom:4px; text-transform:uppercase; letter-spacing:.05em;">To</div>
+                                <input type="date" id="playlistEndDate" style="width:100%; background:#2a2a3e; border:1px solid #444; border-radius:6px; padding:8px; color:#e2e8f0; font-size:13px; box-sizing:border-box;">
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </label>
         </div>
@@ -341,11 +360,17 @@
 </div>
 
 <script>
+function onPlaylistModeChange() {
+    const isDateRange = document.querySelector('input[name="playlist_mode"]:checked').value === 'date_range';
+    document.getElementById('dateRangeInputs').style.display = isDateRange ? 'block' : 'none';
+}
+
 function openTopTracksModal() {
     const modal = document.getElementById('topTracksModal');
     modal.style.display = 'flex';
     document.getElementById('topTracksResult').style.display = 'none';
-    document.querySelectorAll('input[name="time_range"]').forEach(r => { r.checked = r.value === 'long_term'; });
+    document.getElementById('dateRangeInputs').style.display = 'none';
+    document.querySelectorAll('input[name="playlist_mode"]').forEach(r => { r.checked = r.value === 'long_term'; });
     document.getElementById('createPlaylistSubmitBtn').disabled = false;
     document.getElementById('createPlaylistSubmitBtn').textContent = 'Create Playlist';
 }
@@ -355,46 +380,79 @@ function closeTopTracksModal() {
 }
 
 function submitCreateTopTracks() {
-    const timeRange = document.querySelector('input[name="time_range"]:checked').value;
+    const mode = document.querySelector('input[name="playlist_mode"]:checked').value;
     const btn = document.getElementById('createPlaylistSubmitBtn');
     const resultEl = document.getElementById('topTracksResult');
 
+    if (mode === 'date_range') {
+        const startDate = document.getElementById('playlistStartDate').value;
+        const endDate = document.getElementById('playlistEndDate').value;
+        if (! startDate || ! endDate) {
+            resultEl.style.display = 'block';
+            resultEl.style.background = '#3b1a1a';
+            resultEl.style.color = '#f87171';
+            resultEl.textContent = 'Please select both a start and end date.';
+            return;
+        }
+        submitDateRangePlaylist(startDate, endDate, btn, resultEl);
+    } else {
+        submitTimeRangePlaylist(mode, btn, resultEl);
+    }
+}
+
+function submitTimeRangePlaylist(timeRange, btn, resultEl) {
     btn.disabled = true;
     btn.textContent = 'Creating...';
     resultEl.style.display = 'none';
 
     fetch('{{ route('spotify.playlists.top-tracks') }}', {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': '{{ csrf_token() }}',
-        },
+        headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
         body: JSON.stringify({ time_range: timeRange }),
     })
     .then(res => res.json())
-    .then(data => {
-        resultEl.style.display = 'block';
-        if (data.success) {
-            resultEl.style.background = '#16401e';
-            resultEl.style.color = '#4ade80';
-            resultEl.innerHTML = data.message + ' <a href="' + data.playlist_url + '" target="_blank" style="color:#1DB954; text-decoration:underline;">Open in Spotify</a>';
-            btn.textContent = 'Done';
-        } else {
-            resultEl.style.background = '#3b1a1a';
-            resultEl.style.color = '#f87171';
-            resultEl.textContent = data.message;
-            btn.disabled = false;
-            btn.textContent = 'Try Again';
-        }
+    .then(data => handlePlaylistResponse(data, btn, resultEl))
+    .catch(() => handlePlaylistError(btn, resultEl));
+}
+
+function submitDateRangePlaylist(startDate, endDate, btn, resultEl) {
+    btn.disabled = true;
+    btn.textContent = 'Creating...';
+    resultEl.style.display = 'none';
+
+    fetch('{{ route('spotify.playlists.date-range') }}', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+        body: JSON.stringify({ start_date: startDate, end_date: endDate }),
     })
-    .catch(() => {
-        resultEl.style.display = 'block';
+    .then(res => res.json())
+    .then(data => handlePlaylistResponse(data, btn, resultEl))
+    .catch(() => handlePlaylistError(btn, resultEl));
+}
+
+function handlePlaylistResponse(data, btn, resultEl) {
+    resultEl.style.display = 'block';
+    if (data.success) {
+        resultEl.style.background = '#16401e';
+        resultEl.style.color = '#4ade80';
+        resultEl.innerHTML = data.message + ' <a href="' + data.playlist_url + '" target="_blank" style="color:#1DB954; text-decoration:underline;">Open in Spotify</a>';
+        btn.textContent = 'Done';
+    } else {
         resultEl.style.background = '#3b1a1a';
         resultEl.style.color = '#f87171';
-        resultEl.textContent = 'Something went wrong. Please try again.';
+        resultEl.textContent = data.message;
         btn.disabled = false;
         btn.textContent = 'Try Again';
-    });
+    }
+}
+
+function handlePlaylistError(btn, resultEl) {
+    resultEl.style.display = 'block';
+    resultEl.style.background = '#3b1a1a';
+    resultEl.style.color = '#f87171';
+    resultEl.textContent = 'Something went wrong. Please try again.';
+    btn.disabled = false;
+    btn.textContent = 'Try Again';
 }
 
 document.getElementById('topTracksModal').addEventListener('click', function(e) {
