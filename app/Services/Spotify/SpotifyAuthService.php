@@ -2,9 +2,6 @@
 
 namespace App\Services\Spotify;
 
-use App\Enums\SpotifyScope;
-use App\Models\User;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\RedirectResponse;
 use SpotifyWebAPI\Session as SpotifySession;
 use SpotifyWebAPI\SpotifyWebAPI;
@@ -12,6 +9,7 @@ use SpotifyWebAPI\SpotifyWebAPI;
 class SpotifyAuthService
 {
     protected SpotifySession $spotifySession;
+
     protected SpotifyWebAPI $spotifyApi;
 
     public function __construct()
@@ -21,8 +19,8 @@ class SpotifyAuthService
             config('spotify.client_secret'),
             config('spotify.redirect_uri')
         );
-        
-        $this->spotifyApi = new SpotifyWebAPI();
+
+        $this->spotifyApi = new SpotifyWebAPI;
     }
 
     /**
@@ -31,14 +29,13 @@ class SpotifyAuthService
     public function redirect(): RedirectResponse
     {
         $scopes = config('spotify.default_scopes');
-        
+
         $authorizeUrl = $this->spotifySession->getAuthorizeUrl([
             'scope' => $scopes,
-            'show_dialog' => true,
         ]);
-        
+
         session(['spotify_auth_state' => $this->spotifySession->generateState()]);
-        
+
         return redirect($authorizeUrl);
     }
 
@@ -48,15 +45,15 @@ class SpotifyAuthService
     public function handleCallback(string $code): array
     {
         $this->spotifySession->requestAccessToken($code);
-        
+
         $accessToken = $this->spotifySession->getAccessToken();
         $refreshToken = $this->spotifySession->getRefreshToken();
         $expiresAt = time() + $this->spotifySession->getTokenExpiration();
-        
+
         // Get user info from Spotify
         $this->spotifyApi->setAccessToken($accessToken);
         $spotifyUser = $this->spotifyApi->me();
-        
+
         return [
             'access_token' => $accessToken,
             'refresh_token' => $refreshToken,
@@ -70,20 +67,27 @@ class SpotifyAuthService
      */
     public function refreshAccessToken(string $refreshToken): array
     {
-        $this->spotifySession->refreshAccessToken($refreshToken);
-        
+        $result = $this->spotifySession->refreshAccessToken($refreshToken);
+
+        if (! $result || ! $this->spotifySession->getAccessToken()) {
+            throw new \Exception('Failed to refresh Spotify access token.');
+        }
+
+        $newRefreshToken = $this->spotifySession->getRefreshToken();
+
         return [
             'access_token' => $this->spotifySession->getAccessToken(),
+            'refresh_token' => $newRefreshToken ?: $refreshToken,
             'expires_at' => time() + $this->spotifySession->getTokenExpiration(),
         ];
     }
 
     /**
-     * Check if the token is expired
+     * Check if the token is expired (or will expire within 5 minutes)
      */
     public function isTokenExpired(int $expiresAt): bool
     {
-        return time() >= $expiresAt;
+        return time() >= ($expiresAt - 300);
     }
 
     /**
@@ -91,9 +95,9 @@ class SpotifyAuthService
      */
     public function getSpotifyApi(string $accessToken): SpotifyWebAPI
     {
-        $api = new SpotifyWebAPI();
+        $api = new SpotifyWebAPI;
         $api->setAccessToken($accessToken);
-        
+
         return $api;
     }
 }
