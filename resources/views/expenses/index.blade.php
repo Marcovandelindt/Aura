@@ -249,6 +249,13 @@
 let isEditing = false;
 let editingId = null;
 
+document.addEventListener('DOMContentLoaded', function () {
+    if (new URLSearchParams(window.location.search).get('modal') === 'open') {
+        openAddExpenseModal();
+        history.replaceState(null, '', window.location.pathname);
+    }
+});
+
 function openAddExpenseModal() {
     @if($categories->isEmpty())
         showNotification('Maak eerst een categorie aan', 'error');
@@ -263,7 +270,10 @@ function openAddExpenseModal() {
     document.getElementById('expenseId').value = '';
     document.getElementById('expenseCategory').value = '';
     document.getElementById('expenseAmount').value = '';
-    document.getElementById('expenseDate').value = '{{ now()->format('Y-m-d') }}';
+    const savedMonth = localStorage.getItem('lastExpenseMonth');
+    document.getElementById('expenseDate').value = savedMonth
+        ? savedMonth + '-01'
+        : '{{ now()->format('Y-m-d') }}';
     document.getElementById('expenseDescription').value = '';
     document.getElementById('expenseNotes').value = '';
 
@@ -320,7 +330,15 @@ document.getElementById('expenseForm').addEventListener('submit', function(e) {
         if (data.success) {
             showNotification(data.message);
             closeExpenseModal();
-            setTimeout(() => window.location.reload(), 1000);
+            if (isEditing) {
+                setTimeout(() => window.location.reload(), 1000);
+            } else {
+                const lastDate = document.getElementById('expenseDate').value;
+                if (lastDate) {
+                    localStorage.setItem('lastExpenseMonth', lastDate.substring(0, 7));
+                }
+                setTimeout(() => window.location.href = '{{ route('expenses.index') }}?modal=open', 1000);
+            }
         } else {
             showNotification(data.message || 'Fout bij opslaan', 'error');
         }
