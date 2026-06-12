@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Music;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
@@ -11,20 +12,53 @@ class MusicStatsController extends Controller
 {
     public function index(): View
     {
-        $stats = [
-            'top_artists' => $this->getTopArtists(),
-            'top_tracks' => $this->getTopTracks(),
-            'top_albums' => $this->getTopAlbums(),
-            'top_moods' => $this->getTopMoods(),
-            'listening_stats' => $this->getListeningStats(),
-            'top_listening_times' => $this->getTopListeningTimes(),
-            'weekday_vs_weekend' => $this->getWeekdayVsWeekendStats(),
-            'repeat_ratio' => $this->getRepeatRatio(),
-            'binge_sessions' => $this->getBingeSessions(),
-            'discovery_rate' => $this->getDiscoveryRate(),
-        ];
+        $stats = Cache::remember('music.stats', now()->addMinutes(30), function () {
+            $base = $this->getBaseStats();
+
+            return [
+                'top_artists' => $this->getTopArtists(),
+                'top_tracks' => $this->getTopTracks(),
+                'top_albums' => $this->getTopAlbums(),
+                'top_moods' => $this->getTopMoods(),
+                'listening_stats' => $this->getListeningStats($base),
+                'top_listening_times' => $this->getTopListeningTimes(),
+                'weekday_vs_weekend' => $this->getWeekdayVsWeekendStats(),
+                'repeat_ratio' => $this->getRepeatRatio($base),
+                'binge_sessions' => $this->getBingeSessions(),
+                'discovery_rate' => $this->getDiscoveryRate($base),
+            ];
+        });
 
         return view('music.stats', compact('stats'));
+    }
+
+    private function getBaseStats(): array
+    {
+        $agg = DB::table('plays')
+            ->join('tracks', 'tracks.id', '=', 'plays.track_id')
+            ->selectRaw('COUNT(plays.id) as total_plays')
+            ->selectRaw('COUNT(DISTINCT plays.track_id) as unique_tracks')
+            ->selectRaw('SUM(COALESCE(tracks.duration_ms, 0)) as total_duration_ms')
+            ->selectRaw('MIN(plays.played_at) as first_play')
+            ->selectRaw('MAX(plays.played_at) as last_play')
+            ->first();
+
+        $periods = DB::table('plays')
+            ->selectRaw('SUM(CASE WHEN DATE(played_at) = ? THEN 1 ELSE 0 END) as today_count', [Carbon::today()->toDateString()])
+            ->selectRaw('SUM(CASE WHEN played_at BETWEEN ? AND ? THEN 1 ELSE 0 END) as week_count', [now()->startOfWeek()->toDateTimeString(), now()->endOfWeek()->toDateTimeString()])
+            ->selectRaw('SUM(CASE WHEN MONTH(played_at) = ? AND YEAR(played_at) = ? THEN 1 ELSE 0 END) as month_count', [now()->month, now()->year])
+            ->first();
+
+        return [
+            'total_plays' => (int) $agg->total_plays,
+            'unique_tracks' => (int) $agg->unique_tracks,
+            'total_duration_ms' => (int) $agg->total_duration_ms,
+            'first_play' => $agg->first_play,
+            'last_play' => $agg->last_play,
+            'today_plays' => (int) $periods->today_count,
+            'week_plays' => (int) $periods->week_count,
+            'month_plays' => (int) $periods->month_count,
+        ];
     }
 
     private function getTopMoods(int $limit = 10): array
@@ -129,33 +163,21 @@ class MusicStatsController extends Controller
             ->all();
     }
 
-    private function getListeningStats(): array
+    private function getListeningStats(array $base): array
     {
-        $totalPlays = DB::table('plays')->count();
-        $uniqueTracks = DB::table('plays')->distinct('track_id')->count('track_id');
-        $totalDurationMs = (int) DB::table('plays')
-            ->join('tracks', 'tracks.id', '=', 'plays.track_id')
-            ->sum('tracks.duration_ms');
-        $firstPlay = DB::table('plays')->min('played_at');
-        $lastPlay = DB::table('plays')->max('played_at');
-
-        $todayPlays = DB::table('plays')->whereDate('played_at', Carbon::today())->count();
-        $weekPlays = DB::table('plays')->whereBetween('played_at', [now()->startOfWeek(), now()->endOfWeek()])->count();
-        $monthPlays = DB::table('plays')->whereMonth('played_at', now()->month)->whereYear('played_at', now()->year)->count();
-
-        $firstPlayDate = $firstPlay ? Carbon::parse($firstPlay) : null;
+        $firstPlayDate = $base['first_play'] ? Carbon::parse($base['first_play']) : null;
 
         return [
-            'total_tracks' => $totalPlays,
-            'unique_tracks' => $uniqueTracks,
-            'total_duration_ms' => $totalDurationMs,
-            'total_duration_hours' => round($totalDurationMs / 1000 / 60 / 60, 1),
+            'total_tracks' => $base['total_plays'],
+            'unique_tracks' => $base['unique_tracks'],
+            'total_duration_ms' => $base['total_duration_ms'],
+            'total_duration_hours' => round($base['total_duration_ms'] / 1000 / 60 / 60, 1),
             'first_track_date' => $firstPlayDate,
-            'last_track_date' => $lastPlay ? Carbon::parse($lastPlay) : null,
-            'tracks_today' => $todayPlays,
-            'tracks_this_week' => $weekPlays,
-            'tracks_this_month' => $monthPlays,
-            'average_per_day' => $firstPlayDate ? round($totalPlays / max(1, $firstPlayDate->diffInDays(now())), 1) : 0,
+            'last_track_date' => $base['last_play'] ? Carbon::parse($base['last_play']) : null,
+            'tracks_today' => $base['today_plays'],
+            'tracks_this_week' => $base['week_plays'],
+            'tracks_this_month' => $base['month_plays'],
+            'average_per_day' => $firstPlayDate ? round($base['total_plays'] / max(1, $firstPlayDate->diffInDays(now())), 1) : 0,
         ];
     }
 
@@ -184,8 +206,13 @@ class MusicStatsController extends Controller
 
     private function getWeekdayVsWeekendStats(): array
     {
-        $weekdayPlays = DB::table('plays')->whereRaw('WEEKDAY(played_at) BETWEEN 0 AND 4')->count();
-        $weekendPlays = DB::table('plays')->whereRaw('WEEKDAY(played_at) IN (5, 6)')->count();
+        $row = DB::table('plays')
+            ->selectRaw('SUM(CASE WHEN WEEKDAY(played_at) BETWEEN 0 AND 4 THEN 1 ELSE 0 END) as weekday_count')
+            ->selectRaw('SUM(CASE WHEN WEEKDAY(played_at) IN (5, 6) THEN 1 ELSE 0 END) as weekend_count')
+            ->first();
+
+        $weekdayPlays = (int) $row->weekday_count;
+        $weekendPlays = (int) $row->weekend_count;
         $totalPlays = $weekdayPlays + $weekendPlays;
 
         return [
@@ -197,10 +224,10 @@ class MusicStatsController extends Controller
         ];
     }
 
-    private function getRepeatRatio(): array
+    private function getRepeatRatio(array $base): array
     {
-        $totalPlays = DB::table('plays')->count();
-        $uniqueTracks = DB::table('plays')->distinct('track_id')->count('track_id');
+        $totalPlays = $base['total_plays'];
+        $uniqueTracks = $base['unique_tracks'];
         $repeatPlays = max(0, $totalPlays - $uniqueTracks);
         $repeatPercentage = $totalPlays > 0 ? round(($repeatPlays / $totalPlays) * 100, 1) : 0;
 
@@ -244,6 +271,7 @@ class MusicStatsController extends Controller
             })
             ->leftJoin('artists', 'artists.id', '=', 'track_artists.artist_id')
             ->where('plays.source', 'spotify')
+            ->where('plays.played_at', '>=', now()->subYear())
             ->select(
                 'plays.played_at',
                 'tracks.duration_ms',
@@ -335,13 +363,12 @@ class MusicStatsController extends Controller
         ];
     }
 
-    private function getDiscoveryRate(): array
+    private function getDiscoveryRate(array $base): array
     {
-        $firstDate = DB::table('plays')->min('played_at');
-        $firstPlayDate = $firstDate ? Carbon::parse($firstDate) : null;
+        $firstPlayDate = $base['first_play'] ? Carbon::parse($base['first_play']) : null;
         $totalDays = $firstPlayDate ? max(1, $firstPlayDate->diffInDays(now()) + 1) : 1;
-        $totalTracks = DB::table('plays')->count();
-        $totalUnique = DB::table('plays')->distinct('track_id')->count('track_id');
+        $totalTracks = $base['total_plays'];
+        $totalUnique = $base['unique_tracks'];
 
         $avgTracksPerDay = round($totalTracks / $totalDays, 1);
         $avgUniquePerDay = round($totalUnique / $totalDays, 1);
