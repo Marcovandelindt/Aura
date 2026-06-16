@@ -118,6 +118,17 @@
             </li>
 
             <li class="nav-section">
+                <span class="nav-section-title">Groei</span>
+            </li>
+
+            <li class="nav-item">
+                <a href="{{ route('agreements.index') }}" class="nav-link {{ request()->routeIs('agreements.*') ? 'active' : '' }}">
+                    <i class="fas fa-handshake nav-icon"></i>
+                    <span class="nav-text">Afspraken & Doelen</span>
+                </a>
+            </li>
+
+            <li class="nav-section">
                 <span class="nav-section-title">Productivity</span>
             </li>
 
