@@ -59,12 +59,20 @@
                     <div class="insight-body">{{ $insight->body }}</div>
                     <div class="insight-footer">
                         <span class="insight-date">{{ $insight->created_at->locale('nl')->translatedFormat('d F Y') }}</span>
-                        <form method="POST" action="{{ route('insights.destroy', $insight) }}" onsubmit="return confirm('Verwijderen?');">
-                            @csrf @method('DELETE')
-                            <button type="submit" class="insight-delete" title="Verwijderen">
-                                <i class="fas fa-times"></i>
-                            </button>
-                        </form>
+                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                            <form method="POST" action="{{ route('insights.resend', $insight) }}">
+                                @csrf
+                                <button type="submit" class="insight-action" title="Stuur naar Telegram">
+                                    <i class="fab fa-telegram"></i>
+                                </button>
+                            </form>
+                            <form method="POST" action="{{ route('insights.destroy', $insight) }}" onsubmit="return confirm('Verwijderen?');">
+                                @csrf @method('DELETE')
+                                <button type="submit" class="insight-action insight-delete" title="Verwijderen">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </form>
+                        </div>
                     </div>
                 </div>
             @endforeach
@@ -99,7 +107,7 @@
     opacity: 0.7;
 }
 
-.insight-delete {
+.insight-action {
     background: none;
     border: none;
     cursor: pointer;
@@ -107,11 +115,14 @@
     opacity: 0.4;
     font-size: 0.75rem;
     padding: 0.2rem 0.4rem;
-    transition: opacity 0.15s;
+    transition: opacity 0.15s, color 0.15s;
+}
+
+.insight-action:hover {
+    opacity: 0.8;
 }
 
 .insight-delete:hover {
-    opacity: 0.8;
     color: #ef4444;
 }
 </style>

@@ -14,3 +14,4 @@ Route::patch('/goals/{goal}', [AgreementController::class, 'updateGoal'])->name(
 Route::get('/insights', [InsightController::class, 'index'])->name('insights.index');
 Route::post('/insights', [InsightController::class, 'store'])->name('insights.store');
 Route::delete('/insights/{insight}', [InsightController::class, 'destroy'])->name('insights.destroy');
+Route::post('/insights/{insight}/resend', [InsightController::class, 'resend'])->name('insights.resend');
