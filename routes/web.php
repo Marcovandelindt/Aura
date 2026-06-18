@@ -15,5 +15,6 @@ require __DIR__.'/finance.php';
 require __DIR__.'/journal.php';
 require __DIR__.'/productivity.php';
 require __DIR__.'/agreements.php';
+require __DIR__.'/tasks.php';
 require __DIR__.'/social.php';
 require __DIR__.'/settings.php';

@@ -122,9 +122,16 @@
             </li>
 
             <li class="nav-item">
-                <a href="{{ route('agreements.index') }}" class="nav-link {{ request()->routeIs('agreements.*') ? 'active' : '' }}">
+                <a href="{{ route('agreements.index') }}" class="nav-link {{ request()->routeIs('agreements.*') || request()->routeIs('insights.*') ? 'active' : '' }}">
                     <i class="fas fa-handshake nav-icon"></i>
                     <span class="nav-text">Afspraken & Doelen</span>
+                </a>
+            </li>
+
+            <li class="nav-item">
+                <a href="{{ route('tasks.index') }}" class="nav-link {{ request()->routeIs('tasks.*') ? 'active' : '' }}">
+                    <i class="fas fa-bolt nav-icon"></i>
+                    <span class="nav-text">Taken</span>
                 </a>
             </li>
 
