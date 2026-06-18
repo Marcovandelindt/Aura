@@ -286,6 +286,7 @@
                             <option value="huis">🏠 Huis</option>
                             <option value="beweging">🚶 Beweging</option>
                             <option value="welzijn">🧘 Welzijn</option>
+                            <option value="gezondheid">❤️ Gezondheid</option>
                             <option value="persoonlijk">🎯 Persoonlijk</option>
                             <option value="werk">💼 Werk</option>
                             <option value="overig" selected>⭐ Overig</option>
@@ -559,6 +560,7 @@
 .category-badge-huis { background: #3b82f620; color: #3b82f6; }
 .category-badge-beweging { background: #10b98120; color: #10b981; }
 .category-badge-welzijn { background: #8b5cf620; color: #8b5cf6; }
+.category-badge-gezondheid { background: #ec489920; color: #ec4899; }
 .category-badge-persoonlijk { background: #f59e0b20; color: #f59e0b; }
 .category-badge-werk { background: #6366f120; color: #6366f1; }
 .category-badge-overig { background: #6b728020; color: #6b7280; }

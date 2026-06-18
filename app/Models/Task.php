@@ -49,6 +49,7 @@ class Task extends Model
             'huis' => '🏠 Huis',
             'beweging' => '🚶 Beweging',
             'welzijn' => '🧘 Welzijn',
+            'gezondheid' => '❤️ Gezondheid',
             'persoonlijk' => '🎯 Persoonlijk',
             'werk' => '💼 Werk',
             'overig' => '⭐ Overig',

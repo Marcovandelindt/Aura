@@ -17,7 +17,7 @@ class StoreTaskRequest extends FormRequest
         return [
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
-            'category' => ['required', Rule::in(['huis', 'beweging', 'welzijn', 'persoonlijk', 'werk', 'overig'])],
+            'category' => ['required', Rule::in(['huis', 'beweging', 'welzijn', 'gezondheid', 'persoonlijk', 'werk', 'overig'])],
             'difficulty' => ['required', Rule::in(['easy', 'normal', 'hard'])],
             'type' => ['required', Rule::in(['once', 'daily', 'weekly'])],
             'due_date' => ['nullable', 'date'],
