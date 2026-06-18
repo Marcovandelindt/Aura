@@ -26,6 +26,14 @@
         <div class="alert alert-success" style="margin-bottom: 1.5rem;">{{ session('success') }}</div>
     @endif
 
+    {{-- Subtle link to personal insights --}}
+    <div style="margin-bottom: 2rem; display: flex; justify-content: flex-end;">
+        <a href="{{ route('insights.index') }}" style="display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.8rem; color: var(--text-muted); text-decoration: none; opacity: 0.7; transition: opacity 0.15s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.7'">
+            <i class="fas fa-seedling" style="font-size: 0.75rem;"></i>
+            Inzichten over mezelf
+        </a>
+    </div>
+
     {{-- Goals --}}
     @if($goals->isNotEmpty())
         <div style="margin-bottom: 2rem;">
