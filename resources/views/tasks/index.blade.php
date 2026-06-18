@@ -110,6 +110,17 @@
                                             {{ $task->due_date->locale('nl')->translatedFormat('d M') }}
                                         </span>
                                     @endif
+                                    <button type="button" class="due-date-edit-btn" onclick="toggleDueDateForm({{ $task->id }})" title="Deadline aanpassen">
+                                        <i class="fas fa-pen" style="font-size: 0.6rem;"></i>
+                                    </button>
+                                </div>
+                                <div id="due-date-form-{{ $task->id }}" style="display: none; margin-top: 0.5rem;">
+                                    <form method="POST" action="{{ route('tasks.update-due-date', $task) }}" style="display: flex; align-items: center; gap: 0.5rem;">
+                                        @csrf @method('PATCH')
+                                        <input type="date" name="due_date" class="form-control" value="{{ $task->due_date?->format('Y-m-d') }}" style="padding: 0.2rem 0.5rem; font-size: 0.8rem; height: auto;">
+                                        <button type="submit" class="btn btn-primary btn-sm">Opslaan</button>
+                                        <button type="button" class="btn btn-secondary btn-sm" onclick="toggleDueDateForm({{ $task->id }})">Annuleren</button>
+                                    </form>
                                 </div>
                             </div>
                             <div class="task-xp">+{{ $task->xpReward() }} XP</div>
@@ -152,6 +163,17 @@
                                         <i class="fas fa-calendar-xmark" style="font-size: 0.6rem;"></i>
                                         {{ $task->due_date->locale('nl')->translatedFormat('d M') }}
                                     </span>
+                                    <button type="button" class="due-date-edit-btn" onclick="toggleDueDateForm({{ $task->id }})" title="Deadline aanpassen">
+                                        <i class="fas fa-pen" style="font-size: 0.6rem;"></i>
+                                    </button>
+                                </div>
+                                <div id="due-date-form-{{ $task->id }}" style="display: none; margin-top: 0.5rem;">
+                                    <form method="POST" action="{{ route('tasks.update-due-date', $task) }}" style="display: flex; align-items: center; gap: 0.5rem;">
+                                        @csrf @method('PATCH')
+                                        <input type="date" name="due_date" class="form-control" value="{{ $task->due_date?->format('Y-m-d') }}" style="padding: 0.2rem 0.5rem; font-size: 0.8rem; height: auto;">
+                                        <button type="submit" class="btn btn-primary btn-sm">Opslaan</button>
+                                        <button type="button" class="btn btn-secondary btn-sm" onclick="toggleDueDateForm({{ $task->id }})">Annuleren</button>
+                                    </form>
                                 </div>
                             </div>
                             <div class="task-xp">+{{ $task->xpReward() }} XP</div>
@@ -188,6 +210,17 @@
                                         <i class="fas fa-calendar" style="font-size: 0.6rem;"></i>
                                         {{ $task->due_date->locale('nl')->translatedFormat('d M') }}
                                     </span>
+                                    <button type="button" class="due-date-edit-btn" onclick="toggleDueDateForm({{ $task->id }})" title="Deadline aanpassen">
+                                        <i class="fas fa-pen" style="font-size: 0.6rem;"></i>
+                                    </button>
+                                </div>
+                                <div id="due-date-form-{{ $task->id }}" style="display: none; margin-top: 0.5rem;">
+                                    <form method="POST" action="{{ route('tasks.update-due-date', $task) }}" style="display: flex; align-items: center; gap: 0.5rem;">
+                                        @csrf @method('PATCH')
+                                        <input type="date" name="due_date" class="form-control" value="{{ $task->due_date?->format('Y-m-d') }}" style="padding: 0.2rem 0.5rem; font-size: 0.8rem; height: auto;">
+                                        <button type="submit" class="btn btn-primary btn-sm">Opslaan</button>
+                                        <button type="button" class="btn btn-secondary btn-sm" onclick="toggleDueDateForm({{ $task->id }})">Annuleren</button>
+                                    </form>
                                 </div>
                             </div>
                             <div class="task-xp" style="opacity: 0.4;">+{{ $task->xpReward() }} XP</div>
@@ -572,6 +605,24 @@
 .type-badge { background: #6366f120; color: #6366f1; }
 .due-badge { background: #ec489920; color: #ec4899; }
 
+.due-date-edit-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text-muted);
+    opacity: 0;
+    padding: 0.1rem 0.3rem;
+    transition: opacity 0.15s;
+}
+
+.task-card:hover .due-date-edit-btn {
+    opacity: 0.4;
+}
+
+.due-date-edit-btn:hover {
+    opacity: 1 !important;
+}
+
 .task-xp {
     font-size: 0.8rem;
     font-weight: 700;
@@ -738,6 +789,11 @@ document.querySelectorAll('.mood-popup-overlay').forEach(overlay => {
         if (e.target === this) this.classList.remove('active');
     });
 });
+
+function toggleDueDateForm(taskId) {
+    const form = document.getElementById('due-date-form-' + taskId);
+    form.style.display = form.style.display === 'none' ? 'block' : 'none';
+}
 
 document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Tasks;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreTaskRequest;
+use Illuminate\Http\Request;
 use App\Models\PlayerStats;
 use App\Models\Task;
 use App\Services\PlayerStatsService;
@@ -85,6 +86,15 @@ class TaakController extends Controller
         $playerStats->undoCompletion($task);
 
         return redirect()->route('tasks.index')->with('success', 'Taak teruggezet.');
+    }
+
+    public function updateDueDate(Task $task, Request $request): RedirectResponse
+    {
+        $request->validate(['due_date' => ['nullable', 'date']]);
+
+        $task->update(['due_date' => $request->input('due_date') ?: null]);
+
+        return redirect()->route('tasks.index');
     }
 
     public function resetProgress(): RedirectResponse
