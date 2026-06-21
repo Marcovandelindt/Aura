@@ -41,7 +41,12 @@
       "Bash(\"C:/xampp/mysql/bin/mysql.exe\" -u root aura -e \"CREATE TABLE sessions \\(id varchar\\(255\\) NOT NULL, user_id bigint unsigned NULL, ip_address varchar\\(45\\) NULL, user_agent text NULL, payload longtext NOT NULL, last_activity int NOT NULL, PRIMARY KEY \\(id\\), KEY sessions_user_id_index \\(user_id\\), KEY sessions_last_activity_index \\(last_activity\\)\\) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;\")",
       "Bash(\"C:/xampp/mysql/bin/mysqldump.exe\" -u root aura --ignore-table=aura.sessions)",
       "Bash(\"C:/xampp/mysql/bin/mysql.exe\" -u root -e \"DROP DATABASE aura; CREATE DATABASE aura CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;\")",
-      "Bash(\"C:/xampp/mysql/bin/mysql.exe\" -u root aura)"
+      "Bash(\"C:/xampp/mysql/bin/mysql.exe\" -u root aura)",
+      "mcp__plugin_context-mode_context-mode__ctx_batch_execute",
+      "mcp__plugin_context-mode_context-mode__ctx_execute",
+      "mcp__plugin_context-mode_context-mode__ctx_execute_file",
+      "mcp__plugin_context-mode_context-mode__ctx_fetch_and_index",
+      "mcp__plugin_context-mode_context-mode__ctx_search"
     ],
     "deny": []
   }
