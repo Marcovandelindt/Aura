@@ -27,6 +27,108 @@
         </div>
     </div>
     
+    <!-- Weather Widget -->
+    @if($weather)
+    <div class="weather-card">
+
+        {{-- Row 1: current · today summary · next 6 hours --}}
+        <div class="weather-top">
+
+            <div class="weather-current">
+                <i class="fas {{ $weather['current']['icon'] }} weather-main-icon"></i>
+                <div class="weather-temp-block">
+                    <div class="weather-temp">{{ $weather['current']['temp'] }}<span class="weather-deg">°C</span></div>
+                    <div class="weather-condition">{{ $weather['current']['condition'] }}</div>
+                    <div class="weather-location">
+                        <i class="fas fa-location-dot"></i> {{ $weather['location'] }}
+                    </div>
+                </div>
+            </div>
+
+            <div class="weather-today-summary">
+                <div class="weather-section-label">Vandaag</div>
+                <div class="weather-hl">
+                    <span class="weather-high" title="Maximum">{{ $weather['today']['max'] }}°</span>
+                    <span class="weather-sep">/</span>
+                    <span class="weather-low" title="Minimum">{{ $weather['today']['min'] }}°</span>
+                </div>
+                <div class="weather-detail-rows">
+                    <div class="weather-detail-row">
+                        <i class="fas fa-temperature-half"></i>
+                        Voelt als {{ $weather['current']['feels_like'] }}°
+                    </div>
+                    <div class="weather-detail-row">
+                        <i class="fas fa-droplet"></i>
+                        Luchtvochtigheid {{ $weather['current']['humidity'] }}%
+                    </div>
+                    <div class="weather-detail-row">
+                        <i class="fas fa-wind"></i>
+                        {{ $weather['current']['wind_speed'] }} km/h {{ $weather['current']['wind_direction'] }}
+                    </div>
+                    @if($weather['today']['precip_prob'] > 0)
+                        <div class="weather-detail-row">
+                            <i class="fas fa-umbrella"></i>
+                            {{ $weather['today']['precip_prob'] }}% neerslag
+                            @if($weather['today']['precip_sum'] > 0)
+                                ({{ $weather['today']['precip_sum'] }} mm)
+                            @endif
+                        </div>
+                    @endif
+                    <div class="weather-detail-row">
+                        <i class="fas fa-sun"></i>
+                        {{ $weather['today']['sunrise'] }} – {{ $weather['today']['sunset'] }}
+                    </div>
+                </div>
+            </div>
+
+            @if(count($weather['hourly']))
+                <div class="weather-hourly-block">
+                    <div class="weather-section-label">Komende uren</div>
+                    <div class="weather-hourly-row">
+                        @foreach($weather['hourly'] as $hour)
+                            <div class="weather-hour">
+                                <div class="weather-hour-time">{{ $hour['time'] }}</div>
+                                <i class="fas {{ $hour['icon'] }} weather-hour-icon"></i>
+                                <div class="weather-hour-temp">{{ $hour['temp'] }}°</div>
+                                @if($hour['precip_prob'] >= 20)
+                                    <div class="weather-hour-rain">{{ $hour['precip_prob'] }}%</div>
+                                @else
+                                    <div class="weather-hour-rain" style="visibility:hidden;">–</div>
+                                @endif
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+            @endif
+
+        </div>
+
+        {{-- Row 2: 6-day forecast --}}
+        @if(count($weather['daily']))
+            <div class="weather-daily-row">
+                @foreach($weather['daily'] as $day)
+                    <div class="weather-day">
+                        <div class="weather-day-name">{{ $day['date']->locale('nl')->isoFormat('ddd') }}</div>
+                        <i class="fas {{ $day['icon'] }} weather-day-icon" title="{{ $day['condition'] }}"></i>
+                        <div class="weather-day-hl">
+                            <span class="weather-high">{{ $day['max'] }}°</span>
+                            <span class="weather-sep">/</span>
+                            <span class="weather-low">{{ $day['min'] }}°</span>
+                        </div>
+                        @if($day['precip_prob'] >= 20)
+                            <div class="weather-day-rain">{{ $day['precip_prob'] }}%</div>
+                        @else
+                            <div class="weather-day-rain" style="visibility:hidden;">–</div>
+                        @endif
+                    </div>
+                @endforeach
+            </div>
+        @endif
+
+        <div class="weather-updated">Bijgewerkt om {{ $weather['updated_at'] }}</div>
+    </div>
+    @endif
+
     <!-- Stats Grid -->
     <div class="stats-grid">
         <div class="card">
@@ -460,4 +562,202 @@ document.getElementById('topTracksModal').addEventListener('click', function(e) 
 });
 </script>
 @endif
+
+<style>
+/* ── Weather widget ──────────────────────────────────────────── */
+.weather-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 0.75rem;
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.weather-top {
+    display: grid;
+    grid-template-columns: auto auto 1fr;
+    gap: 2rem;
+    align-items: start;
+    margin-bottom: 1.25rem;
+}
+
+/* Current temperature block */
+.weather-current {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.weather-main-icon {
+    font-size: 3rem;
+    color: #f59e0b;
+    flex-shrink: 0;
+}
+
+.weather-temp {
+    font-size: 2.5rem;
+    font-weight: 800;
+    line-height: 1;
+}
+
+.weather-deg {
+    font-size: 1.2rem;
+    font-weight: 400;
+    color: var(--text-muted);
+}
+
+.weather-condition {
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin-top: 0.2rem;
+}
+
+.weather-location {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-top: 0.2rem;
+}
+
+/* Today summary */
+.weather-section-label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--text-muted);
+    margin-bottom: 0.5rem;
+}
+
+.weather-hl {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.weather-high { color: #f97316; }
+.weather-low  { color: #6366f1; }
+.weather-sep  { color: var(--text-muted); margin: 0 0.2rem; font-weight: 300; }
+
+.weather-detail-rows {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.weather-detail-row {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.weather-detail-row i {
+    width: 0.9rem;
+    text-align: center;
+    color: #6366f1;
+    font-size: 0.7rem;
+}
+
+/* Hourly */
+.weather-hourly-block {
+    min-width: 0;
+}
+
+.weather-hourly-row {
+    display: flex;
+    gap: 0.5rem;
+    overflow-x: auto;
+    padding-bottom: 0.25rem;
+}
+
+.weather-hour {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+    min-width: 3rem;
+    background: var(--border-color);
+    border-radius: 0.5rem;
+    padding: 0.4rem 0.3rem;
+}
+
+.weather-hour-time {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    font-variant-numeric: tabular-nums;
+}
+
+.weather-hour-icon {
+    font-size: 0.95rem;
+    color: #f59e0b;
+}
+
+.weather-hour-temp {
+    font-size: 0.82rem;
+    font-weight: 700;
+}
+
+.weather-hour-rain {
+    font-size: 0.65rem;
+    color: #3b82f6;
+    font-weight: 600;
+}
+
+/* Daily forecast */
+.weather-daily-row {
+    display: flex;
+    gap: 0.5rem;
+    border-top: 1px solid var(--border-color);
+    padding-top: 1rem;
+    overflow-x: auto;
+}
+
+.weather-day {
+    flex: 1;
+    min-width: 4rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+.weather-day-name {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: capitalize;
+}
+
+.weather-day-icon {
+    font-size: 1.15rem;
+    color: #f59e0b;
+}
+
+.weather-day-hl {
+    font-size: 0.8rem;
+    font-weight: 700;
+}
+
+.weather-day-rain {
+    font-size: 0.65rem;
+    color: #3b82f6;
+    font-weight: 600;
+}
+
+.weather-updated {
+    font-size: 0.68rem;
+    color: var(--text-muted);
+    text-align: right;
+    margin-top: 0.75rem;
+    opacity: 0.6;
+}
+
+@media (max-width: 768px) {
+    .weather-top {
+        grid-template-columns: 1fr;
+        gap: 1.25rem;
+    }
+}
+</style>
 @endsection

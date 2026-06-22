@@ -9,13 +9,17 @@ use App\Models\HealthEntry;
 use App\Models\Play;
 use App\Models\PlayStationSession;
 use App\Services\Spotify\SpotifyService;
+use App\Services\WeatherService;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class HomeController extends Controller
 {
-    public function __construct(protected SpotifyService $spotifyService) {}
+    public function __construct(
+        protected SpotifyService $spotifyService,
+        protected WeatherService $weatherService,
+    ) {}
 
     public function index(): View
     {
@@ -29,6 +33,7 @@ class HomeController extends Controller
         $lastHealthEntry = $this->getLastHealthEntry();
         $lastExpense = $this->getLastExpense();
         $lastStravaActivity = $this->getLastStravaActivity();
+        $weather = $this->weatherService->get();
 
         return view('home.index', compact(
             'spotifyConnected',
@@ -39,7 +44,8 @@ class HomeController extends Controller
             'lastGameSession',
             'lastHealthEntry',
             'lastExpense',
-            'lastStravaActivity'
+            'lastStravaActivity',
+            'weather',
         ));
     }
 
