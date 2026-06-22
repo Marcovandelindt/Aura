@@ -4,11 +4,11 @@ namespace App\Http\Controllers\Tasks;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreTaskRequest;
-use Illuminate\Http\Request;
 use App\Models\PlayerStats;
 use App\Models\Task;
 use App\Services\PlayerStatsService;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class TaakController extends Controller
@@ -95,6 +95,20 @@ class TaakController extends Controller
         $task->update(['due_date' => $request->input('due_date') ?: null]);
 
         return redirect()->route('tasks.index');
+    }
+
+    public function bulkUpdateDueDate(Request $request): RedirectResponse
+    {
+        $request->validate([
+            'task_ids' => ['required', 'array', 'min:1'],
+            'task_ids.*' => ['integer', 'exists:tasks,id'],
+            'due_date' => ['nullable', 'date'],
+        ]);
+
+        Task::whereIn('id', $request->input('task_ids'))
+            ->update(['due_date' => $request->input('due_date') ?: null]);
+
+        return redirect()->route('tasks.index')->with('success', count($request->input('task_ids')).' taken bijgewerkt.');
     }
 
     public function resetProgress(): RedirectResponse

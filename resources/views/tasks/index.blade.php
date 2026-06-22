@@ -84,6 +84,7 @@
                 @foreach($pendingTasks as $task)
                     <div class="task-card difficulty-{{ $task->difficulty }}">
                         <div class="task-card-main">
+                            <input type="checkbox" class="task-checkbox" value="{{ $task->id }}" onchange="toggleTaskSelection({{ $task->id }}, this)">
                             <form method="POST" action="{{ route('tasks.complete', $task) }}" style="flex-shrink: 0;">
                                 @csrf
                                 <button type="submit" class="complete-btn" title="Voltooien">
@@ -145,6 +146,7 @@
                 @foreach($overdueTasks as $task)
                     <div class="task-card difficulty-{{ $task->difficulty }} task-card--overdue">
                         <div class="task-card-main">
+                            <input type="checkbox" class="task-checkbox" value="{{ $task->id }}" onchange="toggleTaskSelection({{ $task->id }}, this)">
                             <form method="POST" action="{{ route('tasks.complete', $task) }}" style="flex-shrink: 0;">
                                 @csrf
                                 <button type="submit" class="complete-btn" title="Voltooien">
@@ -198,6 +200,7 @@
                 @foreach($upcomingTasks as $task)
                     <div class="task-card task-card--upcoming">
                         <div class="task-card-main">
+                            <input type="checkbox" class="task-checkbox" value="{{ $task->id }}" onchange="toggleTaskSelection({{ $task->id }}, this)">
                             <div class="complete-btn complete-btn--upcoming">
                                 <i class="fas fa-clock"></i>
                             </div>
@@ -264,6 +267,21 @@
             </div>
         </div>
     @endif
+
+    {{-- Bulk action bar --}}
+    <div id="bulk-bar" class="bulk-bar">
+        <form id="bulk-form" method="POST" action="{{ route('tasks.bulk-update-due-date') }}">
+            @csrf
+            <div class="bulk-bar-content">
+                <span id="bulk-count" class="bulk-count"></span>
+                <div class="bulk-actions">
+                    <input type="date" name="due_date" id="bulk-due-date" class="form-control" style="width: auto; padding: 0.3rem 0.6rem; font-size: 0.85rem; height: auto;">
+                    <button type="submit" class="btn btn-primary btn-sm">Datum toepassen</button>
+                    <button type="button" class="btn btn-secondary btn-sm" onclick="clearBulkSelection()">Deselecteer alles</button>
+                </div>
+            </div>
+        </form>
+    </div>
 
     {{-- Achievements --}}
     <div>
@@ -704,6 +722,60 @@
     margin-top: 0.25rem;
 }
 
+/* Task checkbox */
+.task-checkbox {
+    width: 1rem;
+    height: 1rem;
+    flex-shrink: 0;
+    cursor: pointer;
+    accent-color: #6366f1;
+    opacity: 0;
+    transition: opacity 0.15s;
+}
+
+.task-card:hover .task-checkbox,
+.task-checkbox:checked {
+    opacity: 1;
+}
+
+/* Bulk action bar */
+.bulk-bar {
+    position: fixed;
+    bottom: 2rem;
+    left: 50%;
+    transform: translateX(-50%) translateY(calc(100% + 2rem));
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 0.75rem;
+    padding: 0.75rem 1.25rem;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+    z-index: 1000;
+    transition: transform 0.25s ease;
+    white-space: nowrap;
+}
+
+.bulk-bar.bulk-bar--visible {
+    transform: translateX(-50%) translateY(0);
+}
+
+.bulk-bar-content {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.bulk-count {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-muted);
+}
+
+.bulk-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
 /* XP popup */
 .xp-popup {
     position: fixed;
@@ -793,6 +865,42 @@ document.querySelectorAll('.mood-popup-overlay').forEach(overlay => {
 function toggleDueDateForm(taskId) {
     const form = document.getElementById('due-date-form-' + taskId);
     form.style.display = form.style.display === 'none' ? 'block' : 'none';
+}
+
+const selectedTaskIds = new Set();
+
+function toggleTaskSelection(taskId, checkbox) {
+    if (checkbox.checked) {
+        selectedTaskIds.add(taskId);
+    } else {
+        selectedTaskIds.delete(taskId);
+    }
+    updateBulkBar();
+}
+
+function updateBulkBar() {
+    const bar = document.getElementById('bulk-bar');
+    const count = document.getElementById('bulk-count');
+    const form = document.getElementById('bulk-form');
+
+    form.querySelectorAll('input[name="task_ids[]"]').forEach(el => el.remove());
+    selectedTaskIds.forEach(id => {
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'task_ids[]';
+        input.value = id;
+        form.appendChild(input);
+    });
+
+    const n = selectedTaskIds.size;
+    count.textContent = n === 1 ? '1 taak geselecteerd' : `${n} taken geselecteerd`;
+    bar.classList.toggle('bulk-bar--visible', n > 0);
+}
+
+function clearBulkSelection() {
+    selectedTaskIds.clear();
+    document.querySelectorAll('.task-checkbox').forEach(cb => cb.checked = false);
+    updateBulkBar();
 }
 
 document.addEventListener('keydown', function(e) {

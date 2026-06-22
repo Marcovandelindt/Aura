@@ -9,4 +9,5 @@ Route::post('/taken/{task}/voltooien', [TaakController::class, 'complete'])->nam
 Route::post('/taken/{task}/ongedaan', [TaakController::class, 'uncomplete'])->name('tasks.uncomplete');
 Route::delete('/taken/{task}', [TaakController::class, 'destroy'])->name('tasks.destroy');
 Route::patch('/taken/{task}/deadline', [TaakController::class, 'updateDueDate'])->name('tasks.update-due-date');
+Route::post('/taken/bulk/deadline', [TaakController::class, 'bulkUpdateDueDate'])->name('tasks.bulk-update-due-date');
 Route::post('/taken/voortgang/reset', [TaakController::class, 'resetProgress'])->name('tasks.reset-progress');
