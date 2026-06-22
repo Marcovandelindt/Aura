@@ -69,9 +69,12 @@
                                                 <div class="otd-track-title">{{ $item['track']->title }}</div>
                                                 <div class="otd-track-artist">{{ $item['track']->artists_string ?: '—' }}</div>
                                             </div>
-                                            @if($item['count'] > 1)
-                                                <div class="otd-track-count">{{ $item['count'] }}×</div>
-                                            @endif
+                                            <div class="otd-track-right">
+                                                @if($item['count'] > 1)
+                                                    <span class="otd-track-count">{{ $item['count'] }}×</span>
+                                                @endif
+                                                <span class="otd-time">{{ $item['last_played_at']->format('H:i') }}</span>
+                                            </div>
                                         </div>
                                     @endif
                                 @endforeach
@@ -201,6 +204,7 @@
                                     <div class="otd-game">
                                         <span class="otd-game-platform otd-game-platform--ps">PS</span>
                                         <span class="otd-game-name">{{ $session->game?->name ?? '—' }}</span>
+                                        <span class="otd-time">{{ $session->started_at->format('H:i') }}</span>
                                         <span class="otd-game-duration">{{ $session->formatted_duration }}</span>
                                     </div>
                                 @endforeach
@@ -507,11 +511,24 @@
     text-overflow: ellipsis;
 }
 
+.otd-track-right {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.1rem;
+    flex-shrink: 0;
+}
+
 .otd-track-count {
     font-size: 0.75rem;
     font-weight: 700;
     color: #6366f1;
-    flex-shrink: 0;
+}
+
+.otd-time {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    font-variant-numeric: tabular-nums;
 }
 
 /* ── Activities ── */

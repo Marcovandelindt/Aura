@@ -48,8 +48,12 @@ class OnThisDayController extends Controller
 
         $topTracks = $plays
             ->groupBy('track_id')
-            ->map(fn ($group) => ['track' => $group->first()->track, 'count' => $group->count()])
-            ->sortByDesc('count')
+            ->map(fn ($group) => [
+                'track' => $group->first()->track,
+                'count' => $group->count(),
+                'last_played_at' => $group->last()->played_at,
+            ])
+            ->sortByDesc('last_played_at')
             ->take(5)
             ->values();
 
