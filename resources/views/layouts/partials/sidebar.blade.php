@@ -15,6 +15,13 @@
                 </a>
             </li>
             
+            <li class="nav-item">
+                <a href="{{ route('on-this-day.index') }}" class="nav-link {{ request()->routeIs('on-this-day.*') ? 'active' : '' }}">
+                    <i class="fas fa-clock-rotate-left nav-icon"></i>
+                    <span class="nav-text">Op deze dag</span>
+                </a>
+            </li>
+
             <li class="nav-section">
                 <span class="nav-section-title">Lifestyle</span>
             </li>

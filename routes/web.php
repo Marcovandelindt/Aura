@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', [HomeController::class, 'index'])->name('home.index');
 
+require __DIR__.'/on-this-day.php';
 require __DIR__.'/spotify.php';
 require __DIR__.'/strava.php';
 require __DIR__.'/music.php';
