@@ -66,11 +66,17 @@
                                     </div>
                                     <div class="subscription-billing">
                                         <span class="subscription-amount">{{ $subscription->formatted_amount }}</span>
+                                        @if($subscription->original_amount)
+                                            <span style="color: #9ca3af; font-size: 0.75rem; text-decoration: line-through;">€{{ number_format($subscription->original_amount, 2, ',', '.') }}</span>
+                                        @endif
                                         <span style="color: #6b7280; font-size: 0.75rem;">{{ $billingLabels[$subscription->billing_cycle] }}</span>
                                         @if($subscription->billing_day)
                                             <span style="color: #6b7280; font-size: 0.75rem;">· dag {{ $subscription->billing_day }}</span>
                                         @endif
                                     </div>
+                                    @if($subscription->notes)
+                                        <div style="color: #6b7280; font-size: 0.75rem; font-style: italic;">{{ $subscription->notes }}</div>
+                                    @endif
                                 </div>
                                 <div class="subscription-actions">
                                     <button class="btn btn-sm btn-secondary" onclick="openEditSubscriptionModal({{ json_encode($subscription) }})">
@@ -146,13 +152,25 @@
 
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
                     <div class="form-group">
-                        <label for="subAmount">Bedrag</label>
+                        <label for="subAmount">Bedrag dat ik betaal</label>
                         <input type="number" id="subAmount" class="form-control" placeholder="0.00" min="0.01" step="0.01" required>
                     </div>
+                    <div class="form-group">
+                        <label for="subOriginalAmount">Originele prijs (optioneel)</label>
+                        <input type="number" id="subOriginalAmount" class="form-control" placeholder="0.00" min="0.01" step="0.01">
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
                     <div class="form-group">
                         <label for="subBillingDay">Dag van de maand</label>
                         <input type="number" id="subBillingDay" class="form-control" placeholder="1-31" min="1" max="31">
                     </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="subNotes">Notities (optioneel)</label>
+                    <textarea id="subNotes" class="form-control" rows="2" placeholder="bijv. gedeeld met pa en broer"></textarea>
                 </div>
 
                 <div class="form-group">
@@ -235,8 +253,10 @@ function openAddSubscriptionModal() {
     document.getElementById('subscriptionId').value = '';
     document.getElementById('subName').value = '';
     document.getElementById('subAmount').value = '';
+    document.getElementById('subOriginalAmount').value = '';
     document.getElementById('subBillingCycle').value = 'monthly';
     document.getElementById('subBillingDay').value = '';
+    document.getElementById('subNotes').value = '';
     document.getElementById('subCategory').value = '';
     document.getElementById('subSubcategory').innerHTML = '<option value="">Geen subcategorie</option>';
     document.getElementById('subStartedAt').value = '';
@@ -255,8 +275,10 @@ function openEditSubscriptionModal(subscription) {
     document.getElementById('subscriptionId').value = subscription.id;
     document.getElementById('subName').value = subscription.name;
     document.getElementById('subAmount').value = subscription.amount;
+    document.getElementById('subOriginalAmount').value = subscription.original_amount || '';
     document.getElementById('subBillingCycle').value = subscription.billing_cycle;
     document.getElementById('subBillingDay').value = subscription.billing_day || '';
+    document.getElementById('subNotes').value = subscription.notes || '';
     document.getElementById('subCategory').value = subscription.expense_category_id;
     document.getElementById('subStartedAt').value = subscription.started_at ? subscription.started_at.split('T')[0] : '';
     document.getElementById('subIsActive').checked = subscription.is_active;
@@ -279,8 +301,10 @@ document.getElementById('subscriptionForm').addEventListener('submit', function(
     const data = {
         name: document.getElementById('subName').value,
         amount: document.getElementById('subAmount').value,
+        original_amount: document.getElementById('subOriginalAmount').value || null,
         billing_cycle: document.getElementById('subBillingCycle').value,
         billing_day: document.getElementById('subBillingDay').value || null,
+        notes: document.getElementById('subNotes').value || null,
         expense_category_id: document.getElementById('subCategory').value,
         expense_subcategory_id: document.getElementById('subSubcategory').value || null,
         started_at: document.getElementById('subStartedAt').value || null,

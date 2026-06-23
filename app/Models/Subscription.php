@@ -11,8 +11,10 @@ class Subscription extends Model
     protected $fillable = [
         'name',
         'amount',
+        'original_amount',
         'billing_cycle',
         'billing_day',
+        'notes',
         'expense_category_id',
         'expense_subcategory_id',
         'started_at',
@@ -24,6 +26,7 @@ class Subscription extends Model
     {
         return [
             'amount' => 'decimal:2',
+            'original_amount' => 'decimal:2',
             'billing_day' => 'integer',
             'started_at' => 'date',
             'cancelled_at' => 'date',

@@ -41,7 +41,7 @@ class ExpensesController extends Controller
         }
 
         $expenses = $query->paginate(25)->withQueryString();
-        $categories = ExpenseCategory::ordered()->get();
+        $categories = ExpenseCategory::orderBy('name')->get();
         $subcategories = ExpenseSubcategory::orderBy('name')->get();
         $merchants = Merchant::ordered()->get();
         $subscriptions = Subscription::active()->ordered()->with(['category', 'subcategory'])->get();
