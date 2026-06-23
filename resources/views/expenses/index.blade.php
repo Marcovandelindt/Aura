@@ -250,12 +250,6 @@
                     <label for="expenseMerchant">Merchant (optioneel)</label>
                     <select id="expenseMerchant" class="form-control" onchange="onMerchantChange(this.value)">
                         <option value="">Geen merchant</option>
-                        @foreach($merchants as $merchant)
-                            <option value="{{ $merchant->id }}"
-                                data-category="{{ $merchant->expense_category_id }}">
-                                {{ $merchant->name }}{{ $merchant->city ? ' – ' . $merchant->city : '' }}
-                            </option>
-                        @endforeach
                         <option value="__new__">+ Nieuwe merchant toevoegen...</option>
                     </select>
                 </div>
@@ -309,6 +303,7 @@
 <script>
 const allSubcategories = @json($subcategories);
 const allSubscriptions = @json($subscriptions);
+const allMerchants = @json($merchants);
 const allTags = @json($tags);
 
 let isEditing = false;
@@ -399,10 +394,35 @@ function onCategoryChange(categoryId, preselectSubcategoryId = null, fromSubscri
         const amountInput = document.getElementById('expenseAmount');
         amountInput.readOnly = false;
         amountInput.style.opacity = '';
+        updateMerchantOptions(categoryId);
     }
 }
 
 // --- Merchant ---
+function updateMerchantOptions(categoryId, preselectMerchantId = null) {
+    const select = document.getElementById('expenseMerchant');
+    const currentValue = preselectMerchantId ?? select.value;
+    const filtered = categoryId
+        ? allMerchants.filter(m => m.expense_category_id == categoryId)
+        : allMerchants;
+
+    select.innerHTML = '<option value="">Geen merchant</option>';
+    filtered.forEach(m => {
+        const opt = document.createElement('option');
+        opt.value = m.id;
+        opt.dataset.category = m.expense_category_id;
+        opt.textContent = m.name + (m.city ? ' – ' + m.city : '');
+        if (m.id == currentValue) opt.selected = true;
+        select.appendChild(opt);
+    });
+    const newOpt = document.createElement('option');
+    newOpt.value = '__new__';
+    newOpt.textContent = '+ Nieuwe merchant toevoegen...';
+    select.appendChild(newOpt);
+
+    document.getElementById('newMerchantGroup').style.display = 'none';
+}
+
 function onMerchantChange(merchantId) {
     const newGroup = document.getElementById('newMerchantGroup');
 
@@ -413,15 +433,6 @@ function onMerchantChange(merchantId) {
     }
 
     newGroup.style.display = 'none';
-
-    if (!merchantId) return;
-
-    const opt = document.querySelector(`#expenseMerchant option[value="${merchantId}"]`);
-    const categoryId = opt?.dataset.category;
-    if (categoryId && !document.getElementById('expenseCategory').value) {
-        document.getElementById('expenseCategory').value = categoryId;
-        onCategoryChange(categoryId);
-    }
 }
 
 // --- Tags ---
@@ -514,7 +525,7 @@ function openAddExpenseModal() {
     document.getElementById('subscriptionPickerGroup').style.display = 'none';
     document.getElementById('amountGroup').style.display = '';
     document.getElementById('merchantGroup').style.display = '';
-    document.getElementById('expenseMerchant').value = '';
+    updateMerchantOptions(null);
     document.getElementById('newMerchantGroup').style.display = 'none';
     document.getElementById('newMerchantName').value = '';
     document.getElementById('expenseAmount').value = '';
@@ -551,8 +562,7 @@ function openEditExpenseModal(expense) {
     document.getElementById('expenseNotes').value = expense.notes || '';
 
     onCategoryChange(expense.expense_category_id, expense.expense_subcategory_id);
-
-    document.getElementById('expenseMerchant').value = expense.merchant_id || '';
+    updateMerchantOptions(expense.expense_category_id, expense.merchant_id);
     document.getElementById('newMerchantGroup').style.display = 'none';
 
     if (document.getElementById('expenseSubscription')) {
