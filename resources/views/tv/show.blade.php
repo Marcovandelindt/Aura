@@ -163,24 +163,26 @@
                         @if($castHidden->isNotEmpty())
                             <div id="cast-extra" style="display: none; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 1rem; margin-top: 1rem;">
                                 @foreach($castHidden as $person)
-                                    <div style="background: #1f2937; border-radius: 0.5rem; overflow: hidden; text-align: center;">
-                                        @if($person->profile_url)
-                                            <img src="{{ $person->profile_url }}" alt="{{ $person->name }}" style="width: 100%; aspect-ratio: 2/3; object-fit: cover;">
-                                        @else
-                                            <div style="width: 100%; aspect-ratio: 2/3; background: #374151; display: flex; align-items: center; justify-content: center;">
-                                                <i class="fas fa-user" style="color: #6b7280; font-size: 2rem;"></i>
+                                    <a href="{{ route('people.show', $person) }}" style="text-decoration: none;">
+                                        <div style="background: #1f2937; border-radius: 0.5rem; overflow: hidden; text-align: center;">
+                                            @if($person->profile_url)
+                                                <img src="{{ $person->profile_url }}" alt="{{ $person->name }}" style="width: 100%; aspect-ratio: 2/3; object-fit: cover;">
+                                            @else
+                                                <div style="width: 100%; aspect-ratio: 2/3; background: #374151; display: flex; align-items: center; justify-content: center;">
+                                                    <i class="fas fa-user" style="color: #6b7280; font-size: 2rem;"></i>
+                                                </div>
+                                            @endif
+                                            <div style="padding: 0.5rem;">
+                                                <div style="font-weight: 500; font-size: 0.8125rem; line-height: 1.3; color: #f3f4f6;">{{ $person->name }}</div>
+                                                @if($person->pivot->character)
+                                                    <div style="color: #6b7280; font-size: 0.75rem; margin-top: 0.25rem;">{{ $person->pivot->character }}</div>
+                                                @endif
+                                                @if($person->pivot->episode_count)
+                                                    <div style="color: #4b5563; font-size: 0.75rem; margin-top: 0.125rem;">{{ $person->pivot->episode_count }} eps</div>
+                                                @endif
                                             </div>
-                                        @endif
-                                        <div style="padding: 0.5rem;">
-                                            <div style="font-weight: 500; font-size: 0.8125rem; line-height: 1.3; color: #f3f4f6;">{{ $person->name }}</div>
-                                            @if($person->pivot->character)
-                                                <div style="color: #6b7280; font-size: 0.75rem; margin-top: 0.25rem;">{{ $person->pivot->character }}</div>
-                                            @endif
-                                            @if($person->pivot->episode_count)
-                                                <div style="color: #4b5563; font-size: 0.75rem; margin-top: 0.125rem;">{{ $person->pivot->episode_count }} eps</div>
-                                            @endif
                                         </div>
-                                    </div>
+                                    </a>
                                 @endforeach
                             </div>
                             <button onclick="toggleCast()" id="cast-toggle-btn" data-count="{{ $castHidden->count() }}" class="btn btn-secondary" style="margin-top: 1rem; font-size: 0.875rem;">
