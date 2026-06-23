@@ -556,7 +556,6 @@ function openEditExpenseModal(expense) {
     document.getElementById('submitBtnText').textContent = 'Bijwerken';
     document.getElementById('expenseId').value = expense.id;
     document.getElementById('expenseCategory').value = expense.expense_category_id;
-    document.getElementById('expenseAmount').value = expense.amount;
     document.getElementById('expenseDate').value = expense.date.split('T')[0];
     document.getElementById('expenseDescription').value = expense.description || '';
     document.getElementById('expenseNotes').value = expense.notes || '';
@@ -565,8 +564,18 @@ function openEditExpenseModal(expense) {
     updateMerchantOptions(expense.expense_category_id, expense.merchant_id);
     document.getElementById('newMerchantGroup').style.display = 'none';
 
-    if (document.getElementById('expenseSubscription')) {
-        document.getElementById('expenseSubscription').value = expense.subscription_id || '';
+    // Set amount AFTER onCategoryChange (which clears it for subscription categories)
+    const amountInput = document.getElementById('expenseAmount');
+    amountInput.value = expense.amount;
+    amountInput.readOnly = false;
+    amountInput.style.opacity = '';
+
+    const subSelect = document.getElementById('expenseSubscription');
+    if (subSelect) {
+        subSelect.value = expense.subscription_id || '';
+        if (expense.subscription_id) {
+            onSubscriptionChange(expense.subscription_id);
+        }
     }
 
     setTags(expense.tags || []);
@@ -633,7 +642,7 @@ document.getElementById('expenseForm').addEventListener('submit', async function
 
     fetch(url, {
         method,
-        headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
         body: JSON.stringify(data),
     })
     .then(r => r.json())
@@ -660,7 +669,7 @@ function deleteExpense(id) {
 
     fetch(`{{ url('/expenses') }}/${id}`, {
         method: 'DELETE',
-        headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+        headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
     })
     .then(r => r.json())
     .then(data => {
