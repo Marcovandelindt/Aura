@@ -7,6 +7,10 @@ use App\Http\Requests\Finance\StoreExpenseRequest;
 use App\Http\Requests\Finance\UpdateExpenseRequest;
 use App\Models\Expense;
 use App\Models\ExpenseCategory;
+use App\Models\ExpenseSubcategory;
+use App\Models\Merchant;
+use App\Models\Subscription;
+use App\Models\Tag;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -20,7 +24,9 @@ class ExpensesController extends Controller
         $startDate = $request->get('start_date');
         $endDate = $request->get('end_date');
 
-        $query = Expense::with('category')->orderByDesc('date')->orderByDesc('created_at');
+        $query = Expense::with(['category', 'subcategory', 'merchant', 'subscription', 'tags'])
+            ->orderByDesc('date')
+            ->orderByDesc('created_at');
 
         if ($categoryId) {
             $query->where('expense_category_id', $categoryId);
@@ -36,20 +42,29 @@ class ExpensesController extends Controller
 
         $expenses = $query->paginate(25)->withQueryString();
         $categories = ExpenseCategory::ordered()->get();
+        $subcategories = ExpenseSubcategory::orderBy('name')->get();
+        $merchants = Merchant::ordered()->get();
+        $subscriptions = Subscription::active()->ordered()->with(['category', 'subcategory'])->get();
+        $tags = Tag::ordered()->get();
         $stats = $this->getOverviewStats();
 
-        return view('expenses.index', compact('expenses', 'categories', 'stats'));
+        return view('expenses.index', compact(
+            'expenses', 'categories', 'subcategories', 'merchants', 'subscriptions', 'tags', 'stats'
+        ));
     }
 
     public function store(StoreExpenseRequest $request): JsonResponse
     {
         try {
-            $expense = Expense::create($request->validated());
+            $data = $request->safe()->except('tags');
+            $expense = Expense::create($data);
+
+            $this->syncTags($expense, $request->input('tags', []));
 
             return response()->json([
                 'success' => true,
                 'message' => 'Uitgave toegevoegd',
-                'expense' => $expense->load('category'),
+                'expense' => $expense->load(['category', 'subcategory', 'merchant', 'tags']),
             ]);
         } catch (\Exception $e) {
             return response()->json([
@@ -62,12 +77,15 @@ class ExpensesController extends Controller
     public function update(UpdateExpenseRequest $request, Expense $expense): JsonResponse
     {
         try {
-            $expense->update($request->validated());
+            $data = $request->safe()->except('tags');
+            $expense->update($data);
+
+            $this->syncTags($expense, $request->input('tags', []));
 
             return response()->json([
                 'success' => true,
                 'message' => 'Uitgave bijgewerkt',
-                'expense' => $expense->fresh()->load('category'),
+                'expense' => $expense->fresh()->load(['category', 'subcategory', 'merchant', 'tags']),
             ]);
         } catch (\Exception $e) {
             return response()->json([
@@ -92,6 +110,23 @@ class ExpensesController extends Controller
                 'message' => 'Fout bij verwijderen uitgave: '.$e->getMessage(),
             ], 500);
         }
+    }
+
+    private function syncTags(Expense $expense, array $tagNames): void
+    {
+        $tagNames = array_filter(array_map('trim', $tagNames));
+
+        if (empty($tagNames)) {
+            $expense->tags()->detach();
+
+            return;
+        }
+
+        $tagIds = collect($tagNames)->map(function (string $name) {
+            return Tag::firstOrCreate(['name' => $name])->id;
+        });
+
+        $expense->tags()->sync($tagIds);
     }
 
     private function getOverviewStats(): array

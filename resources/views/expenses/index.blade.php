@@ -20,6 +20,10 @@
                     <i class="fas fa-tags"></i>
                     Categorieën
                 </a>
+                <a href="{{ route('expenses.subscriptions.index') }}" class="btn btn-secondary">
+                    <i class="fas fa-receipt"></i>
+                    Abonnementen
+                </a>
                 <button onclick="openAddExpenseModal()" class="btn btn-primary">
                     <i class="fas fa-plus"></i>
                     Uitgave toevoegen
@@ -203,14 +207,58 @@
             <form id="expenseForm">
                 <input type="hidden" id="expenseId" value="">
 
+                @if($subscriptions->isNotEmpty())
+                <div class="form-group">
+                    <label for="expenseSubscription">Abonnement (optioneel)</label>
+                    <select id="expenseSubscription" class="form-control" onchange="onSubscriptionChange(this.value)">
+                        <option value="">Geen abonnement</option>
+                        @foreach($subscriptions as $sub)
+                            <option value="{{ $sub->id }}"
+                                data-amount="{{ $sub->amount }}"
+                                data-category="{{ $sub->expense_category_id }}"
+                                data-subcategory="{{ $sub->expense_subcategory_id }}">
+                                {{ $sub->name }} ({{ $sub->formatted_amount }})
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+                <hr style="border-color: var(--border-color); margin: 1rem 0;">
+                @endif
+
                 <div class="form-group">
                     <label for="expenseCategory">Categorie</label>
-                    <select id="expenseCategory" class="form-control" required>
+                    <select id="expenseCategory" class="form-control" required onchange="onCategoryChange(this.value)">
                         <option value="">Selecteer categorie...</option>
                         @foreach($categories as $category)
                             <option value="{{ $category->id }}">{{ $category->name }}</option>
                         @endforeach
                     </select>
+                </div>
+
+                <div class="form-group" id="subcategoryGroup" style="display: none;">
+                    <label for="expenseSubcategory">Subcategorie (optioneel)</label>
+                    <select id="expenseSubcategory" class="form-control">
+                        <option value="">Geen subcategorie</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="expenseMerchant">Merchant (optioneel)</label>
+                    <select id="expenseMerchant" class="form-control" onchange="onMerchantChange(this.value)">
+                        <option value="">Geen merchant</option>
+                        @foreach($merchants as $merchant)
+                            <option value="{{ $merchant->id }}"
+                                data-category="{{ $merchant->expense_category_id }}">
+                                {{ $merchant->name }}{{ $merchant->city ? ' – ' . $merchant->city : '' }}
+                            </option>
+                        @endforeach
+                        <option value="__new__">+ Nieuwe merchant toevoegen...</option>
+                    </select>
+                </div>
+
+                <div class="form-group" id="newMerchantGroup" style="display: none;">
+                    <label for="newMerchantName">Naam nieuwe merchant</label>
+                    <input type="text" id="newMerchantName" class="form-control" placeholder="bijv. Jumbo, Albert Heijn">
                 </div>
 
                 <div class="form-group">
@@ -226,6 +274,15 @@
                 <div class="form-group">
                     <label for="expenseDescription">Beschrijving (optioneel)</label>
                     <input type="text" id="expenseDescription" class="form-control" placeholder="Wat heb je gekocht?">
+                </div>
+
+                <div class="form-group">
+                    <label for="expenseTags">Tags (optioneel)</label>
+                    <div class="tag-input-wrapper" id="tagInputWrapper">
+                        <div id="tagPills" class="tag-pills"></div>
+                        <input type="text" id="tagInput" class="tag-input" placeholder="Tag toevoegen, bevestig met Enter">
+                    </div>
+                    <div id="tagSuggestions" class="tag-suggestions" style="display: none;"></div>
                 </div>
 
                 <div class="form-group">
@@ -246,16 +303,156 @@
 </div>
 
 <script>
+const allSubcategories = @json($subcategories);
+const allTags = @json($tags);
+
 let isEditing = false;
 let editingId = null;
+let activeTags = [];
 
 document.addEventListener('DOMContentLoaded', function () {
     if (new URLSearchParams(window.location.search).get('modal') === 'open') {
         openAddExpenseModal();
         history.replaceState(null, '', window.location.pathname);
     }
+
+    setupTagInput();
 });
 
+// --- Subscription ---
+function onSubscriptionChange(subscriptionId) {
+    if (!subscriptionId) return;
+
+    const opt = document.querySelector(`#expenseSubscription option[value="${subscriptionId}"]`);
+    if (!opt) return;
+
+    const categoryId = opt.dataset.category;
+    const subcategoryId = opt.dataset.subcategory;
+    const amount = opt.dataset.amount;
+
+    if (amount) document.getElementById('expenseAmount').value = amount;
+    if (categoryId) {
+        document.getElementById('expenseCategory').value = categoryId;
+        onCategoryChange(categoryId, subcategoryId);
+    }
+}
+
+// --- Category / Subcategory ---
+function onCategoryChange(categoryId, preselectSubcategoryId = null) {
+    const subcategories = allSubcategories.filter(s => s.expense_category_id == categoryId);
+    const group = document.getElementById('subcategoryGroup');
+    const select = document.getElementById('expenseSubcategory');
+
+    select.innerHTML = '<option value="">Geen subcategorie</option>';
+
+    if (subcategories.length > 0) {
+        subcategories.forEach(s => {
+            const opt = document.createElement('option');
+            opt.value = s.id;
+            opt.textContent = s.name;
+            if (s.id == preselectSubcategoryId) opt.selected = true;
+            select.appendChild(opt);
+        });
+        group.style.display = '';
+    } else {
+        group.style.display = 'none';
+    }
+}
+
+// --- Merchant ---
+function onMerchantChange(merchantId) {
+    const newGroup = document.getElementById('newMerchantGroup');
+
+    if (merchantId === '__new__') {
+        newGroup.style.display = '';
+        document.getElementById('newMerchantName').focus();
+        return;
+    }
+
+    newGroup.style.display = 'none';
+
+    if (!merchantId) return;
+
+    const opt = document.querySelector(`#expenseMerchant option[value="${merchantId}"]`);
+    const categoryId = opt?.dataset.category;
+    if (categoryId && !document.getElementById('expenseCategory').value) {
+        document.getElementById('expenseCategory').value = categoryId;
+        onCategoryChange(categoryId);
+    }
+}
+
+// --- Tags ---
+function setupTagInput() {
+    const input = document.getElementById('tagInput');
+    const suggestionsBox = document.getElementById('tagSuggestions');
+
+    input.addEventListener('keydown', e => {
+        if (e.key === 'Enter' || e.key === ',') {
+            e.preventDefault();
+            const val = input.value.trim().replace(/,$/, '');
+            if (val) addTag(val);
+            input.value = '';
+            suggestionsBox.style.display = 'none';
+        }
+        if (e.key === 'Backspace' && !input.value && activeTags.length) {
+            removeTag(activeTags[activeTags.length - 1]);
+        }
+    });
+
+    input.addEventListener('input', () => {
+        const val = input.value.trim().toLowerCase();
+        if (!val) { suggestionsBox.style.display = 'none'; return; }
+
+        const matches = allTags.filter(t =>
+            t.name.toLowerCase().includes(val) && !activeTags.includes(t.name)
+        );
+
+        if (matches.length === 0) { suggestionsBox.style.display = 'none'; return; }
+
+        suggestionsBox.innerHTML = matches.slice(0, 6).map(t =>
+            `<div class="tag-suggestion-item" onclick="addTag('${t.name.replace(/'/g, "\\'")}'); document.getElementById('tagInput').value=''; document.getElementById('tagSuggestions').style.display='none';">${t.name}</div>`
+        ).join('');
+        suggestionsBox.style.display = '';
+    });
+
+    document.addEventListener('click', e => {
+        if (!e.target.closest('#tagInputWrapper') && !e.target.closest('#tagSuggestions')) {
+            suggestionsBox.style.display = 'none';
+        }
+    });
+}
+
+function addTag(name) {
+    name = name.trim();
+    if (!name || activeTags.includes(name)) return;
+    activeTags.push(name);
+    renderTagPills();
+}
+
+function removeTag(name) {
+    activeTags = activeTags.filter(t => t !== name);
+    renderTagPills();
+}
+
+function renderTagPills() {
+    const container = document.getElementById('tagPills');
+    container.innerHTML = activeTags.map(t =>
+        `<span class="tag-pill">${t}<button type="button" onclick="removeTag('${t.replace(/'/g, "\\'")}')">×</button></span>`
+    ).join('');
+}
+
+function resetTags() {
+    activeTags = [];
+    renderTagPills();
+    document.getElementById('tagInput').value = '';
+}
+
+function setTags(tags) {
+    activeTags = tags.map(t => t.name);
+    renderTagPills();
+}
+
+// --- Modal open/close ---
 function openAddExpenseModal() {
     @if($categories->isEmpty())
         showNotification('Maak eerst een categorie aan', 'error');
@@ -269,6 +466,11 @@ function openAddExpenseModal() {
     document.getElementById('submitBtnText').textContent = 'Opslaan';
     document.getElementById('expenseId').value = '';
     document.getElementById('expenseCategory').value = '';
+    document.getElementById('expenseSubcategory').innerHTML = '<option value="">Geen subcategorie</option>';
+    document.getElementById('subcategoryGroup').style.display = 'none';
+    document.getElementById('expenseMerchant').value = '';
+    document.getElementById('newMerchantGroup').style.display = 'none';
+    document.getElementById('newMerchantName').value = '';
     document.getElementById('expenseAmount').value = '';
     const savedMonth = localStorage.getItem('lastExpenseMonth');
     document.getElementById('expenseDate').value = savedMonth
@@ -276,6 +478,11 @@ function openAddExpenseModal() {
         : '{{ now()->format('Y-m-d') }}';
     document.getElementById('expenseDescription').value = '';
     document.getElementById('expenseNotes').value = '';
+    resetTags();
+
+    if (document.getElementById('expenseSubscription')) {
+        document.getElementById('expenseSubscription').value = '';
+    }
 
     document.getElementById('expenseModal').classList.add('active');
     setTimeout(() => document.getElementById('expenseCategory').focus(), 100);
@@ -294,6 +501,17 @@ function openEditExpenseModal(expense) {
     document.getElementById('expenseDescription').value = expense.description || '';
     document.getElementById('expenseNotes').value = expense.notes || '';
 
+    onCategoryChange(expense.expense_category_id, expense.expense_subcategory_id);
+
+    document.getElementById('expenseMerchant').value = expense.merchant_id || '';
+    document.getElementById('newMerchantGroup').style.display = 'none';
+
+    if (document.getElementById('expenseSubscription')) {
+        document.getElementById('expenseSubscription').value = expense.subscription_id || '';
+    }
+
+    setTags(expense.tags || []);
+
     document.getElementById('expenseModal').classList.add('active');
 }
 
@@ -303,29 +521,50 @@ function closeExpenseModal() {
     editingId = null;
 }
 
-document.getElementById('expenseForm').addEventListener('submit', function(e) {
+// --- Submit ---
+document.getElementById('expenseForm').addEventListener('submit', async function(e) {
     e.preventDefault();
+
+    const merchantSelect = document.getElementById('expenseMerchant');
+    let merchantId = merchantSelect.value === '__new__' ? null : (merchantSelect.value || null);
+
+    if (merchantSelect.value === '__new__') {
+        const newName = document.getElementById('newMerchantName').value.trim();
+        if (newName) {
+            const categoryId = document.getElementById('expenseCategory').value;
+            const res = await fetch('{{ route('expenses.merchants.store') }}', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+                body: JSON.stringify({ name: newName, expense_category_id: categoryId || null }),
+            });
+            const json = await res.json();
+            if (json.success) {
+                merchantId = json.merchant.id;
+            }
+        }
+    }
 
     const data = {
         expense_category_id: document.getElementById('expenseCategory').value,
+        expense_subcategory_id: document.getElementById('expenseSubcategory').value || null,
+        merchant_id: merchantId,
+        subscription_id: document.getElementById('expenseSubscription')?.value || null,
         amount: document.getElementById('expenseAmount').value,
         date: document.getElementById('expenseDate').value,
         description: document.getElementById('expenseDescription').value || null,
         notes: document.getElementById('expenseNotes').value || null,
+        tags: activeTags,
     };
 
     const url = isEditing ? `{{ url('/expenses') }}/${editingId}` : '{{ route('expenses.store') }}';
     const method = isEditing ? 'PUT' : 'POST';
 
     fetch(url, {
-        method: method,
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': '{{ csrf_token() }}'
-        },
-        body: JSON.stringify(data)
+        method,
+        headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+        body: JSON.stringify(data),
     })
-    .then(response => response.json())
+    .then(r => r.json())
     .then(data => {
         if (data.success) {
             showNotification(data.message);
@@ -334,33 +573,24 @@ document.getElementById('expenseForm').addEventListener('submit', function(e) {
                 setTimeout(() => window.location.reload(), 1000);
             } else {
                 const lastDate = document.getElementById('expenseDate').value;
-                if (lastDate) {
-                    localStorage.setItem('lastExpenseMonth', lastDate.substring(0, 7));
-                }
+                if (lastDate) localStorage.setItem('lastExpenseMonth', lastDate.substring(0, 7));
                 setTimeout(() => window.location.href = '{{ route('expenses.index') }}?modal=open', 1000);
             }
         } else {
             showNotification(data.message || 'Fout bij opslaan', 'error');
         }
     })
-    .catch(error => {
-        console.error('Error:', error);
-        showNotification('Fout bij opslaan', 'error');
-    });
+    .catch(() => showNotification('Fout bij opslaan', 'error'));
 });
 
 function deleteExpense(id) {
-    if (!confirm('Weet je zeker dat je deze uitgave wilt verwijderen?')) {
-        return;
-    }
+    if (!confirm('Weet je zeker dat je deze uitgave wilt verwijderen?')) return;
 
     fetch(`{{ url('/expenses') }}/${id}`, {
         method: 'DELETE',
-        headers: {
-            'X-CSRF-TOKEN': '{{ csrf_token() }}'
-        }
+        headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
     })
-    .then(response => response.json())
+    .then(r => r.json())
     .then(data => {
         if (data.success) {
             showNotification(data.message);
@@ -369,54 +599,28 @@ function deleteExpense(id) {
             showNotification(data.message || 'Fout bij verwijderen', 'error');
         }
     })
-    .catch(error => {
-        console.error('Error:', error);
-        showNotification('Fout bij verwijderen', 'error');
-    });
+    .catch(() => showNotification('Fout bij verwijderen', 'error'));
 }
 
 function showNotification(message, type = 'success') {
-    const notification = document.createElement('div');
-    notification.className = `notification notification-${type}`;
-    notification.textContent = message;
-    notification.style.cssText = `
-        position: fixed;
-        top: 2rem;
-        right: 2rem;
-        padding: 1rem 1.5rem;
-        background: ${type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#3b82f6'};
-        color: white;
-        border-radius: 0.5rem;
-        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-        z-index: 9999;
-        animation: slideIn 0.3s ease-out;
-    `;
-
-    document.body.appendChild(notification);
-    setTimeout(() => notification.remove(), 3000);
-    return notification;
+    const el = document.createElement('div');
+    el.textContent = message;
+    el.style.cssText = `position:fixed;top:2rem;right:2rem;padding:1rem 1.5rem;background:${type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#3b82f6'};color:white;border-radius:0.5rem;box-shadow:0 10px 15px -3px rgba(0,0,0,.1);z-index:9999;animation:slideIn .3s ease-out`;
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 3000);
 }
 
-// Keyboard shortcuts
-document.addEventListener('keydown', (e) => {
+document.addEventListener('keydown', e => {
     const modal = document.getElementById('expenseModal');
     const isModalOpen = modal.classList.contains('active');
     const isTyping = ['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName);
 
-    if (e.key === 'Escape' && isModalOpen) {
-        closeExpenseModal();
-    }
-
-    if (e.key === 'o' && !isModalOpen && !isTyping) {
-        e.preventDefault();
-        openAddExpenseModal();
-    }
+    if (e.key === 'Escape' && isModalOpen) closeExpenseModal();
+    if (e.key === 'o' && !isModalOpen && !isTyping) { e.preventDefault(); openAddExpenseModal(); }
 });
 
-document.getElementById('expenseModal').addEventListener('click', (e) => {
-    if (e.target.id === 'expenseModal') {
-        closeExpenseModal();
-    }
+document.getElementById('expenseModal').addEventListener('click', e => {
+    if (e.target.id === 'expenseModal') closeExpenseModal();
 });
 </script>
 
@@ -450,14 +654,78 @@ document.getElementById('expenseModal').addEventListener('click', (e) => {
 .stat-change.neutral { color: #6b7280; }
 
 @keyframes slideIn {
-    from {
-        transform: translateX(100%);
-        opacity: 0;
-    }
-    to {
-        transform: translateX(0);
-        opacity: 1;
-    }
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+.tag-input-wrapper {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.375rem;
+    padding: 0.5rem;
+    border: 1px solid var(--border-color);
+    border-radius: 0.5rem;
+    background: var(--input-bg, var(--card-bg));
+    min-height: 42px;
+    cursor: text;
+}
+
+.tag-pills {
+    display: contents;
+}
+
+.tag-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.125rem 0.5rem;
+    background: var(--primary-color, #6366f1);
+    color: white;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.tag-pill button {
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+    font-size: 1rem;
+    opacity: 0.75;
+}
+
+.tag-pill button:hover { opacity: 1; }
+
+.tag-input {
+    border: none;
+    outline: none;
+    background: transparent;
+    color: var(--text-primary);
+    font-size: 0.875rem;
+    flex: 1;
+    min-width: 120px;
+}
+
+.tag-suggestions {
+    border: 1px solid var(--border-color);
+    border-radius: 0.5rem;
+    background: var(--card-bg);
+    margin-top: 0.25rem;
+    overflow: hidden;
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,.1);
+}
+
+.tag-suggestion-item {
+    padding: 0.5rem 0.75rem;
+    cursor: pointer;
+    font-size: 0.875rem;
+}
+
+.tag-suggestion-item:hover {
+    background: var(--hover-bg, rgba(99,102,241,.1));
 }
 </style>
 @endsection
