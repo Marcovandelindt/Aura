@@ -12,8 +12,8 @@ class ExpenseSubcategorySeeder extends Seeder
     {
         $subcategories = [
             'Auto' => ['Tanken', 'Onderhoud', 'Verzekering', 'Parkeren', 'Wegenbelasting'],
-            'Subscriptions' => ['Streaming', 'Insurance', 'Utilities', 'Telecom', 'Donations & charities', 'Other'],
-            'Other' => ['Gifts', 'Taxes & government', 'Miscellaneous'],
+            'Abbonnementen' => ['Streaming', 'Verzekeringen', 'Nutsvoorzieningen', 'Telecom', 'Giften & goede doelen', 'Overig'],
+            'Overig' => ['Cadeaus', 'Belastingen & overheid', 'Diversen'],
         ];
 
         foreach ($subcategories as $categoryName => $names) {
