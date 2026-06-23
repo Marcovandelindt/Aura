@@ -207,24 +207,6 @@
             <form id="expenseForm">
                 <input type="hidden" id="expenseId" value="">
 
-                @if($subscriptions->isNotEmpty())
-                <div class="form-group">
-                    <label for="expenseSubscription">Abonnement (optioneel)</label>
-                    <select id="expenseSubscription" class="form-control" onchange="onSubscriptionChange(this.value)">
-                        <option value="">Geen abonnement</option>
-                        @foreach($subscriptions as $sub)
-                            <option value="{{ $sub->id }}"
-                                data-amount="{{ $sub->amount }}"
-                                data-category="{{ $sub->expense_category_id }}"
-                                data-subcategory="{{ $sub->expense_subcategory_id }}">
-                                {{ $sub->name }} ({{ $sub->formatted_amount }})
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
-                <hr style="border-color: var(--border-color); margin: 1rem 0;">
-                @endif
-
                 <div class="form-group">
                     <label for="expenseCategory">Categorie</label>
                     <select id="expenseCategory" class="form-control" required onchange="onCategoryChange(this.value)">
@@ -235,6 +217,28 @@
                     </select>
                 </div>
 
+                <div class="form-group" id="subscriptionPickerGroup" style="display: none;">
+                    <label for="expenseSubscription">Selecteer abonnement</label>
+                    @if($subscriptions->isNotEmpty())
+                        <select id="expenseSubscription" class="form-control" onchange="onSubscriptionChange(this.value)">
+                            <option value="">Kies een abonnement...</option>
+                            @foreach($subscriptions as $sub)
+                                <option value="{{ $sub->id }}"
+                                    data-amount="{{ $sub->amount }}"
+                                    data-category="{{ $sub->expense_category_id }}"
+                                    data-subcategory="{{ $sub->expense_subcategory_id }}">
+                                    {{ $sub->name }} ({{ $sub->formatted_amount }})
+                                </option>
+                            @endforeach
+                        </select>
+                    @else
+                        <div style="font-size: 0.875rem; color: #6b7280; padding: 0.5rem 0;">
+                            Nog geen abonnementen. <a href="{{ route('expenses.subscriptions.index') }}">Voeg er een toe</a>.
+                        </div>
+                        <input type="hidden" id="expenseSubscription" value="">
+                    @endif
+                </div>
+
                 <div class="form-group" id="subcategoryGroup" style="display: none;">
                     <label for="expenseSubcategory">Subcategorie (optioneel)</label>
                     <select id="expenseSubcategory" class="form-control">
@@ -242,7 +246,7 @@
                     </select>
                 </div>
 
-                <div class="form-group">
+                <div class="form-group" id="merchantGroup">
                     <label for="expenseMerchant">Merchant (optioneel)</label>
                     <select id="expenseMerchant" class="form-control" onchange="onMerchantChange(this.value)">
                         <option value="">Geen merchant</option>
@@ -261,9 +265,9 @@
                     <input type="text" id="newMerchantName" class="form-control" placeholder="bijv. Jumbo, Albert Heijn">
                 </div>
 
-                <div class="form-group">
+                <div class="form-group" id="amountGroup">
                     <label for="expenseAmount">Bedrag</label>
-                    <input type="number" id="expenseAmount" class="form-control" placeholder="0.00" min="0.01" step="0.01" required>
+                    <input type="number" id="expenseAmount" class="form-control" placeholder="0.00" min="0.01" step="0.01">
                 </div>
 
                 <div class="form-group">
@@ -304,6 +308,7 @@
 
 <script>
 const allSubcategories = @json($subcategories);
+const allSubscriptions = @json($subscriptions);
 const allTags = @json($tags);
 
 let isEditing = false;
@@ -321,7 +326,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
 // --- Subscription ---
 function onSubscriptionChange(subscriptionId) {
-    if (!subscriptionId) return;
+    const amountInput = document.getElementById('expenseAmount');
+
+    if (!subscriptionId) {
+        amountInput.readOnly = false;
+        amountInput.style.opacity = '';
+        return;
+    }
 
     const opt = document.querySelector(`#expenseSubscription option[value="${subscriptionId}"]`);
     if (!opt) return;
@@ -330,15 +341,20 @@ function onSubscriptionChange(subscriptionId) {
     const subcategoryId = opt.dataset.subcategory;
     const amount = opt.dataset.amount;
 
-    if (amount) document.getElementById('expenseAmount').value = amount;
+    if (amount) {
+        amountInput.value = amount;
+        amountInput.readOnly = true;
+        amountInput.style.opacity = '0.6';
+    }
+
     if (categoryId) {
         document.getElementById('expenseCategory').value = categoryId;
-        onCategoryChange(categoryId, subcategoryId);
+        onCategoryChange(categoryId, subcategoryId, true);
     }
 }
 
 // --- Category / Subcategory ---
-function onCategoryChange(categoryId, preselectSubcategoryId = null) {
+function onCategoryChange(categoryId, preselectSubcategoryId = null, fromSubscription = false) {
     const subcategories = allSubcategories.filter(s => s.expense_category_id == categoryId);
     const group = document.getElementById('subcategoryGroup');
     const select = document.getElementById('expenseSubcategory');
@@ -356,6 +372,33 @@ function onCategoryChange(categoryId, preselectSubcategoryId = null) {
         group.style.display = '';
     } else {
         group.style.display = 'none';
+    }
+
+    const categoryHasSubscriptions = allSubscriptions.some(s => s.expense_category_id == categoryId);
+    const pickerGroup = document.getElementById('subscriptionPickerGroup');
+    const amountGroup = document.getElementById('amountGroup');
+    const merchantGroup = document.getElementById('merchantGroup');
+    const subSelect = document.getElementById('expenseSubscription');
+
+    if (categoryHasSubscriptions) {
+        pickerGroup.style.display = '';
+        amountGroup.style.display = 'none';
+        merchantGroup.style.display = 'none';
+        if (!fromSubscription && subSelect) subSelect.value = '';
+        if (!fromSubscription) {
+            const amountInput = document.getElementById('expenseAmount');
+            amountInput.value = '';
+            amountInput.readOnly = false;
+            amountInput.style.opacity = '';
+        }
+    } else {
+        pickerGroup.style.display = 'none';
+        amountGroup.style.display = '';
+        merchantGroup.style.display = '';
+        if (subSelect) subSelect.value = '';
+        const amountInput = document.getElementById('expenseAmount');
+        amountInput.readOnly = false;
+        amountInput.style.opacity = '';
     }
 }
 
@@ -468,10 +511,16 @@ function openAddExpenseModal() {
     document.getElementById('expenseCategory').value = '';
     document.getElementById('expenseSubcategory').innerHTML = '<option value="">Geen subcategorie</option>';
     document.getElementById('subcategoryGroup').style.display = 'none';
+    document.getElementById('subscriptionPickerGroup').style.display = 'none';
+    document.getElementById('amountGroup').style.display = '';
+    document.getElementById('merchantGroup').style.display = '';
     document.getElementById('expenseMerchant').value = '';
     document.getElementById('newMerchantGroup').style.display = 'none';
     document.getElementById('newMerchantName').value = '';
     document.getElementById('expenseAmount').value = '';
+    document.getElementById('expenseAmount').readOnly = false;
+    document.getElementById('expenseAmount').style.opacity = '';
+    if (document.getElementById('expenseSubscription')) document.getElementById('expenseSubscription').value = '';
     const savedMonth = localStorage.getItem('lastExpenseMonth');
     document.getElementById('expenseDate').value = savedMonth
         ? savedMonth + '-01'
@@ -524,6 +573,19 @@ function closeExpenseModal() {
 // --- Submit ---
 document.getElementById('expenseForm').addEventListener('submit', async function(e) {
     e.preventDefault();
+
+    const isSubscriptionMode = document.getElementById('subscriptionPickerGroup').style.display !== 'none';
+    const subSelect = document.getElementById('expenseSubscription');
+
+    if (isSubscriptionMode && (!subSelect || !subSelect.value)) {
+        showNotification('Selecteer een abonnement', 'error');
+        return;
+    }
+
+    if (!isSubscriptionMode && !document.getElementById('expenseAmount').value) {
+        showNotification('Vul een bedrag in', 'error');
+        return;
+    }
 
     const merchantSelect = document.getElementById('expenseMerchant');
     let merchantId = merchantSelect.value === '__new__' ? null : (merchantSelect.value || null);
