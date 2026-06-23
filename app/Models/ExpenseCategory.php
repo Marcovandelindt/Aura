@@ -26,6 +26,21 @@ class ExpenseCategory extends Model
         return $this->hasMany(Expense::class);
     }
 
+    public function subcategories(): HasMany
+    {
+        return $this->hasMany(ExpenseSubcategory::class);
+    }
+
+    public function merchants(): HasMany
+    {
+        return $this->hasMany(Merchant::class);
+    }
+
+    public function subscriptions(): HasMany
+    {
+        return $this->hasMany(Subscription::class);
+    }
+
     public function scopeOrdered($query)
     {
         return $query->orderBy('sort_order')->orderBy('name');

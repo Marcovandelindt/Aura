@@ -4,11 +4,15 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Expense extends Model
 {
     protected $fillable = [
         'expense_category_id',
+        'expense_subcategory_id',
+        'merchant_id',
+        'subscription_id',
         'amount',
         'date',
         'description',
@@ -26,6 +30,26 @@ class Expense extends Model
     public function category(): BelongsTo
     {
         return $this->belongsTo(ExpenseCategory::class, 'expense_category_id');
+    }
+
+    public function subcategory(): BelongsTo
+    {
+        return $this->belongsTo(ExpenseSubcategory::class, 'expense_subcategory_id');
+    }
+
+    public function merchant(): BelongsTo
+    {
+        return $this->belongsTo(Merchant::class);
+    }
+
+    public function subscription(): BelongsTo
+    {
+        return $this->belongsTo(Subscription::class);
+    }
+
+    public function tags(): BelongsToMany
+    {
+        return $this->belongsToMany(Tag::class, 'expense_tag');
     }
 
     public function scopeThisWeek($query)
