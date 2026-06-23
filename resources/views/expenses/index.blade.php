@@ -338,8 +338,8 @@ function onSubscriptionChange(subscriptionId) {
 
     if (amount) {
         amountInput.value = amount;
-        amountInput.readOnly = true;
-        amountInput.style.opacity = '0.6';
+        amountInput.readOnly = false;
+        amountInput.style.opacity = '';
     }
 
     if (categoryId) {
@@ -377,7 +377,7 @@ function onCategoryChange(categoryId, preselectSubcategoryId = null, fromSubscri
 
     if (categoryHasSubscriptions) {
         pickerGroup.style.display = '';
-        amountGroup.style.display = 'none';
+        amountGroup.style.display = '';
         merchantGroup.style.display = 'none';
         if (!fromSubscription && subSelect) subSelect.value = '';
         if (!fromSubscription) {
