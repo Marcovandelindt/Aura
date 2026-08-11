@@ -125,30 +125,27 @@ class HealthStatsController extends Controller
         $thisWeek = HealthEntry::where('date', '>=', $thisWeekStart)->get();
         $lastWeek = HealthEntry::whereBetween('date', [$lastWeekStart, $lastWeekEnd])->get();
 
-        $thisWeekSteps = $thisWeek->sum('steps');
-        $lastWeekSteps = $lastWeek->sum('steps');
-        $stepsDiff = $thisWeekSteps - $lastWeekSteps;
-        $stepsPercentChange = $lastWeekSteps > 0 ? round(($stepsDiff / $lastWeekSteps) * 100, 1) : 0;
-
         $thisWeekAvgSteps = $thisWeek->whereNotNull('steps')->avg('steps');
         $lastWeekAvgSteps = $lastWeek->whereNotNull('steps')->avg('steps');
+        $avgStepsDiff = ($thisWeekAvgSteps ?? 0) - ($lastWeekAvgSteps ?? 0);
+        $stepsPercentChange = $lastWeekAvgSteps > 0 ? round(($avgStepsDiff / $lastWeekAvgSteps) * 100, 1) : 0;
 
         return [
             'this_week' => [
                 'entries' => $thisWeek->count(),
-                'total_steps' => $thisWeekSteps,
+                'total_steps' => $thisWeek->sum('steps'),
                 'avg_steps' => $thisWeekAvgSteps ? round($thisWeekAvgSteps) : null,
                 'avg_heart_rate' => $thisWeek->whereNotNull('avg_heart_rate')->avg('avg_heart_rate') ? round($thisWeek->whereNotNull('avg_heart_rate')->avg('avg_heart_rate')) : null,
             ],
             'last_week' => [
                 'entries' => $lastWeek->count(),
-                'total_steps' => $lastWeekSteps,
+                'total_steps' => $lastWeek->sum('steps'),
                 'avg_steps' => $lastWeekAvgSteps ? round($lastWeekAvgSteps) : null,
                 'avg_heart_rate' => $lastWeek->whereNotNull('avg_heart_rate')->avg('avg_heart_rate') ? round($lastWeek->whereNotNull('avg_heart_rate')->avg('avg_heart_rate')) : null,
             ],
-            'steps_diff' => $stepsDiff,
+            'steps_diff' => $avgStepsDiff,
             'steps_percent_change' => $stepsPercentChange,
-            'trend' => $stepsDiff > 0 ? 'up' : ($stepsDiff < 0 ? 'down' : 'same'),
+            'trend' => $avgStepsDiff > 0 ? 'up' : ($avgStepsDiff < 0 ? 'down' : 'same'),
         ];
     }
 
@@ -159,27 +156,27 @@ class HealthStatsController extends Controller
             ->whereYear('date', now()->subMonth()->year)
             ->get();
 
-        $thisMonthSteps = $thisMonth->sum('steps');
-        $lastMonthSteps = $lastMonth->sum('steps');
-        $stepsDiff = $thisMonthSteps - $lastMonthSteps;
-        $stepsPercentChange = $lastMonthSteps > 0 ? round(($stepsDiff / $lastMonthSteps) * 100, 1) : 0;
+        $thisMonthAvgSteps = $thisMonth->whereNotNull('steps')->avg('steps');
+        $lastMonthAvgSteps = $lastMonth->whereNotNull('steps')->avg('steps');
+        $avgStepsDiff = ($thisMonthAvgSteps ?? 0) - ($lastMonthAvgSteps ?? 0);
+        $stepsPercentChange = $lastMonthAvgSteps > 0 ? round(($avgStepsDiff / $lastMonthAvgSteps) * 100, 1) : 0;
 
         return [
             'this_month' => [
                 'name' => now()->format('F'),
                 'entries' => $thisMonth->count(),
-                'total_steps' => $thisMonthSteps,
-                'avg_steps' => $thisMonth->whereNotNull('steps')->avg('steps') ? round($thisMonth->whereNotNull('steps')->avg('steps')) : null,
+                'total_steps' => $thisMonth->sum('steps'),
+                'avg_steps' => $thisMonthAvgSteps ? round($thisMonthAvgSteps) : null,
             ],
             'last_month' => [
                 'name' => now()->subMonth()->format('F'),
                 'entries' => $lastMonth->count(),
-                'total_steps' => $lastMonthSteps,
-                'avg_steps' => $lastMonth->whereNotNull('steps')->avg('steps') ? round($lastMonth->whereNotNull('steps')->avg('steps')) : null,
+                'total_steps' => $lastMonth->sum('steps'),
+                'avg_steps' => $lastMonthAvgSteps ? round($lastMonthAvgSteps) : null,
             ],
-            'steps_diff' => $stepsDiff,
+            'steps_diff' => $avgStepsDiff,
             'steps_percent_change' => $stepsPercentChange,
-            'trend' => $stepsDiff > 0 ? 'up' : ($stepsDiff < 0 ? 'down' : 'same'),
+            'trend' => $avgStepsDiff > 0 ? 'up' : ($avgStepsDiff < 0 ? 'down' : 'same'),
         ];
     }
 
