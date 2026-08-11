@@ -375,27 +375,19 @@ function onCategoryChange(categoryId, preselectSubcategoryId = null, fromSubscri
     const merchantGroup = document.getElementById('merchantGroup');
     const subSelect = document.getElementById('expenseSubscription');
 
-    if (categoryHasSubscriptions) {
-        pickerGroup.style.display = '';
-        amountGroup.style.display = '';
-        merchantGroup.style.display = 'none';
-        if (!fromSubscription && subSelect) subSelect.value = '';
-        if (!fromSubscription) {
-            const amountInput = document.getElementById('expenseAmount');
-            amountInput.value = '';
-            amountInput.readOnly = false;
-            amountInput.style.opacity = '';
-        }
-    } else {
-        pickerGroup.style.display = 'none';
-        amountGroup.style.display = '';
-        merchantGroup.style.display = '';
-        if (subSelect) subSelect.value = '';
+    pickerGroup.style.display = categoryHasSubscriptions ? '' : 'none';
+    amountGroup.style.display = '';
+    merchantGroup.style.display = '';
+
+    if (!fromSubscription && subSelect) subSelect.value = '';
+    if (!fromSubscription) {
         const amountInput = document.getElementById('expenseAmount');
+        amountInput.value = '';
         amountInput.readOnly = false;
         amountInput.style.opacity = '';
-        updateMerchantOptions(categoryId);
     }
+
+    updateMerchantOptions(categoryId);
 }
 
 // --- Merchant ---
@@ -593,15 +585,9 @@ function closeExpenseModal() {
 document.getElementById('expenseForm').addEventListener('submit', async function(e) {
     e.preventDefault();
 
-    const isSubscriptionMode = document.getElementById('subscriptionPickerGroup').style.display !== 'none';
     const subSelect = document.getElementById('expenseSubscription');
 
-    if (isSubscriptionMode && (!subSelect || !subSelect.value)) {
-        showNotification('Selecteer een abonnement', 'error');
-        return;
-    }
-
-    if (!isSubscriptionMode && !document.getElementById('expenseAmount').value) {
+    if (!document.getElementById('expenseAmount').value) {
         showNotification('Vul een bedrag in', 'error');
         return;
     }

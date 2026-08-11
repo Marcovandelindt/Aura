@@ -14,8 +14,8 @@ class ExpenseSubcategorySeeder extends Seeder
             'Auto' => ['Tanken', 'Onderhoud', 'Verzekering', 'Parkeren', 'Wegenbelasting', 'Auto wassen'],
             'Abbonnementen' => ['Streaming', 'Verzekeringen', 'Nutsvoorzieningen', 'Telecom', 'Giften & goede doelen', 'Overig'],
             'Huis' => ['Huur'],
-            'Overig' => ['Cadeaus', 'Belastingen & overheid', 'Kapper', 'Diversen'],
-            'Bank & Financieel' => ['Creditcard kosten', 'Bankkosten', 'Rente', 'Boetes', 'Overig'],
+            'Overig' => ['Cadeaus', 'Belastingen & overheid', 'Games', 'Kapper', 'Diversen'],
+            'Bank & Financieel' => ['Creditcard kosten', 'Bankkosten', 'Belastingen & overheid', 'Rente', 'Boetes', 'Overig'],
         ];
 
         foreach ($subcategories as $categoryName => $names) {
